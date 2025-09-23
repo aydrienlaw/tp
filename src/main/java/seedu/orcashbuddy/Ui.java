@@ -12,5 +12,19 @@ public class Ui {
     public void showGoodbye() {
         System.out.println("Bye. Hope to see you again soon!");
     }
-}
 
+    /**
+     * Prints the confirmation for a newly added expense.
+     */
+    public void showNewExpense(Expense expense) {
+        System.out.println("New Expense:");
+        System.out.println(expense.formatForDisplay());
+    }
+
+    /**
+     * Prints the correct usage for the add command.
+     */
+    public void showAddUsage() {
+        System.out.println("Invalid format. Use: add a/AMOUNT desc/DESCRIPTION");
+    }
+}
