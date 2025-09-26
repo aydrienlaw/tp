@@ -22,9 +22,27 @@ public class Ui {
     }
 
     /**
+     * Displays a confirmation message that an expense was deleted.
+     *
+     * @param expense The expense object that was deleted
+     */
+    public void showDeletedExpense(Expense expense) {
+        System.out.println("Deleted Expense:");
+        System.out.println(expense.formatForDisplay());
+    }
+
+    /**
      * Prints the correct usage for the add command.
      */
     public void showAddUsage() {
         System.out.println("Invalid format. Use: add a/AMOUNT desc/DESCRIPTION");
+    }
+
+    /**
+     * Displays usage information for the delete command.
+     * Format: delete EXPENSE_INDEX
+     */
+    public void showDeleteUsage() {
+        System.out.println("Invalid format. Use: delete EXPENSE_INDEX");
     }
 }
