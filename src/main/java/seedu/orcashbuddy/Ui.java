@@ -32,6 +32,26 @@ public class Ui {
     }
 
     /**
+     * Displays a confirmation message that an expense was marked.
+     *
+     * @param expense The expense object that was marked
+     */
+    public void showMarkedExpense(Expense expense) {
+        System.out.println("Marked Expense:");
+        System.out.println(expense.formatForDisplay());
+    }
+
+    /**
+     * Displays a confirmation message that an expense was unmarked.
+     *
+     * @param expense The expense object that was unmarked
+     */
+    public void showUnmarkedExpense(Expense expense) {
+        System.out.println("Unmarked Expense:");
+        System.out.println(expense.formatForDisplay());
+    }
+
+    /**
      * Prints the correct usage for the add command.
      */
     public void showAddUsage() {
@@ -44,5 +64,21 @@ public class Ui {
      */
     public void showDeleteUsage() {
         System.out.println("Invalid format. Use: delete EXPENSE_INDEX");
+    }
+
+    /**
+     * Displays usage information for the mark command.
+     * Format: mark EXPENSE_INDEX
+     */
+    public void showMarkUsage() {
+        System.out.println("Invalid format. Use: mark EXPENSE_INDEX");
+    }
+
+    /**
+     * Displays usage information for the unmark command.
+     * Format: unmark EXPENSE_INDEX
+     */
+    public void showUnmarkUsage() {
+        System.out.println("Invalid format. Use: unmark EXPENSE_INDEX");
     }
 }

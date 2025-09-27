@@ -82,6 +82,56 @@ public class ExpenseManager {
         }
     }
 
+    /**
+     * Marks or unmarks an expense by index.
+     * Expected command format: mark/unmark EXPENSE_INDEX
+     *
+     * @param input The full command string entered by the user
+     * @param shouldMark true to mark the expense, false to unmark it
+     */
+    public void handleMarkUnmark(String input, boolean shouldMark) {
+        // Determine command length and extract the rest
+        String commandWord = shouldMark ? "mark" : "unmark";
+        int commandLength = commandWord.length();
+        String rest = input.length() > commandLength ? input.substring(commandLength).trim() : "";
 
+        if (rest.isEmpty()) {
+            if (shouldMark) {
+                ui.showMarkUsage();
+            } else {
+                ui.showUnmarkUsage();
+            }
+            return;
+        }
+
+        try {
+            int index = Integer.parseInt(rest);
+
+            if (index < 1 || index > expenses.size()) {
+                if (shouldMark) {
+                    ui.showMarkUsage();
+                } else {
+                    ui.showUnmarkUsage();
+                }
+                return;
+            }
+
+            Expense expense = expenses.get(index - 1);
+            if (shouldMark) {
+                expense.mark();
+                ui.showMarkedExpense(expense);
+            } else {
+                expense.unmark();
+                ui.showUnmarkedExpense(expense);
+            }
+
+        } catch (NumberFormatException e) {
+            if (shouldMark) {
+                ui.showMarkUsage();
+            } else {
+                ui.showUnmarkUsage();
+            }
+        }
+    }
 }
 

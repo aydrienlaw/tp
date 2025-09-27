@@ -6,10 +6,12 @@ package seedu.orcashbuddy;
 public class Expense {
     private final double amount;
     private final String description;
+    private boolean isMarked;
 
     public Expense(double amount, String description) {
         this.amount = amount;
         this.description = description;
+        this.isMarked = false;
     }
 
     public double getAmount() {
@@ -20,10 +22,30 @@ public class Expense {
         return description;
     }
 
+    public boolean isMarked() {
+        return isMarked;
+    }
+
     /**
-     * Returns the display format: "[ ] DESCRIPTION - $XX.XX".
+     * Marks this expense as completed.
+     */
+    public void mark() {
+        this.isMarked = true;
+    }
+
+    /**
+     * Unmarks this expense.
+     */
+    public void unmark() {
+        this.isMarked = false;
+    }
+
+    /**
+     * Returns the display format: "[X] DESCRIPTION - $XX.XX" if marked,
+     * "[ ] DESCRIPTION - $XX.XX" if unmarked.
      */
     public String formatForDisplay() {
-        return "[ ] " + description + " - $" + String.format("%.2f", amount);
+        String statusIcon = isMarked ? "[X] " : "[ ] ";
+        return statusIcon + " " + description + " - $" + String.format("%.2f", amount);
     }
 }
