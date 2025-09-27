@@ -9,9 +9,11 @@ import java.util.Scanner;
  */
 public class Main {
     private final Ui ui;
+    private final ExpenseManager expenseManager;
 
     public Main() {
         this.ui = new Ui();
+        this.expenseManager = new ExpenseManager(ui);
     }
 
     public void run() {
@@ -34,48 +36,12 @@ public class Main {
             }
 
             if (trimmed.toLowerCase().startsWith("add")) {
-                handleAdd(trimmed);
+                expenseManager.handleAdd(trimmed);
                 continue;
             }
-
-            // Minimal feedback for unknown commands (keep simple)
-            ui.showAddUsage();
-        }
-    }
-
-    private void handleAdd(String input) {
-        // Expected format: add a/AMOUNT desc/DESCRIPTION
-        String rest = input.length() > 3 ? input.substring(3).trim() : "";
-        if (!rest.startsWith("a/")) {
-            ui.showAddUsage();
-            return;
-        }
-
-        // Find the start of "desc/" regardless of spacing before it
-        int descIdx = rest.indexOf("desc/");
-        if (descIdx == -1) {
-            ui.showAddUsage();
-            return;
-        }
-
-        String amountStr = rest.substring(2, descIdx).trim();
-        String description = rest.substring(descIdx + 5).trim(); // skip "desc/"
-
-        if (amountStr.isEmpty() || description.isEmpty()) {
-            ui.showAddUsage();
-            return;
-        }
-
-        try {
-            double amount = Double.parseDouble(amountStr);
-            if (!(amount > 0)) { // catches NaN and <= 0
-                ui.showAddUsage();
-                return;
+            if (trimmed.toLowerCase().startsWith("delete")) {
+                expenseManager.handleDelete(trimmed);
             }
-            Expense expense = new Expense(amount, description);
-            ui.showNewExpense(expense);
-        } catch (NumberFormatException e) {
-            ui.showAddUsage();
         }
     }
 
