@@ -135,6 +135,19 @@ public class ExpenseManager {
         }
     }
 
+    /**
+     * Handles the {@code setbudget} command by parsing user input,
+     * validating it, and updating the budget if the input is valid.
+     * <p>
+     * Expected input format: {@code setbudget a/AMOUNT}
+     * where {@code AMOUNT} is a non-negative number.
+     * <ul>
+     *   <li>If the input is invalid or missing, usage instructions are shown.</li>
+     *   <li>If the amount is valid, the budget is updated and a confirmation is displayed.</li>
+     * </ul>
+     *
+     * @param input the full command string entered by the user
+     */
     public void handleSetBudget(String input) {
         // Extract arguments after command
         String[] parts = input.trim().split("\\s+", 2);
