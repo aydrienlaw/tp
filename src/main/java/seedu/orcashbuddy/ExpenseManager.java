@@ -9,6 +9,7 @@ public class ExpenseManager {
     // To be implemented in later tasks.
     private final Ui ui;
     private final ArrayList<Expense> expenses;
+    private float budget = 0.0f;
 
     public ExpenseManager(Ui ui) {
         this.ui = ui;
@@ -131,6 +132,45 @@ public class ExpenseManager {
             } else {
                 ui.showUnmarkUsage();
             }
+        }
+    }
+
+    public void handleSetBudget(String input) {
+        // Extract arguments after command
+        String[] parts = input.trim().split("\\s+", 2);
+        String rest = parts.length > 1 ? parts[1] : "";
+
+        if (rest.isEmpty()) {
+            ui.showSetBudgetUsage();
+            return;
+        }
+
+        int amountIdx = rest.indexOf("a/");
+        if (amountIdx == -1) {
+            ui.showSetBudgetUsage();  // Fixed error message
+            return;
+        }
+
+        // Extract amount after "a/"
+        String amountStr = rest.substring(amountIdx + 2).trim();  // Fixed extraction
+        if (amountStr.isEmpty()) {
+            ui.showSetBudgetUsage();  // Fixed error message
+            return;
+        }
+
+        try {
+            float newBudget = Float.parseFloat(amountStr);
+
+            if (newBudget < 0) {
+                ui.showSetBudgetUsage();
+                return;
+            }
+
+            this.budget = newBudget;
+            ui.showNewBudget(budget);
+
+        } catch (NumberFormatException e) {
+            ui.showSetBudgetUsage();
         }
     }
 }

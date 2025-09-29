@@ -50,6 +50,10 @@ public class Main {
                 expenseManager.handleMarkUnmark(trimmed, false);
                 continue;
             }
+            if (trimmed.toLowerCase().startsWith("setbudget")) {
+                expenseManager.handleSetBudget(trimmed);
+                continue;
+            }
         }
     }
 
