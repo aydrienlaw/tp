@@ -42,6 +42,14 @@ public class Main {
             if (trimmed.toLowerCase().startsWith("delete")) {
                 expenseManager.handleDelete(trimmed);
             }
+            if (trimmed.toLowerCase().startsWith("mark")) {
+                expenseManager.handleMarkUnmark(trimmed, true);
+                continue;
+            }
+            if (trimmed.toLowerCase().startsWith("unmark")) {
+                expenseManager.handleMarkUnmark(trimmed, false);
+                continue;
+            }
         }
     }
 
