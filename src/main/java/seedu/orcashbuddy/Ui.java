@@ -32,6 +32,15 @@ public class Ui {
     }
 
     /**
+     * Displays a confirmation message showing the newly set total budget.
+     *
+     * @param budget the new budget amount to display
+     */
+    public void showNewBudget(float budget) {
+        System.out.println("Your total budget is now $" + String.format("%.2f", budget) + ".");
+    }
+
+    /**
      * Displays a confirmation message that an expense was marked.
      *
      * @param expense The expense object that was marked
@@ -65,6 +74,17 @@ public class Ui {
     public void showDeleteUsage() {
         System.out.println("Invalid format. Use: delete EXPENSE_INDEX");
     }
+
+    /**
+     * Displays usage instructions for the {@code setbudget} command
+     * when the user provides invalid input.
+     * <p>
+     * Correct format: {@code setbudget a/AMOUNT}
+     */
+    public void showSetBudgetUsage() {
+        System.out.println("Invalid format. Use: setbudget a/AMOUNT");
+    }
+
 
     /**
      * Displays usage information for the mark command.

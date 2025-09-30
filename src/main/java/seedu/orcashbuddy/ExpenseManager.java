@@ -9,6 +9,7 @@ public class ExpenseManager {
     // To be implemented in later tasks.
     private final Ui ui;
     private final ArrayList<Expense> expenses;
+    private float budget = 0.0f;
 
     public ExpenseManager(Ui ui) {
         this.ui = ui;
@@ -131,6 +132,58 @@ public class ExpenseManager {
             } else {
                 ui.showUnmarkUsage();
             }
+        }
+    }
+
+    /**
+     * Handles the {@code setbudget} command by parsing user input,
+     * validating it, and updating the budget if the input is valid.
+     * <p>
+     * Expected input format: {@code setbudget a/AMOUNT}
+     * where {@code AMOUNT} is a non-negative number.
+     * <ul>
+     *   <li>If the input is invalid or missing, usage instructions are shown.</li>
+     *   <li>If the amount is valid, the budget is updated and a confirmation is displayed.</li>
+     * </ul>
+     *
+     * @param input the full command string entered by the user
+     */
+    public void handleSetBudget(String input) {
+        // Extract arguments after command
+        String[] parts = input.trim().split("\\s+", 2);
+        String rest = parts.length > 1 ? parts[1] : "";
+
+        if (rest.isEmpty()) {
+            ui.showSetBudgetUsage();
+            return;
+        }
+
+        int amountIdx = rest.indexOf("a/");
+        if (amountIdx == -1) {
+            ui.showSetBudgetUsage();  // Fixed error message
+            return;
+        }
+
+        // Extract amount after "a/"
+        String amountStr = rest.substring(amountIdx + 2).trim();  // Fixed extraction
+        if (amountStr.isEmpty()) {
+            ui.showSetBudgetUsage();  // Fixed error message
+            return;
+        }
+
+        try {
+            float newBudget = Float.parseFloat(amountStr);
+
+            if (newBudget < 0) {
+                ui.showSetBudgetUsage();
+                return;
+            }
+
+            this.budget = newBudget;
+            ui.showNewBudget(budget);
+
+        } catch (NumberFormatException e) {
+            ui.showSetBudgetUsage();
         }
     }
 }
