@@ -81,7 +81,7 @@ public class Ui {
         }
         System.out.println("Here is the list of expenses:");
         for (int i = 0; i < expenses.size(); i++) {
-            System.out.println((i + 1) + ". " + expenses.get(i));
+            System.out.println((i + 1) + ". " + expenses.get(i).formatForDisplay());
         }
     }
 
@@ -100,7 +100,6 @@ public class Ui {
         showRemainingBalance(remainingBalance);
         showListOfExpenses(expenses);
     }
-
 
     /**
      * Displays a confirmation message that an expense was marked.

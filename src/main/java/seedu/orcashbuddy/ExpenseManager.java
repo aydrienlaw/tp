@@ -11,7 +11,7 @@ public class ExpenseManager {
     private final ArrayList<Expense> expenses;
     private double budget = 0.0f;
     private double totalExpenses = 0.0f;
-    private double remainingBlance = 0.0f;
+    private double remainingBalance = 0.0f;
 
     public ExpenseManager(Ui ui) {
         this.ui = ui;
@@ -123,12 +123,12 @@ public class ExpenseManager {
             if (shouldMark) {
                 expense.mark();
                 totalExpenses += expense.getAmount();
-                remainingBlance -= expense.getAmount();
+                remainingBalance = budget - totalExpenses;
                 ui.showMarkedExpense(expense);
             } else {
                 expense.unmark();
                 totalExpenses -= expense.getAmount();
-                remainingBlance += expense.getAmount();
+                remainingBalance = budget - totalExpenses;
                 ui.showUnmarkedExpense(expense);
             }
 
@@ -186,6 +186,7 @@ public class ExpenseManager {
             }
 
             this.budget = newBudget;
+            remainingBalance = budget - totalExpenses;
             ui.showNewBudget(budget);
 
         } catch (NumberFormatException e) {
@@ -205,7 +206,7 @@ public class ExpenseManager {
      * budget, remaining balance, and the full list of expenses.
      */
     public void handleStatistics(){
-        ui.showStatistics(totalExpenses, budget, remainingBlance, expenses);
+        ui.showStatistics(totalExpenses, budget, remainingBalance, expenses);
     }
 }
 
