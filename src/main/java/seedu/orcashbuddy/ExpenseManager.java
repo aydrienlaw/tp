@@ -9,7 +9,9 @@ public class ExpenseManager {
     // To be implemented in later tasks.
     private final Ui ui;
     private final ArrayList<Expense> expenses;
-    private float budget = 0.0f;
+    private double budget = 0.0f;
+    private double totalExpenses = 0.0f;
+    private double remainingBlance = 0.0f;
 
     public ExpenseManager(Ui ui) {
         this.ui = ui;
@@ -120,9 +122,13 @@ public class ExpenseManager {
             Expense expense = expenses.get(index - 1);
             if (shouldMark) {
                 expense.mark();
+                totalExpenses += expense.getAmount();
+                remainingBlance -= expense.getAmount();
                 ui.showMarkedExpense(expense);
             } else {
                 expense.unmark();
+                totalExpenses -= expense.getAmount();
+                remainingBlance += expense.getAmount();
                 ui.showUnmarkedExpense(expense);
             }
 
@@ -185,6 +191,21 @@ public class ExpenseManager {
         } catch (NumberFormatException e) {
             ui.showSetBudgetUsage();
         }
+    }
+
+    /**
+     * Handles the "list" command by displaying all recorded expenses.
+     */
+    public void handleList(){
+        ui.showListOfExpenses(expenses);
+    }
+
+    /**
+     * Handles the "statistics" command by displaying a summary of expenses,
+     * budget, remaining balance, and the full list of expenses.
+     */
+    public void handleStatistics(){
+        ui.showStatistics(totalExpenses, budget, remainingBlance, expenses);
     }
 }
 
