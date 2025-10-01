@@ -54,6 +54,13 @@ public class Main {
                 expenseManager.handleSetBudget(trimmed);
                 continue;
             }
+            if (trimmed.toLowerCase().startsWith("list")) {
+                expenseManager.handleList();
+                continue;
+            }
+            if (trimmed.toLowerCase().startsWith("statistics")) {
+                expenseManager.handleStatistics();
+            }
         }
     }
 
