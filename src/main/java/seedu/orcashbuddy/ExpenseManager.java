@@ -195,18 +195,11 @@ public class ExpenseManager {
     }
 
     /**
-     * Handles the "list" command by displaying all recorded expenses.
-     */
-    public void handleList(){
-        ui.showListOfExpenses(expenses);
-    }
-
-    /**
-     * Handles the "statistics" command by displaying a summary of expenses,
+     * Handles the "list" command by displaying a summary of expenses,
      * budget, remaining balance, and the full list of expenses.
      */
-    public void handleStatistics(){
-        ui.showStatistics(totalExpenses, budget, remainingBalance, expenses);
+    public void handleList(){
+        ui.showList(totalExpenses, budget, remainingBalance, expenses);
     }
 }
 
