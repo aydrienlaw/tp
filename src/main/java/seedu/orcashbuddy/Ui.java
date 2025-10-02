@@ -94,7 +94,8 @@ public class Ui {
      * @param remainingBalance The remaining balance after expenses.
      * @param expenses The list of all expenses.
      */
-    public void showStatistics(double totalExpense, double budget, double remainingBalance,ArrayList<Expense> expenses) {
+    public void showStatistics(double totalExpense, double budget,
+            double remainingBalance, ArrayList<Expense> expenses) {
         showTotalExpenses(totalExpense);
         showBudget(budget);
         showRemainingBalance(remainingBalance);
