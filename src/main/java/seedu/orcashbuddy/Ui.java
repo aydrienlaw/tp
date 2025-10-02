@@ -75,7 +75,7 @@ public class Ui {
      *
      * @param expenses The list of expenses to display.
      */
-    public void showListOfExpenses(ArrayList<Expense> expenses) {
+    private void showListOfExpenses(ArrayList<Expense> expenses) {
         if  (expenses.isEmpty()) {
             System.out.println("No expenses so far.");
         }
@@ -86,7 +86,7 @@ public class Ui {
     }
 
     /**
-     * Displays a summary of statistics including total expenses, budget,
+     * Displays total expenses, budget,
      * remaining balance, and the full list of expenses.
      *
      * @param totalExpense The total amount of expenses.
@@ -94,10 +94,10 @@ public class Ui {
      * @param remainingBalance The remaining balance after expenses.
      * @param expenses The list of all expenses.
      */
-    public void showStatistics(double totalExpense, double budget,
+    public void showList(double totalExpense, double budget,
             double remainingBalance, ArrayList<Expense> expenses) {
-        showTotalExpenses(totalExpense);
         showBudget(budget);
+        showTotalExpenses(totalExpense);
         showRemainingBalance(remainingBalance);
         showListOfExpenses(expenses);
     }
