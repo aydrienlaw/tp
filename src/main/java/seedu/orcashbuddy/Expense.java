@@ -45,7 +45,7 @@ public class Expense {
      * "[ ] DESCRIPTION - $XX.XX" if unmarked.
      */
     public String formatForDisplay() {
-        String statusIcon = isMarked ? "[X] " : "[ ] ";
+        String statusIcon = isMarked ? "[X]" : "[ ]";
         return statusIcon + " " + description + " - $" + String.format("%.2f", amount);
     }
 }
