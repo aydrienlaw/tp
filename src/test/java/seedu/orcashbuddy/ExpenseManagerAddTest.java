@@ -26,8 +26,7 @@ class ExpenseManagerAddTest {
     }
 
     @Test
-    void handleAdd_validAmountAndDescription_addsExpenseAndShowsConfirmation()
-    {
+    void handleAdd_validAmountAndDescription_addsExpenseAndShowsConfirmation() {
         StubUi ui = new StubUi();
         ExpenseManager mgr = new ExpenseManager(ui);
 
