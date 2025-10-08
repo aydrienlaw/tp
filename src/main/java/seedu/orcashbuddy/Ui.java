@@ -48,7 +48,7 @@ public class Ui {
      * @param totalExpense The total amount of expenses.
      */
     private void showTotalExpenses(double totalExpense){
-        System.out.println("Total Expenses: $" + String.format("%.2f", totalExpense));
+        System.out.println("Total expenses: $" + String.format("%.2f", totalExpense));
     }
 
     /**
@@ -78,6 +78,7 @@ public class Ui {
     private void showListOfExpenses(ArrayList<Expense> expenses) {
         if  (expenses.isEmpty()) {
             System.out.println("No expenses so far.");
+            return;
         }
         System.out.println("Here is the list of expenses:");
         for (int i = 0; i < expenses.size(); i++) {
