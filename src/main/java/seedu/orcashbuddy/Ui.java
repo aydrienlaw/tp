@@ -9,7 +9,21 @@ public class Ui {
 
     public void showWelcome() {
         System.out.println("Welcome to orCASHbuddy");
+        showMenu();
     }
+
+    /**
+     * Prints the main menu of available commands.
+     */
+    public void showMenu(){
+        System.out.println("Add an expense:                  add a/AMOUNT desc/DESCRIPTION");
+        System.out.println("Set a budget:                    setbudget a/AMOUNT");
+        System.out.println("List all expenses & statistics:  list");
+        System.out.println("Mark an expense as paid:         mark EXPENSE_INDEX");
+        System.out.println("Mark an expense as unpaid:       unmark EXPENSE_INDEX");
+        System.out.println("Delete an expense:               delete EXPENSE_INDEX");
+    }
+
 
     public void showGoodbye() {
         System.out.println("Bye. Hope to see you again soon!");

@@ -201,5 +201,12 @@ public class ExpenseManager {
     public void handleList(){
         ui.showList(totalExpenses, budget, remainingBalance, expenses);
     }
+
+    /**
+     * Handles the "help" command by displaying the menu.
+     */
+    public void handleHelp(){
+        ui.showMenu();
+    }
 }
 
