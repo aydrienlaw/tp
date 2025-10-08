@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
-import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -26,13 +25,20 @@ class ExpenseManagerListTest{
         System.setOut(System.out);
         String output = out.toString().trim();
 
-        assertTrue(output.contains("Budget set: $100.00"), "Budget section missing or incorrectly formatted");
-        assertTrue(output.contains("Total expenses: $12.50"), "Total expense missing or incorrectly formatted");
-        assertTrue(output.contains("Remaining balance: $87.50"), "Remaining balance missing or incorrectly formatted");
-        assertTrue(output.contains("Here is the list of expenses:"), "Header missing or incorrectly formatted");
-        assertTrue(output.contains("1. [X] Lunch at canteen - $12.50"), "First expense missing or incorrectly formatted");
-        assertTrue(output.contains("2. [ ] Grab ride - $7.80"), "Second expense missing or incorrectly formatted");
-        assertFalse(output.contains("No expenses so far."), "Should not show 'No expenses so far.'");
+        assertTrue(output.contains("Budget set: $100.00"),
+                "Budget section missing or incorrectly formatted");
+        assertTrue(output.contains("Total expenses: $12.50"),
+                "Total expense missing or incorrectly formatted");
+        assertTrue(output.contains("Remaining balance: $87.50"),
+                "Remaining balance missing or incorrectly formatted");
+        assertTrue(output.contains("Here is the list of expenses:"),
+                "Header missing or incorrectly formatted");
+        assertTrue(output.contains("1. [X] Lunch at canteen - $12.50"),
+                "First expense missing or incorrectly formatted");
+        assertTrue(output.contains("2. [ ] Grab ride - $7.80"),
+                "Second expense missing or incorrectly formatted");
+        assertFalse(output.contains("No expenses so far."),
+                "Should not show 'No expenses so far.'");
     }
 
     @Test
