@@ -57,6 +57,9 @@ public class Main {
             if (trimmed.toLowerCase().startsWith("list")) {
                 expenseManager.handleList();
             }
+            if (trimmed.toLowerCase().startsWith("help")) {
+                expenseManager.handleHelp();
+            }
         }
     }
 
