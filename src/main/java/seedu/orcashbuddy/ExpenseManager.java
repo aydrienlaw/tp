@@ -166,21 +166,21 @@ public class ExpenseManager {
 
         int amountIdx = rest.indexOf("a/");
         if (amountIdx == -1) {
-            ui.showSetBudgetUsage();  // Fixed error message
+            ui.showSetBudgetUsage();
             return;
         }
 
         // Extract amount after "a/"
-        String amountStr = rest.substring(amountIdx + 2).trim();  // Fixed extraction
+        String amountStr = rest.substring(amountIdx + 2).trim();
         if (amountStr.isEmpty()) {
-            ui.showSetBudgetUsage();  // Fixed error message
+            ui.showSetBudgetUsage();
             return;
         }
 
         try {
-            float newBudget = Float.parseFloat(amountStr);
+            double newBudget = Double.parseDouble(amountStr);
 
-            if (newBudget < 0) {
+            if (newBudget <= 0) {
                 ui.showSetBudgetUsage();
                 return;
             }

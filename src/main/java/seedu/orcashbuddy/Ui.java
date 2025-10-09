@@ -70,7 +70,7 @@ public class Ui {
      *
      * @param budget The budget amount.
      */
-    private void showBudget(double budget){
+    public void showBudget(double budget){
         System.out.println("Budget set: $" + String.format("%.2f", budget));
     }
 
