@@ -1,58 +1,88 @@
 package seedu.orcashbuddy;
 
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Manages a list of expenses. Skeleton placeholder for future implementation.
  */
 public class ExpenseManager {
     // To be implemented in later tasks.
+    private static final Logger LOGGER = Logger.getLogger(ExpenseManager.class.getName());
     private final Ui ui;
     private final ArrayList<Expense> expenses;
-    private double budget = 0.0f;
-    private double totalExpenses = 0.0f;
-    private double remainingBalance = 0.0f;
+    private double budget = 0.0;
+    private double totalExpenses = 0.0;
+    private double remainingBalance = 0.0;
 
     public ExpenseManager(Ui ui) {
+        assert ui != null : "Ui must not be null";
         this.ui = ui;
         this.expenses = new ArrayList<>();
     }
 
     public void handleAdd(String input) {
+        assert input != null : "Add command must not be null";
+        LOGGER.fine(() -> "Handling add command: " + input);
+
+        try {
+            Expense expense = parseAddCommand(input);
+            assert expense.getAmount() > 0.0 : "Parsed expense must be positive";
+            assert !expense.getDescription().isBlank() : "Parsed expense description must not be blank";
+
+            expenses.add(expense);
+            LOGGER.log(Level.INFO, "Added expense amount={0}, desc={1}",
+                    new Object[]{expense.getAmount(), expense.getDescription()});
+            LOGGER.fine(() -> "Expense list size is now " + expenses.size());
+            ui.showNewExpense(expense);
+        } catch (AddCommandException addError) {
+            LOGGER.log(Level.WARNING, addError.getMessage(), addError);
+            ui.showAddUsage();
+        } catch (RuntimeException unexpected) {
+            LOGGER.log(Level.SEVERE, "Unexpected error while handling add command", unexpected);
+            ui.showAddUsage();
+        }
+    }
+
+    Expense parseAddCommand(String input) throws AddCommandException {
         // Expected format: add a/AMOUNT desc/DESCRIPTION
         String rest = input.length() > 3 ? input.substring(3).trim() : "";
         if (!rest.startsWith("a/")) {
-            ui.showAddUsage();
-            return;
+            throw new AddCommandException("Missing amount prefix 'a/'");
         }
 
         // Find the start of "desc/" regardless of spacing before it
         int descIdx = rest.indexOf("desc/");
         if (descIdx == -1) {
-            ui.showAddUsage();
-            return;
+            throw new AddCommandException("Missing description prefix 'desc/'");
         }
 
         String amountStr = rest.substring(2, descIdx).trim();
         String description = rest.substring(descIdx + 5).trim(); // skip "desc/"
 
-        if (amountStr.isEmpty() || description.isEmpty()) {
-            ui.showAddUsage();
-            return;
+        if (amountStr.isEmpty()) {
+            throw new AddCommandException("Amount is missing after 'a/'");
+        }
+        if (description.isEmpty()) {
+            throw new AddCommandException("Description is missing after 'desc/'");
         }
 
+        double amount;
         try {
-            double amount = Double.parseDouble(amountStr);
-            if (!(amount > 0)) { // catches NaN and <= 0
-                ui.showAddUsage();
-                return;
-            }
-            Expense expense = new Expense(amount, description);
-            expenses.add(expense);
-            ui.showNewExpense(expense);
-        } catch (NumberFormatException e) {
-            ui.showAddUsage();
+            amount = Double.parseDouble(amountStr);
+        } catch (NumberFormatException nfe) {
+            throw new AddCommandException("Amount is not a valid decimal: " + amountStr, nfe);
         }
+
+        if (!(amount > 0)) { // catches NaN and <= 0
+            throw new AddCommandException("Amount must be greater than 0: " + amountStr);
+        }
+
+        LOGGER.log(Level.FINE, "Parsed add command with amount={0}, description={1}",
+                new Object[]{amount, description});
+
+        return new Expense(amount, description);
     }
 
     /**
@@ -209,4 +239,3 @@ public class ExpenseManager {
         ui.showMenu();
     }
 }
-
