@@ -12,9 +12,9 @@ public class ExpenseManager {
     private static final Logger LOGGER = Logger.getLogger(ExpenseManager.class.getName());
     private final Ui ui;
     private final ArrayList<Expense> expenses;
-    private double budget = 0.0f;
-    private double totalExpenses = 0.0f;
-    private double remainingBalance = 0.0f;
+    private double budget = 0.0;
+    private double totalExpenses = 0.0;
+    private double remainingBalance = 0.0;
 
     public ExpenseManager(Ui ui) {
         assert ui != null : "Ui must not be null";
