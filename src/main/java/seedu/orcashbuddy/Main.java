@@ -2,6 +2,9 @@ package seedu.orcashbuddy;
 
 import java.util.NoSuchElementException;
 import java.util.Scanner;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Entry point for the orCASHbuddy application.
@@ -10,6 +13,14 @@ import java.util.Scanner;
 public class Main {
     private final Ui ui;
     private final ExpenseManager expenseManager;
+
+    static {
+        Logger rootLogger = Logger.getLogger("");
+        rootLogger.setLevel(Level.INFO);
+        for (Handler handler : rootLogger.getHandlers()) {
+            handler.setLevel(Level.INFO);
+        }
+    }
 
     public Main() {
         this.ui = new Ui();
