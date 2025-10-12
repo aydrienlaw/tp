@@ -143,17 +143,18 @@ public class ExpenseManager {
             LOGGER.fine(() -> "Parsed index: " + index);
         } catch (NumberFormatException e) {
             LOGGER.warning("Failed to parse index: " + rest);
-            throw new DeleteCommandException("Expense index must be an integer: " + rest, e);
+            throw new DeleteCommandException("Expense index must be an integer", e);
         }
 
         if (index < 1) {
             LOGGER.warning("Index less than 1: " + index);
-            throw new DeleteCommandException("Expense index must be at least 1: " + index);
+            throw new DeleteCommandException("Expense index must be at least 1");
         }
 
         if (index > expenses.size()) {
             LOGGER.warning("Index exceeds expenses size: " + index);
-            throw new DeleteCommandException("Expense index exceeds number of expenses: " + index);
+            throw new DeleteCommandException("Expense index exceeds number of expenses." +
+                    "Max index value possible: " + expenses.size());
         }
 
         return index;
