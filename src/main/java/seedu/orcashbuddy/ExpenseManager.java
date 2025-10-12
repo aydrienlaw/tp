@@ -86,10 +86,19 @@ public class ExpenseManager {
     }
 
     public void handleDelete(String input) {
+        assert input != null : "Delete command input must not be null";
+
         try {
             int index = parseDeleteCommand(input);
 
+            // Assertion: index should be valid if parseDeleteCommand succeeded
+            assert index >= 1 && index <= expenses.size() : "Parsed index out of valid range";
+
             Expense removedExpense = expenses.remove(index - 1);
+
+            // Assertion: removedExpense is not null after removal
+            assert removedExpense != null : "Removed expense should not be null";
+
             ui.showDeletedExpense(removedExpense);
 
         } catch (DeleteCommandException e) {
@@ -98,6 +107,12 @@ public class ExpenseManager {
     }
 
     public int parseDeleteCommand(String input) throws DeleteCommandException {
+        // Assertion: input is never null
+        assert input != null : "Delete command input must not be null";
+
+        // Assertion: input starts with "delete" (precondition for this parser)
+        assert input.startsWith("delete") : "Input should start with 'delete'";
+
         // Remove the "delete" keyword and trim
         String rest = input.length() > 6 ? input.substring(6).trim() : "";
 
