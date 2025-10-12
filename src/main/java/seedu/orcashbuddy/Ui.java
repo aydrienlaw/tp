@@ -166,8 +166,11 @@ public class Ui {
     /**
      * Displays usage information for the mark command.
      * Format: mark EXPENSE_INDEX
+     *
+     * @param errorMessage the specific error message to display
      */
-    public void showMarkUsage() {
+    public void showMarkUsage(String errorMessage) {
+        System.out.println(errorMessage);
         System.out.println("Invalid format. Use: mark EXPENSE_INDEX");
         System.out.println("Type list to view expense indices");
     }
@@ -175,8 +178,11 @@ public class Ui {
     /**
      * Displays usage information for the unmark command.
      * Format: unmark EXPENSE_INDEX
+     *
+     * @param errorMessage the specific error message to display
      */
-    public void showUnmarkUsage() {
+    public void showUnmarkUsage(String errorMessage) {
+        System.out.println(errorMessage);
         System.out.println("Invalid format. Use: unmark EXPENSE_INDEX");
         System.out.println("Type list to view expense indices");
     }
