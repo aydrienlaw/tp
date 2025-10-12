@@ -85,33 +85,28 @@ public class ExpenseManager {
         return new Expense(amount, description);
     }
 
-    /**
-     * Deletes an expense from the list by index.
-     * Expected command format: delete EXPENSE_INDEX
-     *
-     * @param input The full command string entered by the user
-     */
     public void handleDelete(String input) {
-        // Remove the "delete" part
         String rest = input.length() > 6 ? input.substring(6).trim() : "";
-        if (rest.isEmpty()) {
+        int index = parseDeleteCommand(rest);
+
+        if (index < 1 || index > expenses.size()) {
             ui.showDeleteUsage();
             return;
         }
 
+        Expense removedExpense = expenses.remove(index - 1);
+        ui.showDeletedExpense(removedExpense);
+    }
+
+    int parseDeleteCommand(String rest) {
+        if (rest.isEmpty()) {
+            return -1; // invalid
+        }
+
         try {
-            int index = Integer.parseInt(rest);
-
-            if (index < 1 || index > expenses.size()) {
-                ui.showDeleteUsage();
-                return;
-            }
-
-            Expense removedExpense = expenses.remove(index - 1);
-            ui.showDeletedExpense(removedExpense);
-
+            return Integer.parseInt(rest);
         } catch (NumberFormatException e) {
-            ui.showDeleteUsage();
+            return -1; // invalid
         }
     }
 
