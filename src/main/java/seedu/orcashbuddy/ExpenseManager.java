@@ -86,7 +86,9 @@ public class ExpenseManager {
     }
 
     public void handleDelete(String input) {
+        // Assertion: input should not be null
         assert input != null : "Delete command input must not be null";
+        LOGGER.fine(() -> "handleDelete called with input: " + input);
 
         try {
             int index = parseDeleteCommand(input);
@@ -99,10 +101,14 @@ public class ExpenseManager {
             // Assertion: removedExpense is not null after removal
             assert removedExpense != null : "Removed expense should not be null";
 
+            LOGGER.log(Level.INFO, "Deleted expense at index {0}: {1}",
+                    new Object[]{index, removedExpense.getDescription()});
+
             ui.showDeletedExpense(removedExpense);
 
         } catch (DeleteCommandException e) {
-            System.out.println(e.getMessage());
+            LOGGER.log(Level.WARNING, "Failed to delete expense: " + e.getMessage(), e);
+            ui.showDeleteUsage(e.getMessage());
         }
     }
 
@@ -113,24 +119,31 @@ public class ExpenseManager {
         // Assertion: input starts with "delete" (precondition for this parser)
         assert input.startsWith("delete") : "Input should start with 'delete'";
 
+        LOGGER.fine(() -> "parseDeleteCommand called with input: " + input);
+
         // Remove the "delete" keyword and trim
         String rest = input.length() > 6 ? input.substring(6).trim() : "";
 
         if (rest.isEmpty()) {
+            LOGGER.warning("Delete command missing index");
             throw new DeleteCommandException("Missing expense index after 'delete' command");
         }
 
         int index;
         try {
             index = Integer.parseInt(rest);
+            LOGGER.fine(() -> "Parsed index: " + index);
         } catch (NumberFormatException e) {
+            LOGGER.warning("Failed to parse index: " + rest);
             throw new DeleteCommandException("Expense index must be an integer: " + rest, e);
         }
 
         if (index < 1) {
+            LOGGER.warning("Index less than 1: " + index);
             throw new DeleteCommandException("Expense index must be at least 1: " + index);
         }
         if (index > expenses.size()) {
+            LOGGER.warning("Index exceeds expenses size: " + index);
             throw new DeleteCommandException("Expense index exceeds number of expenses: " + index);
         }
 
