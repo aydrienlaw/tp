@@ -12,11 +12,13 @@ class ExpenseManagerDeleteTest {
 
     static class StubUi extends Ui {
         boolean deleteUsageShown = false;
+        String lastErrorMessage = null;
         Expense deletedExpense = null;
 
         @Override
-        public void showDeleteUsage() {
+        public void showDeleteUsage(String errorMessage) {
             deleteUsageShown = true;
+            lastErrorMessage = errorMessage;
         }
 
         @Override
@@ -50,6 +52,7 @@ class ExpenseManagerDeleteTest {
         mgr.handleDelete("delete");
 
         assertTrue(ui.deleteUsageShown, "Usage message should be shown for empty input");
+        assertNotNull(ui.lastErrorMessage, "Error message should be provided");
         assertNull(ui.deletedExpense, "No expense should be deleted");
     }
 
@@ -61,6 +64,7 @@ class ExpenseManagerDeleteTest {
         mgr.handleDelete("delete abc");
 
         assertTrue(ui.deleteUsageShown, "Usage message should be shown for non-numeric index");
+        assertNotNull(ui.lastErrorMessage, "Error message should be provided");
         assertNull(ui.deletedExpense, "No expense should be deleted");
     }
 
@@ -73,6 +77,7 @@ class ExpenseManagerDeleteTest {
 
         mgr.handleDelete("delete 0"); // index < 1
         assertTrue(ui.deleteUsageShown, "Usage message should be shown for index < 1");
+        assertNotNull(ui.lastErrorMessage, "Error message should be provided");
         assertNull(ui.deletedExpense, "No expense should be deleted");
     }
 
@@ -85,6 +90,7 @@ class ExpenseManagerDeleteTest {
 
         mgr.handleDelete("delete 2"); // index > size
         assertTrue(ui.deleteUsageShown, "Usage message should be shown for index > size");
+        assertNotNull(ui.lastErrorMessage, "Error message should be provided");
         assertNull(ui.deletedExpense, "No expense should be deleted");
     }
 }
