@@ -148,7 +148,8 @@ public class Ui {
      * Displays usage information for the delete command.
      * Format: delete EXPENSE_INDEX
      */
-    public void showDeleteUsage() {
+    public void showDeleteUsage(String errorMessage) {
+        System.out.println(errorMessage);
         System.out.println("Invalid format. Use: delete EXPENSE_INDEX");
     }
 

@@ -86,33 +86,78 @@ public class ExpenseManager {
     }
 
     /**
-     * Deletes an expense from the list by index.
-     * Expected command format: delete EXPENSE_INDEX
+     * Handles the deletion of an expense from the list.
+     * <p>
+     * This method parses the input, validates the index, removes the expense at that index,
+     * and updates the UI to show the deleted expense. If the input is invalid or the deletion
+     * fails, an error message is displayed via the UI.
      *
-     * @param input The full command string entered by the user
+     * @param input the full delete command input entered by the user
      */
     public void handleDelete(String input) {
-        // Remove the "delete" part
-        String rest = input.length() > 6 ? input.substring(6).trim() : "";
-        if (rest.isEmpty()) {
-            ui.showDeleteUsage();
-            return;
-        }
+        assert input != null : "Delete command input must not be null";
+        LOGGER.fine(() -> "handleDelete called with input: " + input);
 
         try {
-            int index = Integer.parseInt(rest);
-
-            if (index < 1 || index > expenses.size()) {
-                ui.showDeleteUsage();
-                return;
-            }
+            int index = parseDeleteCommand(input.toLowerCase());
+            assert index >= 1 && index <= expenses.size() : "Parsed index out of valid range";
 
             Expense removedExpense = expenses.remove(index - 1);
+            assert removedExpense != null : "Removed expense should not be null";
+            LOGGER.log(Level.INFO, "Deleted expense at index {0}: {1}",
+                    new Object[]{index, removedExpense.getDescription()});
             ui.showDeletedExpense(removedExpense);
 
-        } catch (NumberFormatException e) {
-            ui.showDeleteUsage();
+        } catch (DeleteCommandException e) {
+            LOGGER.log(Level.WARNING, "Failed to delete expense: " + e.getMessage(), e);
+            ui.showDeleteUsage(e.getMessage());
         }
+    }
+
+    /**
+     * Parses the input string for the delete command and returns the expense index.
+     * <p>
+     * Validates that the input contains a numeric index and that the index is within
+     * the bounds of the current expenses list. Throws {@link DeleteCommandException}
+     * for invalid input.
+     *
+     * @param input the full delete command input entered by the user
+     * @return the parsed expense index
+     * @throws DeleteCommandException if the input is invalid, non-numeric, or out of bounds
+     */
+    public int parseDeleteCommand(String input) throws DeleteCommandException {
+        assert input != null : "Delete command input must not be null";
+        assert input.startsWith("delete") : "Input should start with 'delete'";
+        LOGGER.fine(() -> "parseDeleteCommand called with input: " + input);
+        String rest = input.length() > 6 ? input.substring(6).trim() : "";
+
+        if (rest.isEmpty()) {
+            LOGGER.warning("Delete command missing index");
+            throw new DeleteCommandException("Missing expense index after 'delete' command");
+        }
+
+        int index;
+
+        try {
+            index = Integer.parseInt(rest);
+            LOGGER.fine(() -> "Parsed index: " + index);
+        } catch (NumberFormatException e) {
+            LOGGER.warning("Failed to parse index: " + rest);
+            throw new DeleteCommandException("Expense index must be an integer", e);
+        }
+
+        if (index < 1) {
+            LOGGER.warning("Index less than 1: " + index);
+            throw new DeleteCommandException("Expense index must be at least 1");
+        }
+
+        if (index > expenses.size()) {
+            LOGGER.warning("Index exceeds expenses size: " + index);
+            throw new DeleteCommandException("Expense index exceeds number of expenses." +
+                    "Max index value possible: " + expenses.size());
+        }
+
+        return index;
     }
 
     /**
