@@ -99,7 +99,7 @@ public class ExpenseManager {
         LOGGER.fine(() -> "handleDelete called with input: " + input);
 
         try {
-            int index = parseDeleteCommand(input);
+            int index = parseDeleteCommand(input.toLowerCase());
             assert index >= 1 && index <= expenses.size() : "Parsed index out of valid range";
 
             Expense removedExpense = expenses.remove(index - 1);
