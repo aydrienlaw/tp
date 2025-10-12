@@ -86,28 +86,40 @@ public class ExpenseManager {
     }
 
     public void handleDelete(String input) {
-        String rest = input.length() > 6 ? input.substring(6).trim() : "";
-        int index = parseDeleteCommand(rest);
+        try {
+            int index = parseDeleteCommand(input);
 
-        if (index < 1 || index > expenses.size()) {
-            ui.showDeleteUsage();
-            return;
+            Expense removedExpense = expenses.remove(index - 1);
+            ui.showDeletedExpense(removedExpense);
+
+        } catch (DeleteCommandException e) {
+            System.out.println(e.getMessage());
         }
-
-        Expense removedExpense = expenses.remove(index - 1);
-        ui.showDeletedExpense(removedExpense);
     }
 
-    int parseDeleteCommand(String rest) {
+    public int parseDeleteCommand(String input) throws DeleteCommandException {
+        // Remove the "delete" keyword and trim
+        String rest = input.length() > 6 ? input.substring(6).trim() : "";
+
         if (rest.isEmpty()) {
-            return -1; // invalid
+            throw new DeleteCommandException("Missing expense index after 'delete' command");
         }
 
+        int index;
         try {
-            return Integer.parseInt(rest);
+            index = Integer.parseInt(rest);
         } catch (NumberFormatException e) {
-            return -1; // invalid
+            throw new DeleteCommandException("Expense index must be an integer: " + rest, e);
         }
+
+        if (index < 1) {
+            throw new DeleteCommandException("Expense index must be at least 1: " + index);
+        }
+        if (index > expenses.size()) {
+            throw new DeleteCommandException("Expense index exceeds number of expenses: " + index);
+        }
+
+        return index;
     }
 
     /**
