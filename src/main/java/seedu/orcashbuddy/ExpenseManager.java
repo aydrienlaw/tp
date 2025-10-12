@@ -85,25 +85,27 @@ public class ExpenseManager {
         return new Expense(amount, description);
     }
 
+    /**
+     * Handles the deletion of an expense from the list.
+     * <p>
+     * This method parses the input, validates the index, removes the expense at that index,
+     * and updates the UI to show the deleted expense. If the input is invalid or the deletion
+     * fails, an error message is displayed via the UI.
+     *
+     * @param input the full delete command input entered by the user
+     */
     public void handleDelete(String input) {
-        // Assertion: input should not be null
         assert input != null : "Delete command input must not be null";
         LOGGER.fine(() -> "handleDelete called with input: " + input);
 
         try {
             int index = parseDeleteCommand(input);
-
-            // Assertion: index should be valid if parseDeleteCommand succeeded
             assert index >= 1 && index <= expenses.size() : "Parsed index out of valid range";
 
             Expense removedExpense = expenses.remove(index - 1);
-
-            // Assertion: removedExpense is not null after removal
             assert removedExpense != null : "Removed expense should not be null";
-
             LOGGER.log(Level.INFO, "Deleted expense at index {0}: {1}",
                     new Object[]{index, removedExpense.getDescription()});
-
             ui.showDeletedExpense(removedExpense);
 
         } catch (DeleteCommandException e) {
@@ -112,16 +114,21 @@ public class ExpenseManager {
         }
     }
 
+    /**
+     * Parses the input string for the delete command and returns the expense index.
+     * <p>
+     * Validates that the input contains a numeric index and that the index is within
+     * the bounds of the current expenses list. Throws {@link DeleteCommandException}
+     * for invalid input.
+     *
+     * @param input the full delete command input entered by the user
+     * @return the parsed expense index
+     * @throws DeleteCommandException if the input is invalid, non-numeric, or out of bounds
+     */
     public int parseDeleteCommand(String input) throws DeleteCommandException {
-        // Assertion: input is never null
         assert input != null : "Delete command input must not be null";
-
-        // Assertion: input starts with "delete" (precondition for this parser)
         assert input.startsWith("delete") : "Input should start with 'delete'";
-
         LOGGER.fine(() -> "parseDeleteCommand called with input: " + input);
-
-        // Remove the "delete" keyword and trim
         String rest = input.length() > 6 ? input.substring(6).trim() : "";
 
         if (rest.isEmpty()) {
@@ -130,6 +137,7 @@ public class ExpenseManager {
         }
 
         int index;
+
         try {
             index = Integer.parseInt(rest);
             LOGGER.fine(() -> "Parsed index: " + index);
@@ -142,6 +150,7 @@ public class ExpenseManager {
             LOGGER.warning("Index less than 1: " + index);
             throw new DeleteCommandException("Expense index must be at least 1: " + index);
         }
+
         if (index > expenses.size()) {
             LOGGER.warning("Index exceeds expenses size: " + index);
             throw new DeleteCommandException("Expense index exceeds number of expenses: " + index);
