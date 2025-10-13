@@ -341,13 +341,26 @@ public class ExpenseManager {
      * budget, remaining balance, and the full list of expenses.
      */
     public void handleList(){
-        ui.showList(totalExpenses, budget, remainingBalance, expenses);
+        LOGGER.fine("handleList invoked.");
+        assert budget >= 0.0 : "Budget should never be negative";
+        assert totalExpenses >= 0.0 : "Total expenses should never be negative";
+        assert remainingBalance == budget - totalExpenses
+                : "Remaining balance must equal budget minus total expenses";
+        try {
+            ui.showList(totalExpenses, budget, remainingBalance, expenses);
+            LOGGER.fine(() -> "Expenses listed.");
+        } catch (ListCommandException e) {
+            LOGGER.warning("Failed to list expenses: "+ e.getMessage());
+            ui.showListUsage();
+        }
     }
 
     /**
      * Handles the "help" command by displaying the menu.
      */
     public void handleHelp(){
+        LOGGER.fine("handleHelp invoked.");
         ui.showMenu();
+        LOGGER.info("Help menu displayed successfully.");
     }
 }

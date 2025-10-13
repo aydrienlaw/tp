@@ -58,7 +58,7 @@ class ExpenseManagerListTest{
         assertTrue(output.contains("Budget set: $50.00"));
         assertTrue(output.contains("Total expenses: $0.00"));
         assertTrue(output.contains("Remaining balance: $50.00"));
-        assertTrue(output.contains("No expenses so far."));
+        assertTrue(output.contains("No expenses added so far."));
         assertFalse(output.contains("Here is the list of expenses:"));
     }
 }

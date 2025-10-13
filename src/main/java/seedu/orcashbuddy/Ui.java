@@ -89,10 +89,10 @@ public class Ui {
      *
      * @param expenses The list of expenses to display.
      */
-    private void showListOfExpenses(ArrayList<Expense> expenses) {
+    private void showListOfExpenses(ArrayList<Expense> expenses)
+            throws ListCommandException {
         if  (expenses.isEmpty()) {
-            System.out.println("No expenses so far.");
-            return;
+            throw new ListCommandException("No expenses so far.");
         }
         System.out.println("Here is the list of expenses:");
         for (int i = 0; i < expenses.size(); i++) {
@@ -110,7 +110,8 @@ public class Ui {
      * @param expenses The list of all expenses.
      */
     public void showList(double totalExpense, double budget,
-            double remainingBalance, ArrayList<Expense> expenses) {
+            double remainingBalance, ArrayList<Expense> expenses)
+            throws ListCommandException {
         showBudget(budget);
         showTotalExpenses(totalExpense);
         showRemainingBalance(remainingBalance);
@@ -192,5 +193,11 @@ public class Ui {
      */
     public void showUnknownCommand() {
         System.out.println("Unknown command. Type 'help' to see available commands.");
+    }
+    /**
+     * Displays a message for empty list.
+     */
+    public void showListUsage() {
+        System.out.println("No expenses added so far.");
     }
 }
