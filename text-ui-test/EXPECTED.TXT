@@ -5,3 +5,4 @@ List all expenses & statistics:  list
 Mark an expense as paid:         mark EXPENSE_INDEX
 Mark an expense as unpaid:       unmark EXPENSE_INDEX
 Delete an expense:               delete EXPENSE_INDEX
+Unknown command. Type 'help' to see available commands.
