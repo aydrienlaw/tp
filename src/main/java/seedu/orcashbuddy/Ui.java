@@ -187,5 +187,10 @@ public class Ui {
         System.out.println("Type list to view expense indices");
     }
 
-
+    /**
+     * Displays a message for unknown commands.
+     */
+    public void showUnknownCommand() {
+        System.out.println("Unknown command. Type 'help' to see available commands.");
+    }
 }
