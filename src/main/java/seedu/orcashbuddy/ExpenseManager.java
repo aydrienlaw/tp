@@ -168,52 +168,119 @@ public class ExpenseManager {
      * @param shouldMark true to mark the expense, false to unmark it
      */
     public void handleMarkUnmark(String input, boolean shouldMark) {
-        // Determine command length and extract the rest
+        assert input != null : "Mark/Unmark command input must not be null";
         String commandWord = shouldMark ? "mark" : "unmark";
+        LOGGER.fine(() -> "Handling " + commandWord + " command: " + input);
+
+        try {
+            int index = parseMarkUnmarkCommand(input.trim().toLowerCase(), shouldMark);
+            assert index >= 1 && index <= expenses.size() : "Parsed index out of valid range";
+
+            Expense expense = expenses.get(index - 1);
+            assert expense != null : "Expense at index should not be null";
+
+            if (shouldMark) {
+                expense.mark();
+                updateBudgetAfterMark(expense);
+                LOGGER.log(Level.INFO, "Marked expense at index {0}: {1}",
+                        new Object[]{index, expense.getDescription()});
+                ui.showMarkedExpense(expense);
+            } else {
+                expense.unmark();
+                updateBudgetAfterUnmark(expense);
+                LOGGER.log(Level.INFO, "Unmarked expense at index {0}: {1}",
+                        new Object[]{index, expense.getDescription()});
+                ui.showUnmarkedExpense(expense);
+            }
+
+        } catch (MarkUnmarkCommandException e) {
+            LOGGER.log(Level.WARNING, "Failed to " + commandWord + " expense: " + e.getMessage());
+            if (shouldMark) {
+                ui.showMarkUsage(e.getMessage());
+            } else {
+                ui.showUnmarkUsage(e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Updates budget tracking when an expense is marked as paid.
+     * Adds the expense amount to total expenses and recalculates remaining balance.
+     *
+     * @param expense the expense that was marked
+     */
+    private void updateBudgetAfterMark(Expense expense) {
+        assert expense != null : "Expense must not be null";
+        totalExpenses += expense.getAmount();
+        remainingBalance = budget - totalExpenses;
+        LOGGER.info(() -> "Updated budget after mark: total=" + totalExpenses +
+                ", remaining=" + remainingBalance);
+    }
+
+    /**
+     * Updates budget tracking when an expense is unmarked.
+     * Subtracts the expense amount from total expenses and recalculates remaining balance.
+     *
+     * @param expense the expense that was unmarked
+     */
+    private void updateBudgetAfterUnmark(Expense expense) {
+        assert expense != null : "Expense must not be null";
+        totalExpenses -= expense.getAmount();
+        remainingBalance = budget - totalExpenses;
+        LOGGER.info(() -> "Updated budget after unmark: total=" + totalExpenses +
+                ", remaining=" + remainingBalance);
+    }
+
+    /**
+     * Parses the input string for the mark/unmark command and returns the expense index.
+     * <p>
+     * Validates that the input contains a numeric index and that the index is within
+     * the bounds of the current expenses list. Throws {@link MarkUnmarkCommandException}
+     * for invalid input.
+     * <p>
+     * The parsing is case-insensitive and handles leading/trailing whitespace gracefully.
+     *
+     * @param input the full mark/unmark command input entered by the user (should be trimmed and lowercased)
+     * @param shouldMark true if parsing a mark command, false for unmark
+     * @return the parsed expense index
+     * @throws MarkUnmarkCommandException if the input is invalid, non-numeric, or out of bounds
+     */
+    public int parseMarkUnmarkCommand(String input, boolean shouldMark) throws MarkUnmarkCommandException {
+        assert input != null : "Mark/Unmark command input must not be null";
+        String commandWord = shouldMark ? "mark" : "unmark";
+        assert input.startsWith(commandWord) : "Input should start with '" + commandWord + "'";
+        LOGGER.fine(() -> "parseMarkUnmarkCommand called with input: " + input);
+
         int commandLength = commandWord.length();
         String rest = input.length() > commandLength ? input.substring(commandLength).trim() : "";
 
         if (rest.isEmpty()) {
-            if (shouldMark) {
-                ui.showMarkUsage();
-            } else {
-                ui.showUnmarkUsage();
-            }
-            return;
+            LOGGER.warning(commandWord + " command missing index");
+            throw new MarkUnmarkCommandException("Missing expense index after '" + commandWord + "' command");
         }
+
+        int index;
 
         try {
-            int index = Integer.parseInt(rest);
-
-            if (index < 1 || index > expenses.size()) {
-                if (shouldMark) {
-                    ui.showMarkUsage();
-                } else {
-                    ui.showUnmarkUsage();
-                }
-                return;
-            }
-
-            Expense expense = expenses.get(index - 1);
-            if (shouldMark) {
-                expense.mark();
-                totalExpenses += expense.getAmount();
-                remainingBalance = budget - totalExpenses;
-                ui.showMarkedExpense(expense);
-            } else {
-                expense.unmark();
-                totalExpenses -= expense.getAmount();
-                remainingBalance = budget - totalExpenses;
-                ui.showUnmarkedExpense(expense);
-            }
-
+            index = Integer.parseInt(rest);
+            LOGGER.fine(() -> "Parsed index: " + index);
         } catch (NumberFormatException e) {
-            if (shouldMark) {
-                ui.showMarkUsage();
-            } else {
-                ui.showUnmarkUsage();
-            }
+            LOGGER.warning("Failed to parse index: " + rest);
+            throw new MarkUnmarkCommandException("Expense index must be an integer", e);
         }
+
+        if (index < 1) {
+            LOGGER.warning("Index less than 1: " + index);
+            throw new MarkUnmarkCommandException("Expense index must be at least 1");
+        }
+
+        if (index > expenses.size()) {
+            LOGGER.warning("Index exceeds expenses size: " + index);
+            throw new MarkUnmarkCommandException("Expense index exceeds number of expenses. " +
+                    "Max index value possible: " + expenses.size());
+        }
+
+        return index;
     }
 
     /**

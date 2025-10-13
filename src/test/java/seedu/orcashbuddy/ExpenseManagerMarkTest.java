@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class ExpenseManagerMarkTest {
     static class StubUi extends Ui {
@@ -14,15 +15,20 @@ public class ExpenseManagerMarkTest {
         boolean unmarkUsageShown = false;
         Expense markedExpense = null;
         Expense unmarkedExpense = null;
+        String lastMarkErrorMessage = null;
+        String lastUnmarkErrorMessage = null;
+
 
         @Override
-        public void showMarkUsage() {
+        public void showMarkUsage(String errorMessage) {
             markUsageShown = true;
+            lastMarkErrorMessage = errorMessage;
         }
 
         @Override
-        public void showUnmarkUsage() {
+        public void showUnmarkUsage(String errorMessage) {
             unmarkUsageShown = true;
+            lastUnmarkErrorMessage = errorMessage;
         }
 
         @Override
@@ -122,5 +128,34 @@ public class ExpenseManagerMarkTest {
 
         assertTrue(ui.markUsageShown);
         assertNull(ui.markedExpense);
+    }
+
+    @Test
+    void parseMarkUnmarkCommand_validIndex_returnsIndex() throws MarkUnmarkCommandException {
+        StubUi ui = new StubUi();
+        ExpenseManager mgr = new ExpenseManager(ui);
+
+        mgr.handleAdd("add a/10.00 desc/test");
+
+        int index = mgr.parseMarkUnmarkCommand("mark 1", true);
+        assertEquals(1, index);
+    }
+
+    @Test
+    void parseMarkUnmarkCommand_invalidIndex_throwsException() {
+        StubUi ui = new StubUi();
+        ExpenseManager mgr = new ExpenseManager(ui);
+
+        assertThrows(MarkUnmarkCommandException.class,
+                () -> mgr.parseMarkUnmarkCommand("mark abc", true));
+    }
+
+    @Test
+    void parseMarkUnmarkCommand_missingIndex_throwsException() {
+        StubUi ui = new StubUi();
+        ExpenseManager mgr = new ExpenseManager(ui);
+
+        assertThrows(MarkUnmarkCommandException.class,
+                () -> mgr.parseMarkUnmarkCommand("mark", true));
     }
 }

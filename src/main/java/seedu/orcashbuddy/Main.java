@@ -46,30 +46,24 @@ public class Main {
                 break;
             }
 
-            if (trimmed.toLowerCase().startsWith("add")) {
+            String lowerInput = trimmed.toLowerCase();
+
+            if (lowerInput.startsWith("add")) {
                 expenseManager.handleAdd(trimmed);
-                continue;
-            }
-            if (trimmed.toLowerCase().startsWith("delete")) {
+            } else if (lowerInput.startsWith("delete")) {
                 expenseManager.handleDelete(trimmed);
-            }
-            if (trimmed.toLowerCase().startsWith("mark")) {
-                expenseManager.handleMarkUnmark(trimmed, true);
-                continue;
-            }
-            if (trimmed.toLowerCase().startsWith("unmark")) {
-                expenseManager.handleMarkUnmark(trimmed, false);
-                continue;
-            }
-            if (trimmed.toLowerCase().startsWith("setbudget")) {
+            } else if (lowerInput.startsWith("setbudget")) {
                 expenseManager.handleSetBudget(trimmed);
-                continue;
-            }
-            if (trimmed.toLowerCase().startsWith("list")) {
+            } else if (lowerInput.startsWith("list")) {
                 expenseManager.handleList();
-            }
-            if (trimmed.toLowerCase().startsWith("help")) {
+            } else if (lowerInput.startsWith("help")) {
                 expenseManager.handleHelp();
+            } else if (lowerInput.startsWith("unmark")) {
+                expenseManager.handleMarkUnmark(trimmed, false);
+            } else if (lowerInput.startsWith("mark")) {
+                expenseManager.handleMarkUnmark(trimmed, true);
+            } else {
+                ui.showUnknownCommand();
             }
         }
     }
