@@ -1,5 +1,6 @@
 package seedu.orcashbuddy.command;
 
+import seedu.orcashbuddy.exception.OrCashBuddyException;
 import seedu.orcashbuddy.expense.Expense;
 import seedu.orcashbuddy.storage.ExpenseManager;
 import seedu.orcashbuddy.ui.Ui;
@@ -24,7 +25,7 @@ public class DeleteCommand extends Command {
     }
 
     @Override
-    public void execute(ExpenseManager expenseManager, Ui ui) {
+    public void execute(ExpenseManager expenseManager, Ui ui) throws OrCashBuddyException {
         assert index >= 1 : "Index must be at least 1";
 
         Expense removedExpense = expenseManager.deleteExpense(index);

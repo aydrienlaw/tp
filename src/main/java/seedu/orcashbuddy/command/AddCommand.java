@@ -1,7 +1,6 @@
 package seedu.orcashbuddy.command;
 
 import seedu.orcashbuddy.expense.Expense;
-import seedu.orcashbuddy.exception.AddCommandException;
 import seedu.orcashbuddy.storage.ExpenseManager;
 import seedu.orcashbuddy.ui.Ui;
 
