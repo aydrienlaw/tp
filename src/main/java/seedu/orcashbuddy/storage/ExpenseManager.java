@@ -1,5 +1,6 @@
 package seedu.orcashbuddy.storage;
 
+import seedu.orcashbuddy.exception.OrCashBuddyException;
 import seedu.orcashbuddy.expense.Expense;
 import seedu.orcashbuddy.ui.Ui;
 
@@ -45,10 +46,11 @@ public class ExpenseManager {
      *
      * @param index the 1-based index of the expense to delete
      * @return the deleted expense
-     * @throws IndexOutOfBoundsException if the index is out of range
+     * @throws OrCashBuddyException if the index is out of range
      */
-    public Expense deleteExpense(int index) {
+    public Expense deleteExpense(int index) throws OrCashBuddyException {
         assert index >= 1 && index <= expenses.size() : "Parsed index out of valid range";
+        validateIndex(index);
 
         Expense removedExpense = expenses.remove(index - 1);
         assert removedExpense != null : "Removed expense should not be null";
@@ -63,9 +65,9 @@ public class ExpenseManager {
      *
      * @param index the 1-based index of the expense to mark
      * @return the marked expense
-     * @throws IndexOutOfBoundsException if the index is out of range
+     * @throws OrCashBuddyException if the index is out of range
      */
-    public Expense markExpense(int index) {
+    public Expense markExpense(int index) throws OrCashBuddyException {
         assert index >= 1: "Index must be at least 1";
         validateIndex(index);
 
@@ -81,9 +83,9 @@ public class ExpenseManager {
      *
      * @param index the 1-based index of the expense to unmark
      * @return the unmarked expense
-     * @throws IndexOutOfBoundsException if the index is out of range
+     * @throws OrCashBuddyException if the index is out of range
      */
-    public Expense unmarkExpense(int index) {
+    public Expense unmarkExpense(int index) throws OrCashBuddyException {
         assert index >= 1 : "Index must be at least 1";
         validateIndex(index);
 
@@ -150,12 +152,14 @@ public class ExpenseManager {
      * Validates that an index is within the valid range.
      *
      * @param index the 1-based index to validate
-     * @throws IndexOutOfBoundsException if the index is out of range
+     * @throws OrCashBuddyException if the index is out of range
      */
-    private void validateIndex(int index) {
+    private void validateIndex(int index) throws OrCashBuddyException {
+        if (expenses.isEmpty()) {
+            throw OrCashBuddyException.emptyExpenseList();
+        }
         if (index < 1 || index > expenses.size()) {
-            throw new IndexOutOfBoundsException(
-                    "Expense index exceeds number of expenses. Max index value possible: " + expenses.size());
+            throw OrCashBuddyException.expenseIndexOutOfRange(index, expenses.size());
         }
     }
 
@@ -173,14 +177,5 @@ public class ExpenseManager {
                 : "Remaining balance must equal budget minus total expenses";
         ui.showList(totalExpenses, budget, remainingBalance, expenses);
         LOGGER.fine(() -> "Expenses listed.");
-    }
-
-    /**
-     * Gets the total number of expenses.
-     *
-     * @return the number of expenses
-     */
-    public int getExpenseCount() {
-        return expenses.size();
     }
 }
