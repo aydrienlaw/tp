@@ -1,9 +1,6 @@
 package seedu.orcashbuddy.storage;
 
 import seedu.orcashbuddy.expense.Expense;
-import seedu.orcashbuddy.exception.AddCommandException;
-import seedu.orcashbuddy.exception.DeleteCommandException;
-import seedu.orcashbuddy.exception.MarkUnmarkCommandException;
 import seedu.orcashbuddy.ui.Ui;
 
 import java.util.ArrayList;
@@ -11,202 +8,103 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Manages a list of expenses. Skeleton placeholder for future implementation.
+ * Manages a list of expenses.
  */
 public class ExpenseManager {
-    // To be implemented in later tasks.
     private static final Logger LOGGER = Logger.getLogger(ExpenseManager.class.getName());
-    private final Ui ui;
     private final ArrayList<Expense> expenses;
     private double budget = 0.0;
     private double totalExpenses = 0.0;
     private double remainingBalance = 0.0;
 
-    public ExpenseManager(Ui ui) {
-        assert ui != null : "Ui must not be null";
-        this.ui = ui;
+    /**
+     * Constructs an ExpenseManager.
+     */
+    public ExpenseManager() {
         this.expenses = new ArrayList<>();
     }
 
-    public void handleAdd(String input) {
-        assert input != null : "Add command must not be null";
-        LOGGER.fine(() -> "Handling add command: " + input);
+    /**
+     * Adds an expense to the list.
+     *
+     * @param expense the expense to add
+     */
+    public void addExpense(Expense expense) {
+        assert expense != null : "Expense must not be null";
+        assert expense.getAmount() > 0.0 : "Parsed expense must be positive";
+        assert !expense.getDescription().isBlank() : "Parsed expense description must not be blank";
 
-        try {
-            Expense expense = parseAddCommand(input);
-            assert expense.getAmount() > 0.0 : "Parsed expense must be positive";
-            assert !expense.getDescription().isBlank() : "Parsed expense description must not be blank";
-
-            expenses.add(expense);
-            LOGGER.log(Level.INFO, "Added expense amount={0}, desc={1}",
-                    new Object[]{expense.getAmount(), expense.getDescription()});
-            LOGGER.fine(() -> "Expense list size is now " + expenses.size());
-            ui.showNewExpense(expense);
-        } catch (AddCommandException addError) {
-            LOGGER.log(Level.WARNING, addError.getMessage(), addError);
-            ui.showAddUsage();
-        } catch (RuntimeException unexpected) {
-            LOGGER.log(Level.SEVERE, "Unexpected error while handling add command", unexpected);
-            ui.showAddUsage();
-        }
-    }
-
-    Expense parseAddCommand(String input) throws AddCommandException {
-        // Expected format: add a/AMOUNT desc/DESCRIPTION
-        String rest = input.length() > 3 ? input.substring(3).trim() : "";
-        if (!rest.startsWith("a/")) {
-            throw new AddCommandException("Missing amount prefix 'a/'");
-        }
-
-        // Find the start of "desc/" regardless of spacing before it
-        int descIdx = rest.indexOf("desc/");
-        if (descIdx == -1) {
-            throw new AddCommandException("Missing description prefix 'desc/'");
-        }
-
-        String amountStr = rest.substring(2, descIdx).trim();
-        String description = rest.substring(descIdx + 5).trim(); // skip "desc/"
-
-        if (amountStr.isEmpty()) {
-            throw new AddCommandException("Amount is missing after 'a/'");
-        }
-        if (description.isEmpty()) {
-            throw new AddCommandException("Description is missing after 'desc/'");
-        }
-
-        double amount;
-        try {
-            amount = Double.parseDouble(amountStr);
-        } catch (NumberFormatException nfe) {
-            throw new AddCommandException("Amount is not a valid decimal: " + amountStr, nfe);
-        }
-
-        if (!(amount > 0)) { // catches NaN and <= 0
-            throw new AddCommandException("Amount must be greater than 0: " + amountStr);
-        }
-
-        LOGGER.log(Level.FINE, "Parsed add command with amount={0}, description={1}",
-                new Object[]{amount, description});
-
-        return new Expense(amount, description);
+        expenses.add(expense);
+        LOGGER.log(Level.INFO, "Added expense amount={0}, desc={1}",
+                new Object[]{expense.getAmount(), expense.getDescription()});
+        LOGGER.fine(() -> "Expense list size is now " + expenses.size());
     }
 
     /**
-     * Handles the deletion of an expense from the list.
-     * <p>
-     * This method parses the input, validates the index, removes the expense at that index,
-     * and updates the UI to show the deleted expense. If the input is invalid or the deletion
-     * fails, an error message is displayed via the UI.
+     * Deletes an expense at the specified index.
      *
-     * @param input the full delete command input entered by the user
+     * @param index the 1-based index of the expense to delete
+     * @return the deleted expense
+     * @throws IndexOutOfBoundsException if the index is out of range
      */
-    public void handleDelete(String input) {
-        assert input != null : "Delete command input must not be null";
-        LOGGER.fine(() -> "handleDelete called with input: " + input);
+    public Expense deleteExpense(int index) {
+        assert index >= 1 && index <= expenses.size() : "Parsed index out of valid range";
 
-        try {
-            int index = parseDeleteCommand(input.toLowerCase());
-            assert index >= 1 && index <= expenses.size() : "Parsed index out of valid range";
+        Expense removedExpense = expenses.remove(index - 1);
+        assert removedExpense != null : "Removed expense should not be null";
 
-            Expense removedExpense = expenses.remove(index - 1);
-            assert removedExpense != null : "Removed expense should not be null";
-            LOGGER.log(Level.INFO, "Deleted expense at index {0}: {1}",
+        LOGGER.log(Level.INFO, "Deleted expense at index {0}: {1}",
                     new Object[]{index, removedExpense.getDescription()});
-            ui.showDeletedExpense(removedExpense);
-
-        } catch (DeleteCommandException e) {
-            LOGGER.log(Level.WARNING, "Failed to delete expense: " + e.getMessage(), e);
-            ui.showDeleteUsage(e.getMessage());
-        }
+        return removedExpense;
     }
 
     /**
-     * Parses the input string for the delete command and returns the expense index.
-     * <p>
-     * Validates that the input contains a numeric index and that the index is within
-     * the bounds of the current expenses list. Throws {@link DeleteCommandException}
-     * for invalid input.
+     * Marks an expense at the specified index as paid.
      *
-     * @param input the full delete command input entered by the user
-     * @return the parsed expense index
-     * @throws DeleteCommandException if the input is invalid, non-numeric, or out of bounds
+     * @param index the 1-based index of the expense to mark
+     * @return the marked expense
+     * @throws IndexOutOfBoundsException if the index is out of range
      */
-    public int parseDeleteCommand(String input) throws DeleteCommandException {
-        assert input != null : "Delete command input must not be null";
-        assert input.startsWith("delete") : "Input should start with 'delete'";
-        LOGGER.fine(() -> "parseDeleteCommand called with input: " + input);
-        String rest = input.length() > 6 ? input.substring(6).trim() : "";
+    public Expense markExpense(int index) {
+        assert index >= 1: "Index must be at least 1";
+        validateIndex(index);
 
-        if (rest.isEmpty()) {
-            LOGGER.warning("Delete command missing index");
-            throw new DeleteCommandException("Missing expense index after 'delete' command");
-        }
+        Expense expense = expenses.get(index - 1);
+        expense.mark();
+        updateBudgetAfterMark(expense);
 
-        int index;
-
-        try {
-            index = Integer.parseInt(rest);
-            LOGGER.fine(() -> "Parsed index: " + index);
-        } catch (NumberFormatException e) {
-            LOGGER.warning("Failed to parse index: " + rest);
-            throw new DeleteCommandException("Expense index must be an integer", e);
-        }
-
-        if (index < 1) {
-            LOGGER.warning("Index less than 1: " + index);
-            throw new DeleteCommandException("Expense index must be at least 1");
-        }
-
-        if (index > expenses.size()) {
-            LOGGER.warning("Index exceeds expenses size: " + index);
-            throw new DeleteCommandException("Expense index exceeds number of expenses." +
-                    "Max index value possible: " + expenses.size());
-        }
-
-        return index;
+        return expense;
     }
 
     /**
-     * Marks or unmarks an expense by index.
-     * Expected command format: mark/unmark EXPENSE_INDEX
+     * Unmarks an expense at the specified index.
      *
-     * @param input The full command string entered by the user
-     * @param shouldMark true to mark the expense, false to unmark it
+     * @param index the 1-based index of the expense to unmark
+     * @return the unmarked expense
+     * @throws IndexOutOfBoundsException if the index is out of range
      */
-    public void handleMarkUnmark(String input, boolean shouldMark) {
-        assert input != null : "Mark/Unmark command input must not be null";
-        String commandWord = shouldMark ? "mark" : "unmark";
-        LOGGER.fine(() -> "Handling " + commandWord + " command: " + input);
+    public Expense unmarkExpense(int index) {
+        assert index >= 1 : "Index must be at least 1";
+        validateIndex(index);
 
-        try {
-            int index = parseMarkUnmarkCommand(input.trim().toLowerCase(), shouldMark);
-            assert index >= 1 && index <= expenses.size() : "Parsed index out of valid range";
+        Expense expense = expenses.get(index - 1);
+        expense.unmark();
+        updateBudgetAfterUnmark(expense);
 
-            Expense expense = expenses.get(index - 1);
-            assert expense != null : "Expense at index should not be null";
+        return expense;
+    }
 
-            if (shouldMark) {
-                expense.mark();
-                updateBudgetAfterMark(expense);
-                LOGGER.log(Level.INFO, "Marked expense at index {0}: {1}",
-                        new Object[]{index, expense.getDescription()});
-                ui.showMarkedExpense(expense);
-            } else {
-                expense.unmark();
-                updateBudgetAfterUnmark(expense);
-                LOGGER.log(Level.INFO, "Unmarked expense at index {0}: {1}",
-                        new Object[]{index, expense.getDescription()});
-                ui.showUnmarkedExpense(expense);
-            }
+    /**
+     * Sets the budget amount.
+     *
+     * @param budget the new budget amount
+     */
+    public void setBudget(double budget) {
+        assert budget > 0.0 : "Budget must be positive";
 
-        } catch (MarkUnmarkCommandException e) {
-            LOGGER.log(Level.WARNING, "Failed to " + commandWord + " expense: " + e.getMessage());
-            if (shouldMark) {
-                ui.showMarkUsage(e.getMessage());
-            } else {
-                ui.showUnmarkUsage(e.getMessage());
-            }
-        }
+        this.budget = budget;
+        recalculateRemainingBalance();
+        LOGGER.log(Level.INFO, "Budget set to {0}", budget);
     }
 
     /**
@@ -217,8 +115,10 @@ public class ExpenseManager {
      */
     private void updateBudgetAfterMark(Expense expense) {
         assert expense != null : "Expense must not be null";
+
         totalExpenses += expense.getAmount();
-        remainingBalance = budget - totalExpenses;
+        recalculateRemainingBalance();
+
         LOGGER.info(() -> "Updated budget after mark: total=" + totalExpenses +
                 ", remaining=" + remainingBalance);
     }
@@ -231,123 +131,42 @@ public class ExpenseManager {
      */
     private void updateBudgetAfterUnmark(Expense expense) {
         assert expense != null : "Expense must not be null";
+
         totalExpenses -= expense.getAmount();
-        remainingBalance = budget - totalExpenses;
+        recalculateRemainingBalance();
+
         LOGGER.info(() -> "Updated budget after unmark: total=" + totalExpenses +
                 ", remaining=" + remainingBalance);
     }
 
     /**
-     * Parses the input string for the mark/unmark command and returns the expense index.
-     * <p>
-     * Validates that the input contains a numeric index and that the index is within
-     * the bounds of the current expenses list. Throws {@link MarkUnmarkCommandException}
-     * for invalid input.
-     * <p>
-     * The parsing is case-insensitive and handles leading/trailing whitespace gracefully.
-     *
-     * @param input the full mark/unmark command input entered by the user (should be trimmed and lowercased)
-     * @param shouldMark true if parsing a mark command, false for unmark
-     * @return the parsed expense index
-     * @throws MarkUnmarkCommandException if the input is invalid, non-numeric, or out of bounds
+     * Recalculates the remaining balance.
      */
-    public int parseMarkUnmarkCommand(String input, boolean shouldMark) throws MarkUnmarkCommandException {
-        assert input != null : "Mark/Unmark command input must not be null";
-        String commandWord = shouldMark ? "mark" : "unmark";
-        assert input.startsWith(commandWord) : "Input should start with '" + commandWord + "'";
-        LOGGER.fine(() -> "parseMarkUnmarkCommand called with input: " + input);
-
-        int commandLength = commandWord.length();
-        String rest = input.length() > commandLength ? input.substring(commandLength).trim() : "";
-
-        if (rest.isEmpty()) {
-            LOGGER.warning(commandWord + " command missing index");
-            throw new MarkUnmarkCommandException("Missing expense index after '" + commandWord + "' command");
-        }
-
-        int index;
-
-        try {
-            index = Integer.parseInt(rest);
-            LOGGER.fine(() -> "Parsed index: " + index);
-        } catch (NumberFormatException e) {
-            LOGGER.warning("Failed to parse index: " + rest);
-            throw new MarkUnmarkCommandException("Expense index must be an integer", e);
-        }
-
-        if (index < 1) {
-            LOGGER.warning("Index less than 1: " + index);
-            throw new MarkUnmarkCommandException("Expense index must be at least 1");
-        }
-
-        if (index > expenses.size()) {
-            LOGGER.warning("Index exceeds expenses size: " + index);
-            throw new MarkUnmarkCommandException("Expense index exceeds number of expenses. " +
-                    "Max index value possible: " + expenses.size());
-        }
-
-        return index;
+    private void recalculateRemainingBalance() {
+        remainingBalance = budget - totalExpenses;
     }
 
     /**
-     * Handles the {@code setbudget} command by parsing user input,
-     * validating it, and updating the budget if the input is valid.
-     * <p>
-     * Expected input format: {@code setbudget a/AMOUNT}
-     * where {@code AMOUNT} is a non-negative number.
-     * <ul>
-     *   <li>If the input is invalid or missing, usage instructions are shown.</li>
-     *   <li>If the amount is valid, the budget is updated and a confirmation is displayed.</li>
-     * </ul>
+     * Validates that an index is within the valid range.
      *
-     * @param input the full command string entered by the user
+     * @param index the 1-based index to validate
+     * @throws IndexOutOfBoundsException if the index is out of range
      */
-    public void handleSetBudget(String input) {
-        // Extract arguments after command
-        String[] parts = input.trim().split("\\s+", 2);
-        String rest = parts.length > 1 ? parts[1] : "";
-
-        if (rest.isEmpty()) {
-            ui.showSetBudgetUsage();
-            return;
-        }
-
-        int amountIdx = rest.indexOf("a/");
-        if (amountIdx == -1) {
-            ui.showSetBudgetUsage();
-            return;
-        }
-
-        // Extract amount after "a/"
-        String amountStr = rest.substring(amountIdx + 2).trim();
-        if (amountStr.isEmpty()) {
-            ui.showSetBudgetUsage();
-            return;
-        }
-
-        try {
-            double newBudget = Double.parseDouble(amountStr);
-
-            if (newBudget <= 0) {
-                ui.showSetBudgetUsage();
-                return;
-            }
-
-            this.budget = newBudget;
-            remainingBalance = budget - totalExpenses;
-            ui.showNewBudget(budget);
-
-        } catch (NumberFormatException e) {
-            ui.showSetBudgetUsage();
+    private void validateIndex(int index) {
+        if (index < 1 || index > expenses.size()) {
+            throw new IndexOutOfBoundsException(
+                    "Expense index exceeds number of expenses. Max index value possible: " + expenses.size());
         }
     }
 
     /**
-     * Handles the "list" command by displaying a summary of expenses,
-     * budget, remaining balance, and the full list of expenses.
+     * Displays the list of expenses with budget information.
+     *
+     * @param ui the UI to display the information
      */
-    public void handleList(){
-        LOGGER.fine("handleList invoked.");
+    public void displayList(Ui ui){
+        LOGGER.fine("displayList invoked.");
+        assert ui != null : "Ui must not be null";
         assert budget >= 0.0 : "Budget should never be negative";
         assert totalExpenses >= 0.0 : "Total expenses should never be negative";
         assert remainingBalance == budget - totalExpenses
@@ -357,11 +176,11 @@ public class ExpenseManager {
     }
 
     /**
-     * Handles the "help" command by displaying the menu.
+     * Gets the total number of expenses.
+     *
+     * @return the number of expenses
      */
-    public void handleHelp(){
-        LOGGER.fine("handleHelp invoked.");
-        ui.showMenu();
-        LOGGER.info("Help menu displayed successfully.");
+    public int getExpenseCount() {
+        return expenses.size();
     }
 }
