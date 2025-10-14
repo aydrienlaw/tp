@@ -201,4 +201,13 @@ public class Ui {
     public void showListUsage() {
         System.out.println("No expenses added so far.");
     }
+
+    /**
+     * Displays a general error message.
+     *
+     * @param message the error message to display
+     */
+    public void showError(String message) {
+        System.out.println("Error: " + message);
+    }
 }
