@@ -89,10 +89,10 @@ public class Ui {
      *
      * @param expenses The list of expenses to display.
      */
-    private void showListOfExpenses(ArrayList<Expense> expenses)
-            throws ListCommandException {
+    private void showListOfExpenses(ArrayList<Expense> expenses) {
         if  (expenses.isEmpty()) {
-            throw new ListCommandException("No expenses so far.");
+            showListUsage();
+            return;
         }
         System.out.println("Here is the list of expenses:");
         for (int i = 0; i < expenses.size(); i++) {
@@ -110,8 +110,7 @@ public class Ui {
      * @param expenses The list of all expenses.
      */
     public void showList(double totalExpense, double budget,
-            double remainingBalance, ArrayList<Expense> expenses)
-            throws ListCommandException {
+            double remainingBalance, ArrayList<Expense> expenses) {
         showBudget(budget);
         showTotalExpenses(totalExpense);
         showRemainingBalance(remainingBalance);

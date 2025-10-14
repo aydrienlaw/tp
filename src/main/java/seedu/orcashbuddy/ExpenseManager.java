@@ -346,13 +346,8 @@ public class ExpenseManager {
         assert totalExpenses >= 0.0 : "Total expenses should never be negative";
         assert remainingBalance == budget - totalExpenses
                 : "Remaining balance must equal budget minus total expenses";
-        try {
-            ui.showList(totalExpenses, budget, remainingBalance, expenses);
-            LOGGER.fine(() -> "Expenses listed.");
-        } catch (ListCommandException e) {
-            LOGGER.warning("Failed to list expenses: "+ e.getMessage());
-            ui.showListUsage();
-        }
+        ui.showList(totalExpenses, budget, remainingBalance, expenses);
+        LOGGER.fine(() -> "Expenses listed.");
     }
 
     /**

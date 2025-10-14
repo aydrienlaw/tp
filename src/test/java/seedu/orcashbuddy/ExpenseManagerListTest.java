@@ -37,8 +37,8 @@ class ExpenseManagerListTest{
                 "First expense missing or incorrectly formatted");
         assertTrue(output.contains("2. [ ] Grab ride - $7.80"),
                 "Second expense missing or incorrectly formatted");
-        assertFalse(output.contains("No expenses so far."),
-                "Should not show 'No expenses so far.'");
+        assertFalse(output.contains("No expenses added so far."),
+                "Should not show 'No expenses added so far.'");
     }
 
     @Test
