@@ -46,25 +46,8 @@ public class Main {
                 break;
             }
 
-            String lowerInput = trimmed.toLowerCase();
-
-            if (lowerInput.startsWith("add")) {
-                expenseManager.handleAdd(trimmed);
-            } else if (lowerInput.startsWith("delete")) {
-                expenseManager.handleDelete(trimmed);
-            } else if (lowerInput.startsWith("setbudget")) {
-                expenseManager.handleSetBudget(trimmed);
-            } else if (lowerInput.startsWith("list")) {
-                expenseManager.handleList();
-            } else if (lowerInput.startsWith("help")) {
-                expenseManager.handleHelp();
-            } else if (lowerInput.startsWith("unmark")) {
-                expenseManager.handleMarkUnmark(trimmed, false);
-            } else if (lowerInput.startsWith("mark")) {
-                expenseManager.handleMarkUnmark(trimmed, true);
-            } else {
-                ui.showUnknownCommand();
-            }
+            Parser parser = new Parser(trimmed);
+            parser.executeCommand(expenseManager, ui, trimmed);
         }
     }
 
