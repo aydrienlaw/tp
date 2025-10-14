@@ -1,4 +1,10 @@
-package seedu.orcashbuddy;
+package seedu.orcashbuddy.storage;
+
+import seedu.orcashbuddy.expense.Expense;
+import seedu.orcashbuddy.exception.AddCommandException;
+import seedu.orcashbuddy.exception.DeleteCommandException;
+import seedu.orcashbuddy.exception.MarkUnmarkCommandException;
+import seedu.orcashbuddy.ui.Ui;
 
 import java.util.ArrayList;
 import java.util.logging.Level;

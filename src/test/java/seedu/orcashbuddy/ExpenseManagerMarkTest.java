@@ -1,6 +1,10 @@
 package seedu.orcashbuddy;
 
 import org.junit.jupiter.api.Test;
+import seedu.orcashbuddy.exception.MarkUnmarkCommandException;
+import seedu.orcashbuddy.expense.Expense;
+import seedu.orcashbuddy.storage.ExpenseManager;
+import seedu.orcashbuddy.ui.Ui;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;

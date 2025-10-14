@@ -1,5 +1,9 @@
 package seedu.orcashbuddy;
 
+import seedu.orcashbuddy.parser.Parser;
+import seedu.orcashbuddy.storage.ExpenseManager;
+import seedu.orcashbuddy.ui.Ui;
+
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 import java.util.logging.Handler;

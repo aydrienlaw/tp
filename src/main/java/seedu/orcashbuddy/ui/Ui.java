@@ -1,4 +1,6 @@
-package seedu.orcashbuddy;
+package seedu.orcashbuddy.ui;
+
+import seedu.orcashbuddy.expense.Expense;
 
 import java.util.ArrayList;
 

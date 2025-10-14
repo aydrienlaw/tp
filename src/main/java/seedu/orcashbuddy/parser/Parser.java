@@ -1,4 +1,7 @@
-package seedu.orcashbuddy;
+package seedu.orcashbuddy.parser;
+
+import seedu.orcashbuddy.storage.ExpenseManager;
+import seedu.orcashbuddy.ui.Ui;
 
 /**
  * Parses user input and routes to the appropriate command handler.

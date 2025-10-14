@@ -1,6 +1,8 @@
 package seedu.orcashbuddy;
 
 import org.junit.jupiter.api.Test;
+import seedu.orcashbuddy.storage.ExpenseManager;
+import seedu.orcashbuddy.ui.Ui;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;

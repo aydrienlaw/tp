@@ -1,6 +1,8 @@
 package seedu.orcashbuddy;
 
 import org.junit.jupiter.api.Test;
+import seedu.orcashbuddy.storage.ExpenseManager;
+import seedu.orcashbuddy.ui.Ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
