@@ -91,7 +91,7 @@ public class Ui {
      */
     private void showListOfExpenses(ArrayList<Expense> expenses) {
         if  (expenses.isEmpty()) {
-            System.out.println("No expenses so far.");
+            showListUsage();
             return;
         }
         System.out.println("Here is the list of expenses:");
@@ -192,5 +192,11 @@ public class Ui {
      */
     public void showUnknownCommand() {
         System.out.println("Unknown command. Type 'help' to see available commands.");
+    }
+    /**
+     * Displays a message for empty list.
+     */
+    public void showListUsage() {
+        System.out.println("No expenses added so far.");
     }
 }

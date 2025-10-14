@@ -9,7 +9,6 @@ package seedu.orcashbuddy;
  *   <li>The provided index is not a valid integer.</li>
  *   <li>The index is less than 1 or exceeds the number of expenses in the list.</li>
  * </ul>
- * </p>
  */
 public class MarkUnmarkCommandException extends Exception {
     /**
