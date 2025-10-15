@@ -23,6 +23,9 @@ class DeleteCommandTest {
 
     static class StubUi extends Ui {
         Expense lastDeletedExpense;
+        Double seenTotal = null;
+        Double seenBudget= null;
+        Double seenRemaining = null;
         ArrayList<Expense> lastListedExpenses;
 
         @Override
@@ -33,6 +36,9 @@ class DeleteCommandTest {
         @Override
         public void showList(double totalExpense, double budget,
                              double remainingBalance, ArrayList<Expense> expenses) {
+            this.seenTotal = totalExpense;
+            this.seenBudget = budget;
+            this.seenRemaining = remainingBalance;
             this.lastListedExpenses = expenses;
         }
     }
@@ -64,4 +70,24 @@ class DeleteCommandTest {
         assertThrows(AssertionError.class, () -> new DeleteCommand(3).execute(manager, ui));
         assertThrows(AssertionError.class, () -> new DeleteCommand(0).execute(manager, ui));
     }
+
+    @Test
+    void execute_deletePreviouslyMarked_rebalancesTotals() throws Exception {
+        // Seed + mark
+        new AddCommand(40.00, "Books").execute(manager, ui);
+        new SetBudgetCommand(200.00).execute(manager, ui);
+        new MarkCommand(3).execute(manager, ui);
+
+        // Totals after mark
+        new ListCommand().execute(manager, ui);
+        assertEquals(40.00, ui.seenTotal, 1e-6);
+        assertEquals(160.00, ui.seenRemaining, 1e-6);
+
+        // Delete the marked expense -> totals drop to zero
+        new DeleteCommand(3).execute(manager, ui);
+        new ListCommand().execute(manager, ui);
+        assertEquals(0.00, ui.seenTotal, 1e-6);
+        assertEquals(200.00, ui.seenRemaining, 1e-6);
+    }
+
 }

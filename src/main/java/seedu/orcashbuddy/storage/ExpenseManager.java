@@ -71,6 +71,15 @@ public class ExpenseManager {
         Expense removedExpense = expenses.remove(index - 1);
         assert removedExpense != null : "Removed expense should not be null";
 
+        // Rebalance if a marked expense was deleted
+        if (removedExpense.isMarked()) {
+            totalExpenses -= removedExpense.getAmount();
+            assert totalExpenses >= 0.0 : "Total expenses should not go negative after delete";
+            recalculateRemainingBalance();
+            assert remainingBalance == budget - totalExpenses
+                    : "Remaining balance must equal budget minus total expenses after delete";
+        }
+
         LOGGER.log(Level.INFO, "Deleted expense at index {0}: {1}",
                     new Object[]{index, removedExpense.getDescription()});
         return removedExpense;
