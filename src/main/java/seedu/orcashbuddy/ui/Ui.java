@@ -1,4 +1,6 @@
-package seedu.orcashbuddy;
+package seedu.orcashbuddy.ui;
+
+import seedu.orcashbuddy.expense.Expense;
 
 import java.util.ArrayList;
 
@@ -198,5 +200,14 @@ public class Ui {
      */
     public void showListUsage() {
         System.out.println("No expenses added so far.");
+    }
+
+    /**
+     * Displays a general error message.
+     *
+     * @param message the error message to display
+     */
+    public void showError(String message) {
+        System.out.println("Error: " + message);
     }
 }

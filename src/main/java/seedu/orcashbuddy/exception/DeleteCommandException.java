@@ -1,9 +1,11 @@
-package seedu.orcashbuddy;
+package seedu.orcashbuddy.exception;
+
+import seedu.orcashbuddy.storage.ExpenseManager;
 
 /**
  * Represents an exception thrown when a delete command cannot be parsed or executed properly.
  * <p>
- * This exception is used in {@link seedu.orcashbuddy.ExpenseManager} when:
+ * This exception is used in {@link ExpenseManager} when:
  * <ul>
  *   <li>The delete command input is missing an index.</li>
  *   <li>The provided index is not a valid integer.</li>

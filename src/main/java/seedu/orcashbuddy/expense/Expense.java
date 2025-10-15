@@ -1,4 +1,4 @@
-package seedu.orcashbuddy;
+package seedu.orcashbuddy.expense;
 
 /**
  * Represents an expense with an amount and description.
