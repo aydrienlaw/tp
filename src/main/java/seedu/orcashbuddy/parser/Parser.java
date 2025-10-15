@@ -35,18 +35,18 @@ public class Parser {
             switch (commandWord) {
             case "add":
                 return parseAddCommand(userInput);
-            case "delete":
-                return parseDeleteCommand(arguments);
             case "setbudget":
                 return parseSetBudgetCommand(arguments);
-            case "list":
-                return new ListCommand();
-            case "help":
-                return new HelpCommand();
+            case "delete":
+                return parseDeleteCommand(arguments);
             case "mark":
                 return parseMarkCommand(arguments);
             case "unmark":
                 return parseUnmarkCommand(arguments);
+            case "list":
+                return new ListCommand();
+            case "help":
+                return new HelpCommand();
             default:
                 return new InvalidCommand();
             }
@@ -59,6 +59,7 @@ public class Parser {
         }
     }
 
+    //@@author limzerui
     /**
      * Parses the add command and creates an AddCommand object.
      *
@@ -107,6 +108,7 @@ public class Parser {
         return new AddCommand(amount, description);
     }
 
+    //@@author aydrienlaw
     /**
      * Parses the setbudget command and creates a SetBudgetCommand object.
      *
@@ -143,11 +145,13 @@ public class Parser {
         return new SetBudgetCommand(budget);
     }
 
+    //@@author saheer17
     private Command parseDeleteCommand(String arguments) throws OrCashBuddyException {
         int index = parseIndex(arguments, "delete");
         return new DeleteCommand(index);
     }
 
+    //@author muadzyamani
     private Command parseMarkCommand(String arguments) throws OrCashBuddyException {
         int index = parseIndex(arguments, "mark");
         return new MarkCommand(index);
@@ -158,6 +162,7 @@ public class Parser {
         return new UnmarkCommand(index);
     }
 
+    //@@author aydrienlaw
     // Common parsing logic in one place
     private int parseIndex(String arguments, String commandName) throws OrCashBuddyException {
         if (arguments.isEmpty()) {

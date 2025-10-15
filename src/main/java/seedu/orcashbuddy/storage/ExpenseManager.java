@@ -25,6 +25,7 @@ public class ExpenseManager {
         this.expenses = new ArrayList<>();
     }
 
+    //@@author limzerui
     /**
      * Adds an expense to the list.
      *
@@ -41,6 +42,21 @@ public class ExpenseManager {
         LOGGER.fine(() -> "Expense list size is now " + expenses.size());
     }
 
+    //@@author aydrienlaw
+    /**
+     * Sets the budget amount.
+     *
+     * @param budget the new budget amount
+     */
+    public void setBudget(double budget) {
+        assert budget > 0.0 : "Budget must be positive";
+
+        this.budget = budget;
+        recalculateRemainingBalance();
+        LOGGER.log(Level.INFO, "Budget set to {0}", budget);
+    }
+
+    //@@author saheer17
     /**
      * Deletes an expense at the specified index.
      *
@@ -60,6 +76,7 @@ public class ExpenseManager {
         return removedExpense;
     }
 
+    //@@author muadzyamani
     /**
      * Marks an expense at the specified index as paid.
      *
@@ -96,17 +113,21 @@ public class ExpenseManager {
         return expense;
     }
 
+    //@@author gumingyoujia
     /**
-     * Sets the budget amount.
+     * Displays the list of expenses with budget information.
      *
-     * @param budget the new budget amount
+     * @param ui the UI to display the information
      */
-    public void setBudget(double budget) {
-        assert budget > 0.0 : "Budget must be positive";
-
-        this.budget = budget;
-        recalculateRemainingBalance();
-        LOGGER.log(Level.INFO, "Budget set to {0}", budget);
+    public void displayList(Ui ui){
+        LOGGER.fine("displayList invoked.");
+        assert ui != null : "Ui must not be null";
+        assert budget >= 0.0 : "Budget should never be negative";
+        assert totalExpenses >= 0.0 : "Total expenses should never be negative";
+        assert remainingBalance == budget - totalExpenses
+                : "Remaining balance must equal budget minus total expenses";
+        ui.showList(totalExpenses, budget, remainingBalance, expenses);
+        LOGGER.fine(() -> "Expenses listed.");
     }
 
     /**
@@ -148,6 +169,7 @@ public class ExpenseManager {
         remainingBalance = budget - totalExpenses;
     }
 
+    //@@author aydrienlaw
     /**
      * Validates that an index is within the valid range.
      *
@@ -161,21 +183,5 @@ public class ExpenseManager {
         if (index < 1 || index > expenses.size()) {
             throw OrCashBuddyException.expenseIndexOutOfRange(index, expenses.size());
         }
-    }
-
-    /**
-     * Displays the list of expenses with budget information.
-     *
-     * @param ui the UI to display the information
-     */
-    public void displayList(Ui ui){
-        LOGGER.fine("displayList invoked.");
-        assert ui != null : "Ui must not be null";
-        assert budget >= 0.0 : "Budget should never be negative";
-        assert totalExpenses >= 0.0 : "Total expenses should never be negative";
-        assert remainingBalance == budget - totalExpenses
-                : "Remaining balance must equal budget minus total expenses";
-        ui.showList(totalExpenses, budget, remainingBalance, expenses);
-        LOGGER.fine(() -> "Expenses listed.");
     }
 }

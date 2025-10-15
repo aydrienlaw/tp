@@ -25,24 +25,15 @@ public class OrCashBuddyException extends Exception {
         super(message, cause);
     }
 
-    // ========== Command Parsing Exceptions ==========
-
+    //@@author limzerui
+    // ========== Amount-Related Exceptions ==========
     /**
-     * Creates an exception for missing amount prefix in add command.
+     * Creates an exception for missing amount prefix 'a/'.
      *
      * @return OrCashBuddyException for missing amount prefix
      */
     public static OrCashBuddyException missingAmountPrefix() {
         return new OrCashBuddyException("Missing amount prefix 'a/'");
-    }
-
-    /**
-     * Creates an exception for missing description prefix in add command.
-     *
-     * @return OrCashBuddyException for missing description prefix
-     */
-    public static OrCashBuddyException missingDescriptionPrefix() {
-        return new OrCashBuddyException("Missing description prefix 'desc/'");
     }
 
     /**
@@ -52,15 +43,6 @@ public class OrCashBuddyException extends Exception {
      */
     public static OrCashBuddyException emptyAmount() {
         return new OrCashBuddyException("Amount is missing after 'a/'");
-    }
-
-    /**
-     * Creates an exception for empty description field.
-     *
-     * @return OrCashBuddyException for empty description
-     */
-    public static OrCashBuddyException emptyDescription() {
-        return new OrCashBuddyException("Description is missing after 'desc/'");
     }
 
     /**
@@ -93,6 +75,29 @@ public class OrCashBuddyException extends Exception {
     public static OrCashBuddyException amountNotPositive(String amountStr) {
         return new OrCashBuddyException("Amount must be greater than 0: " + amountStr);
     }
+
+    // ========== Description-Related Exceptions ==========
+
+    /**
+     * Creates an exception for missing description prefix 'desc/'.
+     *
+     * @return OrCashBuddyException for missing description prefix
+     */
+    public static OrCashBuddyException missingDescriptionPrefix() {
+        return new OrCashBuddyException("Missing description prefix 'desc/'");
+    }
+
+    /**
+     * Creates an exception for empty description field.
+     *
+     * @return OrCashBuddyException for empty description
+     */
+    public static OrCashBuddyException emptyDescription() {
+        return new OrCashBuddyException("Description is missing after 'desc/'");
+    }
+
+    //@@author saheer17
+    // ========== Index-Related Exceptions ==========
 
     /**
      * Creates an exception for missing expense index.
@@ -133,17 +138,6 @@ public class OrCashBuddyException extends Exception {
     }
 
     /**
-     * Creates an exception for missing budget amount.
-     *
-     * @return OrCashBuddyException for missing budget
-     */
-    public static OrCashBuddyException missingBudgetAmount() {
-        return new OrCashBuddyException("Missing budget amount");
-    }
-
-    // ========== Expense Manager Exceptions ==========
-
-    /**
      * Creates an exception for expense index out of valid range.
      *
      * @param index the invalid index
@@ -157,6 +151,20 @@ public class OrCashBuddyException extends Exception {
         return new OrCashBuddyException(
                 "Expense index must be between 1 and " + maxIndex + ", but got " + index);
     }
+
+    //@@author aydrienlaw
+    // ========== Budget-Related Exceptions ==========
+
+    /**
+     * Creates an exception for missing budget amount.
+     *
+     * @return OrCashBuddyException for missing budget
+     */
+    public static OrCashBuddyException missingBudgetAmount() {
+        return new OrCashBuddyException("Missing budget amount");
+    }
+
+    // ========== Expense List Exceptions ==========
 
     /**
      * Creates an exception for operations on empty expense lists.
