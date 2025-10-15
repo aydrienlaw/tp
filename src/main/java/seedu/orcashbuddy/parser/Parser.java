@@ -15,6 +15,17 @@ public class Parser {
     private static final int ARGUMENTS_INDEX = 1;
     private static final int MAX_SPLIT_PARTS = 2;
 
+    // Command prefixes
+    private static final String AMOUNT_PREFIX = "a/";
+    private static final String DESCRIPTION_PREFIX = "desc/";
+
+    // Prefix lengths
+    private static final int AMOUNT_PREFIX_LENGTH = AMOUNT_PREFIX.length();
+    private static final int DESCRIPTION_PREFIX_LENGTH = DESCRIPTION_PREFIX.length();
+
+    // Command lengths
+    private static final int ADD_COMMAND_LENGTH = 3;
+
     /**
      * Parses the user input and returns the corresponding Command object.
      *
@@ -34,7 +45,7 @@ public class Parser {
         try {
             switch (commandWord) {
             case "add":
-                return parseAddCommand(userInput);
+                return parseAddCommand(arguments);
             case "setbudget":
                 return parseSetBudgetCommand(arguments);
             case "delete":
@@ -52,55 +63,28 @@ public class Parser {
             }
         } catch (OrCashBuddyException e) {
             LOGGER.log(Level.WARNING, "Error parsing command: " + e.getMessage(), e);
-            return new InvalidParsedCommand(e);
+            return new InvalidCommand(e);
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Unexpected error parsing command: " + e.getMessage(), e);
             return new InvalidCommand();
         }
     }
 
+    // ========== Command Parsing Methods ==========
+
     //@@author limzerui
     /**
      * Parses the add command and creates an AddCommand object.
      *
-     * @param input the full user input string
+     * @param arguments the arguments after the command word
      * @return an AddCommand object
      * @throws OrCashBuddyException if the input is invalid
      */
-    private Command parseAddCommand(String input) throws OrCashBuddyException {
-        // Expected format: add a/AMOUNT desc/DESCRIPTION
-        String rest = input.length() > 3 ? input.substring(3).trim() : "";
+    private Command parseAddCommand(String arguments) throws OrCashBuddyException {
+        String rest = arguments.length() > ADD_COMMAND_LENGTH ? arguments.substring(ADD_COMMAND_LENGTH).trim() : "";
 
-        if (!rest.startsWith("a/")) {
-            throw OrCashBuddyException.missingAmountPrefix();
-        }
-
-        // Find the start of "desc/" regardless of spacing before it
-        int descIdx = rest.indexOf("desc/");
-        if (descIdx == -1) {
-            throw OrCashBuddyException.missingDescriptionPrefix();
-        }
-
-        String amountStr = rest.substring(2, descIdx).trim();
-        String description = rest.substring(descIdx + 5).trim();
-
-        if (amountStr.isEmpty()) {
-            throw OrCashBuddyException.emptyAmount();
-        }
-        if (description.isEmpty()) {
-            throw OrCashBuddyException.emptyDescription();
-        }
-
-        double amount;
-        try {
-            amount = Double.parseDouble(amountStr);
-        } catch (NumberFormatException e) {
-            throw OrCashBuddyException.invalidAmount(amountStr, e);
-        }
-
-        if (!(amount > 0)) {
-            throw OrCashBuddyException.amountNotPositive(amountStr);
-        }
+        double amount = parseAmount(rest, DESCRIPTION_PREFIX);
+        String description = parseDescription(rest);
 
         LOGGER.log(Level.FINE, "Parsed add command: amount={0}, description={1}",
                 new Object[]{amount, description});
@@ -121,27 +105,7 @@ public class Parser {
             throw OrCashBuddyException.missingBudgetAmount();
         }
 
-        int amountIdx = arguments.indexOf("a/");
-        if (amountIdx == -1) {
-            throw OrCashBuddyException.missingAmountPrefix();
-        }
-
-        String amountStr = arguments.substring(amountIdx + 2).trim();
-        if (amountStr.isEmpty()) {
-            throw OrCashBuddyException.emptyAmount();
-        }
-
-        double budget;
-        try {
-            budget = Double.parseDouble(amountStr);
-        } catch (NumberFormatException e) {
-            throw OrCashBuddyException.invalidAmount(amountStr, e);
-        }
-
-        if (!(budget > 0)) {
-            throw OrCashBuddyException.amountNotPositive(amountStr);
-        }
-
+        double budget = parseAmount(arguments, null);
         return new SetBudgetCommand(budget);
     }
 
@@ -162,14 +126,109 @@ public class Parser {
         return new UnmarkCommand(index);
     }
 
+    // ========== Helper Parsing Methods ==========
+
+    //@@author limzerui
+    /**
+     * Parses an amount value from input string.
+     *
+     * @param input the input string containing the amount
+     * @param nextPrefix the next prefix after amount, or null if amount is at the end
+     * @return the parsed amount as a double
+     * @throws OrCashBuddyException if amount is missing, invalid, or non-positive
+     */
+    private double parseAmount(String input, String nextPrefix)
+            throws OrCashBuddyException {
+        int amountIdx = input.indexOf(AMOUNT_PREFIX);
+        if (amountIdx == -1) {
+            throw OrCashBuddyException.missingAmountPrefix();
+        }
+
+        String amountStr;
+        if (nextPrefix != null) {
+            int nextIdx = input.indexOf(nextPrefix);
+            if (nextIdx == -1 || nextIdx <= amountIdx) {
+                throw new OrCashBuddyException("Amount field must be followed by " + nextPrefix);
+            }
+            amountStr = input.substring(amountIdx + AMOUNT_PREFIX_LENGTH, nextIdx).trim();
+        } else {
+            amountStr = input.substring(amountIdx + AMOUNT_PREFIX_LENGTH).trim();
+        }
+        return validateAmount(amountStr);
+    }
+
+    /**
+     * Validates and parses an amount string into a double.
+     *
+     * @param amountStr the string to parse
+     * @return the parsed amount
+     * @throws OrCashBuddyException if amount is empty, invalid, or non-positive
+     */
+    private double validateAmount(String amountStr) throws OrCashBuddyException {
+        if (amountStr.isEmpty()) {
+            throw OrCashBuddyException.emptyAmount();
+        }
+
+        double amount;
+        try {
+            amount = Double.parseDouble(amountStr);
+        } catch (NumberFormatException e) {
+            throw OrCashBuddyException.invalidAmount(amountStr, e);
+        }
+
+        if (!(amount > 0)) {
+            throw OrCashBuddyException.amountNotPositive(amountStr);
+        }
+
+        return amount;
+    }
+
+    /**
+     * Parses a description from input string.
+     *
+     * @param input the input string containing the description
+     * @return the parsed description
+     * @throws OrCashBuddyException if description prefix is missing or description is empty
+     */
+    private String parseDescription(String input) throws OrCashBuddyException {
+        int descIdx = input.indexOf(DESCRIPTION_PREFIX);
+        if (descIdx == -1) {
+            throw OrCashBuddyException.missingDescriptionPrefix();
+        }
+
+        String description = input.substring(descIdx + DESCRIPTION_PREFIX_LENGTH).trim();
+        return validateDescription(description);
+    }
+
+    /**
+     * Validates a description string.
+     *
+     * @param description the string to validate
+     * @return the verified description
+     * @throws OrCashBuddyException if description is empty
+     */
+    private String validateDescription(String description) throws OrCashBuddyException {
+        if (description.isEmpty()) {
+            throw OrCashBuddyException.emptyDescription();
+        }
+        return description;
+    }
+
     //@@author aydrienlaw
-    // Common parsing logic in one place
+    /**
+     * Parses an expense index from arguments.
+     *
+     * @param arguments the arguments string containing the index
+     * @param commandName the name of the command (for error messages)
+     * @return the parsed 1-based index
+     * @throws OrCashBuddyException if index is missing, invalid, or less than 1
+     */
     private int parseIndex(String arguments, String commandName) throws OrCashBuddyException {
         if (arguments.isEmpty()) {
             throw OrCashBuddyException.missingExpenseIndex(commandName);
         }
-        int index;
 
+        int index;
         try {
             index = Integer.parseInt(arguments.trim());
         } catch (NumberFormatException e) {
@@ -179,6 +238,7 @@ public class Parser {
         if (index < 1) {
             throw OrCashBuddyException.expenseIndexTooSmall();
         }
+
         return index;
     }
 }
