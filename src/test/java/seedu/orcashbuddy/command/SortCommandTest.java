@@ -14,7 +14,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
- * Command-level tests for sorting expenses by amount.
+ * Command-level tests for the SortCommand.
+ * Verifies that expenses are sorted in descending order by amount
+ * and correctly displayed in the UI.
  */
 class SortCommandTest {
 
@@ -36,6 +38,9 @@ class SortCommandTest {
         ui = new StubUi();
     }
 
+    /**
+     * Tests that SortCommand sorts multiple expenses in descending order of amount.
+     */
     @Test
     void execute_withMultipleExpenses_sortsDescendingByAmount() throws Exception {
         // Add expenses in unsorted order
@@ -53,8 +58,12 @@ class SortCommandTest {
         assertEquals("[ ] Coffee - $7.25", ui.lastSortedExpenses.get(2).formatForDisplay());
     }
 
+    /**
+     * Tests that executing the SortCommand when there are no expenses
+     * throws an OrCashBuddyException indicating the expense list is empty.
+     */
     @Test
-    void execute_withNoExpenses_displaysEmptyList() throws Exception {
+    void execute_withNoExpenses_displaysEmptyList() {
 
         // When no expenses exist, SortCommand should throw an empty-list exception
         assertThrows(OrCashBuddyException.class, () -> new SortCommand().execute(manager, ui));

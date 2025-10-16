@@ -195,6 +195,12 @@ public class ExpenseManager {
     }
 
     //@@author saheer17
+    /**
+     * Sorts the expenses in descending order by amount and displays them using the UI.
+     *
+     * @param ui the UI to display the sorted list of expenses
+     * @throws OrCashBuddyException if there are no expenses in the list
+     */
     public void sortExpenses(Ui ui) throws OrCashBuddyException {
         assert ui != null : "Ui must not be null";
 

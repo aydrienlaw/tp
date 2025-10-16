@@ -213,6 +213,12 @@ public class Ui {
     }
 
     //@@author saheer17
+    /**
+     * Displays the list of expenses sorted by amount in descending order.
+     * If the list is empty, displays a message indicating no expenses.
+     *
+     * @param sortedExpenses the list of expenses sorted from highest to lowest amount
+     */
     public void showSortedList(ArrayList<Expense> sortedExpenses) {
         assert sortedExpenses != null : "Sorted expenses list must not be null";
         if (sortedExpenses.isEmpty()) {
