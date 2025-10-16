@@ -64,7 +64,6 @@ class SortCommandTest {
      */
     @Test
     void execute_withNoExpenses_displaysEmptyList() {
-
         // When no expenses exist, SortCommand should throw an empty-list exception
         assertThrows(OrCashBuddyException.class, () -> new SortCommand().execute(manager, ui));
     }
