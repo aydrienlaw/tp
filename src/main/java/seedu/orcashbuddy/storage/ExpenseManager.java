@@ -193,4 +193,16 @@ public class ExpenseManager {
             throw OrCashBuddyException.expenseIndexOutOfRange(index, expenses.size());
         }
     }
+
+    public void sortExpenses(Ui ui) throws OrCashBuddyException {
+        if (expenses.isEmpty()) {
+            throw OrCashBuddyException.emptyExpenseList();
+        }
+
+        assert ui != null : "Ui must not be null";
+
+        ArrayList<Expense> sortedExpenses = new ArrayList<>(expenses);
+        sortedExpenses.sort((e1, e2) -> Double.compare(e2.getAmount(), e1.getAmount()));
+        ui.showSortedList(sortedExpenses);
+    }
 }

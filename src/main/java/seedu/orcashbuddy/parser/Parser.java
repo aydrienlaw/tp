@@ -9,6 +9,7 @@ import seedu.orcashbuddy.command.UnmarkCommand;
 import seedu.orcashbuddy.command.ListCommand;
 import seedu.orcashbuddy.command.HelpCommand;
 import seedu.orcashbuddy.command.InvalidCommand;
+import seedu.orcashbuddy.command.SortCommand;
 import seedu.orcashbuddy.exception.OrCashBuddyException;
 
 import java.util.logging.Level;
@@ -59,6 +60,8 @@ public class Parser {
                 return new ListCommand();
             case "help":
                 return new HelpCommand();
+            case "sort":
+                return new SortCommand();
             default:
                 return new InvalidCommand();
             }
