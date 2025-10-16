@@ -196,15 +196,17 @@ public class ExpenseManager {
 
     //@@author saheer17
     public void sortExpenses(Ui ui) throws OrCashBuddyException {
+        assert ui != null : "Ui must not be null";
+
         if (expenses.isEmpty()) {
             LOGGER.warning("Attempted to sort expenses but the list is empty");
             throw OrCashBuddyException.emptyExpenseList();
         }
 
         LOGGER.info("Sorting expenses in descending order by amount");
-        assert ui != null : "Ui must not be null";
         ArrayList<Expense> sortedExpenses = new ArrayList<>(expenses);
         sortedExpenses.sort((e1, e2) -> Double.compare(e2.getAmount(), e1.getAmount()));
+        assert sortedExpenses.size() == expenses.size() : "Sorted expenses size should match original expenses size";
         ui.showSortedList(sortedExpenses);
     }
 }

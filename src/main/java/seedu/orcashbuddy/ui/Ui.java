@@ -214,7 +214,7 @@ public class Ui {
 
     //@@author saheer17
     public void showSortedList(ArrayList<Expense> sortedExpenses) {
-
+        assert sortedExpenses != null : "Sorted expenses list must not be null";
         if (sortedExpenses.isEmpty()) {
             showListUsage();
             return;
@@ -222,6 +222,7 @@ public class Ui {
 
         System.out.println("Here is the list of sorted expenses, starting with the highest amount:");
         for (int i = 0; i < sortedExpenses.size(); i++) {
+            assert sortedExpenses.get(i) != null : "Expense in sorted list must not be null";
             System.out.println((i + 1) + ". " + sortedExpenses.get(i).formatForDisplay());
         }
     }
