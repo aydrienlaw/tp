@@ -64,7 +64,8 @@ class SetBudgetCommandTest {
         assertEquals(150.00, ui.seenBudget, 1e-6);
         assertEquals(150.00, ui.seenRemaining, 1e-6);
         assertEquals(1, ui.lastListedExpenses.size());
-        assertEquals("[ ] Groceries - $30.00", ui.lastListedExpenses.get(0).formatForDisplay());
+        assertEquals("[ ] [" + Expense.DEFAULT_CATEGORY + "] Groceries - $30.00",
+                ui.lastListedExpenses.get(0).formatForDisplay());
     }
 
     @Test

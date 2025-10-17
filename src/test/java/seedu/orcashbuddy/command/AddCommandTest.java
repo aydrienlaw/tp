@@ -59,12 +59,14 @@ class AddCommandTest {
         assertNotNull(ui.lastNewExpense, "Ui.showNewExpense should be called");
         assertEquals(12.50, ui.lastNewExpense.getAmount(), 1e-6);
         assertEquals("Lunch", ui.lastNewExpense.getDescription());
+        assertEquals(Expense.DEFAULT_CATEGORY, ui.lastNewExpense.getCategory());
 
         // Listing should show exactly one expense with correct formatting
         new ListCommand().execute(manager, ui);
         assertNotNull(ui.lastListedExpenses);
         assertEquals(1, ui.lastListedExpenses.size());
-        assertEquals("[ ] Lunch - $12.50", ui.lastListedExpenses.get(0).formatForDisplay());
+        assertEquals("[ ] [" + Expense.DEFAULT_CATEGORY + "] Lunch - $12.50",
+                ui.lastListedExpenses.get(0).formatForDisplay());
     }
 
     @Test
