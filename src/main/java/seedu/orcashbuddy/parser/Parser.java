@@ -27,6 +27,7 @@ public class Parser {
     // Command prefixes
     private static final String AMOUNT_PREFIX = "a/";
     private static final String DESCRIPTION_PREFIX = "desc/";
+    private static final String CATEGORY_PREFIX = "cat/";
 
     /**
      * Parses the user input and returns the corresponding Command object.
@@ -88,11 +89,13 @@ public class Parser {
         ArgumentParser argParser = new ArgumentParser(arguments);
         String amountStr = argParser.getValue(AMOUNT_PREFIX);
         String descStr = argParser.getValue(DESCRIPTION_PREFIX);
+        String categoryStr = argParser.getOptionalValue(CATEGORY_PREFIX);
 
         double amount = InputValidator.validateAmount(amountStr);
         String description = InputValidator.validateDescription(descStr);
+        String category = InputValidator.validateCategory(categoryStr);
 
-        return new AddCommand(amount, description);
+        return new AddCommand(amount, description, category);
     }
 
     //@@author aydrienlaw

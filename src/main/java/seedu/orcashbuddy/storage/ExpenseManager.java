@@ -35,10 +35,11 @@ public class ExpenseManager {
         assert expense != null : "Expense must not be null";
         assert expense.getAmount() > 0.0 : "Parsed expense must be positive";
         assert !expense.getDescription().isBlank() : "Parsed expense description must not be blank";
+        assert !expense.getCategory().isBlank() : "Parsed expense category must not be blank";
 
         expenses.add(expense);
-        LOGGER.log(Level.INFO, "Added expense amount={0}, desc={1}",
-                new Object[]{expense.getAmount(), expense.getDescription()});
+        LOGGER.log(Level.INFO, "Added expense amount={0}, desc={1}, category={2}",
+                new Object[]{expense.getAmount(), expense.getDescription(), expense.getCategory()});
         LOGGER.fine(() -> "Expense list size is now " + expenses.size());
     }
 
