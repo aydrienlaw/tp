@@ -10,6 +10,7 @@ import seedu.orcashbuddy.command.ListCommand;
 import seedu.orcashbuddy.command.HelpCommand;
 import seedu.orcashbuddy.command.InvalidCommand;
 import seedu.orcashbuddy.command.SortCommand;
+import seedu.orcashbuddy.command.ByeCommand;
 import seedu.orcashbuddy.exception.OrCashBuddyException;
 
 import java.util.logging.Level;
@@ -63,6 +64,8 @@ public class Parser {
                 return new HelpCommand();
             case "sort":
                 return new SortCommand();
+            case "bye":
+                return parseByeCommand(arguments);
             default:
                 return new InvalidCommand();
             }
@@ -96,6 +99,20 @@ public class Parser {
         String category = InputValidator.validateCategory(categoryStr);
 
         return new AddCommand(amount, description, category);
+    }
+
+    /**
+     * Parses the bye command and creates a ByeCommand object.
+     *
+     * @param arguments the arguments after the command word
+     * @return a ByeCommand object
+     * @throws OrCashBuddyException if unexpected arguments are provided
+     */
+    private Command parseByeCommand(String arguments) throws OrCashBuddyException {
+        if (arguments != null && !arguments.isBlank()) {
+            throw new OrCashBuddyException("'bye' command does not take any arguments");
+        }
+        return new ByeCommand();
     }
 
     //@@author aydrienlaw
