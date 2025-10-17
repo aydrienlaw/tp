@@ -25,6 +25,7 @@ public class Ui {
         System.out.println("Mark an expense as unpaid:             unmark EXPENSE_INDEX");
         System.out.println("Delete an expense:                     delete EXPENSE_INDEX");
         System.out.println("Sort all expenses in descending order: sort");
+        System.out.println("Exit the application:                  bye");
     }
 
 

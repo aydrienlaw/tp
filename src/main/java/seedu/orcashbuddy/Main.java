@@ -40,18 +40,17 @@ public class Main {
         ui.showWelcome();
 
         Scanner scanner = new Scanner(System.in);
-        while (true) {
+        boolean shouldContinue = true;
+        while (shouldContinue) {
             String input = readInput(scanner);
             if (input == null) {
                 break;
             }
 
-            if (isExitCommand(input)) {
-                ui.showGoodbye();
-                break;
+            boolean shouldExit = executeCommand(input);
+            if (shouldExit) {
+                shouldContinue = false;
             }
-
-            executeCommand(input);
         }
     }
 
@@ -71,25 +70,16 @@ public class Main {
     }
 
     /**
-     * Checks if the input is an exit command.
-     *
-     * @param input the user input
-     * @return true if the input is "bye", false otherwise
-     */
-    private boolean isExitCommand(String input) {
-        String trimmed = input == null ? "" : input.trim();
-        return trimmed.equalsIgnoreCase("bye");
-    }
-
-    /**
      * Parses and executes a command from user input.
      *
      * @param input the user input string
+     * @return true if the executed command signals application exit; false otherwise
      */
-    private void executeCommand(String input) {
+    private boolean executeCommand(String input) {
         try {
             Command command = parser.parse(input);
             command.execute(expenseManager, ui);
+            return command.isExit();
         } catch (OrCashBuddyException e) {
             // Handle expected application exceptions
             LOGGER.log(Level.INFO, "Application error: " + e.getMessage());
@@ -99,6 +89,7 @@ public class Main {
             LOGGER.log(Level.WARNING, "Unexpected error executing command: " + e.getMessage(), e);
             ui.showError("An unexpected error occurred while processing your command.");
         }
+        return false;
     }
 
     public static void main(String[] args) {
