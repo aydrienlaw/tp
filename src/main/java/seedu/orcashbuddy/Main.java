@@ -14,7 +14,7 @@ import java.util.logging.Logger;
 
 /**
  * Entry point for the orCASHbuddy application.
- * Prints a welcome message and exits gracefully when the user types "bye".
+ * Prints a welcome message and delegates exit handling to the command layer.
  */
 public class Main {
     private static final Logger LOGGER = Logger.getLogger(Main.class.getName());
@@ -40,17 +40,14 @@ public class Main {
         ui.showWelcome();
 
         Scanner scanner = new Scanner(System.in);
-        boolean shouldContinue = true;
-        while (shouldContinue) {
+        boolean shouldExit = false;
+        while (!shouldExit) {
             String input = readInput(scanner);
             if (input == null) {
                 break;
             }
 
-            boolean shouldExit = executeCommand(input);
-            if (shouldExit) {
-                shouldContinue = false;
-            }
+            shouldExit = executeCommand(input);
         }
     }
 
