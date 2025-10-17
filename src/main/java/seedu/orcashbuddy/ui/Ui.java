@@ -18,7 +18,7 @@ public class Ui {
      * Prints the main menu of available commands.
      */
     public void showMenu(){
-        System.out.println("Add an expense:                        add a/AMOUNT desc/DESCRIPTION");
+        System.out.println("Add an expense:                        add a/AMOUNT desc/DESCRIPTION [cat/CATEGORY]");
         System.out.println("Set a budget:                          setbudget a/AMOUNT");
         System.out.println("List all expenses & statistics:        list");
         System.out.println("Mark an expense as paid:               mark EXPENSE_INDEX");
@@ -144,7 +144,7 @@ public class Ui {
      * Prints the correct usage for the add command.
      */
     public void showAddUsage() {
-        System.out.println("Invalid format. Use: add a/AMOUNT desc/DESCRIPTION");
+        System.out.println("Invalid format. Use: add a/AMOUNT desc/DESCRIPTION [cat/CATEGORY]");
     }
 
     /**

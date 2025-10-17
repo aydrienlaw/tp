@@ -41,7 +41,8 @@ class MarkCommandTest {
         new MarkCommand(1).execute(manager, ui);
 
         assertNotNull(ui.lastMarkedExpense);
-        assertEquals("[X] Groceries - $30.00", ui.lastMarkedExpense.formatForDisplay());
+        assertEquals("[X] [" + Expense.DEFAULT_CATEGORY + "] Groceries - $30.00",
+                ui.lastMarkedExpense.formatForDisplay());
     }
 
     @Test

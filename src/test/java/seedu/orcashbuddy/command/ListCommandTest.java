@@ -53,8 +53,10 @@ class ListCommandTest {
         assertEquals(100.0, ui.seenBudget, 1e-6);
         assertEquals(100.00, ui.seenRemaining, 1e-6);
         assertEquals(2, ui.lastListedExpenses.size());
-        assertEquals("[ ] Lunch - $12.50", ui.lastListedExpenses.get(0).formatForDisplay());
-        assertEquals("[ ] Coffee - $7.25", ui.lastListedExpenses.get(1).formatForDisplay());
+        assertEquals("[ ] [" + Expense.DEFAULT_CATEGORY + "] Lunch - $12.50",
+                ui.lastListedExpenses.get(0).formatForDisplay());
+        assertEquals("[ ] [" + Expense.DEFAULT_CATEGORY + "] Coffee - $7.25",
+                ui.lastListedExpenses.get(1).formatForDisplay());
     }
 
     @Test

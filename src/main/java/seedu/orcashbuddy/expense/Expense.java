@@ -1,16 +1,19 @@
 package seedu.orcashbuddy.expense;
 
 /**
- * Represents an expense with an amount and description.
+ * Represents an expense with an amount, description, and category.
  */
 public class Expense {
+    public static final String DEFAULT_CATEGORY = "Uncategorized";
     private final double amount;
     private final String description;
+    private final String category;
     private boolean isMarked;
 
-    public Expense(double amount, String description) {
+    public Expense(double amount, String description, String category) {
         this.amount = amount;
         this.description = description;
+        this.category = category;
         this.isMarked = false;
     }
 
@@ -20,6 +23,10 @@ public class Expense {
 
     public String getDescription() {
         return description;
+    }
+
+    public String getCategory() {
+        return category;
     }
 
     public boolean isMarked() {
@@ -41,11 +48,12 @@ public class Expense {
     }
 
     /**
-     * Returns the display format: "[X] DESCRIPTION - $XX.XX" if marked,
-     * "[ ] DESCRIPTION - $XX.XX" if unmarked.
+     * Returns the display format: "[X] [CATEGORY] DESCRIPTION - $XX.XX" if marked,
+     * "[ ] [CATEGORY] DESCRIPTION - $XX.XX" if unmarked.
      */
     public String formatForDisplay() {
         String statusIcon = isMarked ? "[X]" : "[ ]";
-        return statusIcon + " " + description + " - $" + String.format("%.2f", amount);
+        return statusIcon + " [" + category + "] " + description + " - $"
+                + String.format("%.2f", amount);
     }
 }

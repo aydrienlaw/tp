@@ -62,7 +62,8 @@ class DeleteCommandTest {
         // Now list and ensure only 'Taxi' remains
         new ListCommand().execute(manager, ui);
         assertEquals(1, ui.lastListedExpenses.size());
-        assertEquals("[ ] Taxi - $10.00", ui.lastListedExpenses.get(0).formatForDisplay());
+        assertEquals("[ ] [" + Expense.DEFAULT_CATEGORY + "] Taxi - $10.00",
+                ui.lastListedExpenses.get(0).formatForDisplay());
     }
 
     @Test

@@ -1,6 +1,7 @@
 package seedu.orcashbuddy.parser;
 
 import seedu.orcashbuddy.exception.OrCashBuddyException;
+import seedu.orcashbuddy.expense.Expense;
 
 public class InputValidator {
 
@@ -29,6 +30,23 @@ public class InputValidator {
             throw OrCashBuddyException.emptyDescription();
         }
         return description.trim();
+    }
+
+    public static String validateCategory(String category) throws OrCashBuddyException {
+        if (category == null) {
+            return Expense.DEFAULT_CATEGORY;
+        }
+
+        String trimmed = category.trim();
+        if (trimmed.isEmpty()) {
+            throw OrCashBuddyException.emptyCategory();
+        }
+
+        if (!trimmed.matches("[A-Za-z][A-Za-z0-9\\s-]{0,19}")) {
+            throw OrCashBuddyException.invalidCategory(trimmed);
+        }
+
+        return trimmed;
     }
 
     //@@author saheer17

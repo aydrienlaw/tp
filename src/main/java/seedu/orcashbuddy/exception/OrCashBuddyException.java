@@ -96,6 +96,27 @@ public class OrCashBuddyException extends Exception {
         return new OrCashBuddyException("Description is missing after 'desc/'");
     }
 
+    /**
+     * Creates an exception for empty category field.
+     *
+     * @return OrCashBuddyException for empty category
+     */
+    public static OrCashBuddyException emptyCategory() {
+        return new OrCashBuddyException("Category is missing after 'cat/'");
+    }
+
+    /**
+     * Creates an exception for invalid category format.
+     *
+     * @param category the invalid category string
+     * @return OrCashBuddyException for invalid category
+     */
+    public static OrCashBuddyException invalidCategory(String category) {
+        return new OrCashBuddyException(
+                "Category must start with a letter and contain only letters, numbers, spaces, or hyphens: "
+                        + category);
+    }
+
     //@@author saheer17
     // ========== Index-Related Exceptions ==========
 

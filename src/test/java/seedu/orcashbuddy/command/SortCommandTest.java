@@ -53,9 +53,12 @@ class SortCommandTest {
 
         // Verify sorted order (highest to lowest)
         assertEquals(3, ui.lastSortedExpenses.size());
-        assertEquals("[ ] Groceries - $25.00", ui.lastSortedExpenses.get(0).formatForDisplay());
-        assertEquals("[ ] Lunch - $12.50", ui.lastSortedExpenses.get(1).formatForDisplay());
-        assertEquals("[ ] Coffee - $7.25", ui.lastSortedExpenses.get(2).formatForDisplay());
+        assertEquals("[ ] [" + Expense.DEFAULT_CATEGORY + "] Groceries - $25.00",
+                ui.lastSortedExpenses.get(0).formatForDisplay());
+        assertEquals("[ ] [" + Expense.DEFAULT_CATEGORY + "] Lunch - $12.50",
+                ui.lastSortedExpenses.get(1).formatForDisplay());
+        assertEquals("[ ] [" + Expense.DEFAULT_CATEGORY + "] Coffee - $7.25",
+                ui.lastSortedExpenses.get(2).formatForDisplay());
     }
 
     /**
