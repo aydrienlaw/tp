@@ -18,10 +18,21 @@ public class AddCommand extends Command {
     private final String category;
 
     /**
-     * Constructs an AddCommand with the specified amount and description.
+     * Constructs an AddCommand with the specified amount and description, using the default category.
      *
      * @param amount the expense amount
      * @param description the expense description
+     */
+    public AddCommand(double amount, String description) {
+        this(amount, description, Expense.DEFAULT_CATEGORY);
+    }
+
+    /**
+     * Constructs an AddCommand with the specified amount, description, and category.
+     *
+     * @param amount the expense amount
+     * @param description the expense description
+     * @param category the expense category
      */
     public AddCommand(double amount, String description, String category) {
         this.amount = amount;
