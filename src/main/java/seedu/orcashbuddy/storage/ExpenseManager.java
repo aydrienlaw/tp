@@ -193,4 +193,26 @@ public class ExpenseManager {
             throw OrCashBuddyException.expenseIndexOutOfRange(index, expenses.size());
         }
     }
+
+    //@@author saheer17
+    /**
+     * Sorts the expenses in descending order by amount and displays them using the UI.
+     *
+     * @param ui the UI to display the sorted list of expenses
+     * @throws OrCashBuddyException if there are no expenses in the list
+     */
+    public void sortExpenses(Ui ui) throws OrCashBuddyException {
+        assert ui != null : "Ui must not be null";
+
+        if (expenses.isEmpty()) {
+            LOGGER.warning("Attempted to sort expenses but the list is empty");
+            throw OrCashBuddyException.emptyExpenseList();
+        }
+
+        LOGGER.info("Sorting expenses in descending order by amount");
+        ArrayList<Expense> sortedExpenses = new ArrayList<>(expenses);
+        sortedExpenses.sort((e1, e2) -> Double.compare(e2.getAmount(), e1.getAmount()));
+        assert sortedExpenses.size() == expenses.size() : "Sorted expenses size should match original expenses size";
+        ui.showSortedList(sortedExpenses);
+    }
 }

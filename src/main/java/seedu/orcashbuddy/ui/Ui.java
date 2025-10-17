@@ -18,12 +18,13 @@ public class Ui {
      * Prints the main menu of available commands.
      */
     public void showMenu(){
-        System.out.println("Add an expense:                  add a/AMOUNT desc/DESCRIPTION");
-        System.out.println("Set a budget:                    setbudget a/AMOUNT");
-        System.out.println("List all expenses & statistics:  list");
-        System.out.println("Mark an expense as paid:         mark EXPENSE_INDEX");
-        System.out.println("Mark an expense as unpaid:       unmark EXPENSE_INDEX");
-        System.out.println("Delete an expense:               delete EXPENSE_INDEX");
+        System.out.println("Add an expense:                        add a/AMOUNT desc/DESCRIPTION");
+        System.out.println("Set a budget:                          setbudget a/AMOUNT");
+        System.out.println("List all expenses & statistics:        list");
+        System.out.println("Mark an expense as paid:               mark EXPENSE_INDEX");
+        System.out.println("Mark an expense as unpaid:             unmark EXPENSE_INDEX");
+        System.out.println("Delete an expense:                     delete EXPENSE_INDEX");
+        System.out.println("Sort all expenses in descending order: sort");
     }
 
 
@@ -92,7 +93,7 @@ public class Ui {
      * @param expenses The list of expenses to display.
      */
     private void showListOfExpenses(ArrayList<Expense> expenses) {
-        if  (expenses.isEmpty()) {
+        if (expenses.isEmpty()) {
             showListUsage();
             return;
         }
@@ -209,5 +210,26 @@ public class Ui {
      */
     public void showError(String message) {
         System.out.println("Error: " + message);
+    }
+
+    //@@author saheer17
+    /**
+     * Displays the list of expenses sorted by amount in descending order.
+     * If the list is empty, displays a message indicating no expenses.
+     *
+     * @param sortedExpenses the list of expenses sorted from highest to lowest amount
+     */
+    public void showSortedList(ArrayList<Expense> sortedExpenses) {
+        assert sortedExpenses != null : "Sorted expenses list must not be null";
+        if (sortedExpenses.isEmpty()) {
+            showListUsage();
+            return;
+        }
+
+        System.out.println("Here is the list of sorted expenses, starting with the highest amount:");
+        for (int i = 0; i < sortedExpenses.size(); i++) {
+            assert sortedExpenses.get(i) != null : "Expense in sorted list must not be null";
+            System.out.println((i + 1) + ". " + sortedExpenses.get(i).formatForDisplay());
+        }
     }
 }
