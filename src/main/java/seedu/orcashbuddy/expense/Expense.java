@@ -48,8 +48,8 @@ public class Expense {
     }
 
     /**
-     * Returns the display format: "[X] DESCRIPTION - $XX.XX" if marked,
-     * "[ ] DESCRIPTION - $XX.XX" if unmarked.
+     * Returns the display format: "[X] [CATEGORY] DESCRIPTION - $XX.XX" if marked,
+     * "[ ] [CATEGORY] DESCRIPTION - $XX.XX" if unmarked.
      */
     public String formatForDisplay() {
         String statusIcon = isMarked ? "[X]" : "[ ]";
