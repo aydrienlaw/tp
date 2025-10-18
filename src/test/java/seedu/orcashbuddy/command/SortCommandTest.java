@@ -10,8 +10,7 @@ import seedu.orcashbuddy.exception.OrCashBuddyException;
 
 import java.util.ArrayList;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Command-level tests for the SortCommand.
@@ -25,10 +24,16 @@ class SortCommandTest {
 
     static class StubUi extends Ui {
         ArrayList<Expense> lastSortedExpenses = null;
+        Boolean isListEmpty = false;
 
         @Override
         public void showSortedList(ArrayList<Expense> expenses) {
             this.lastSortedExpenses = expenses;
+        }
+
+        @Override
+        public void showListUsage() {
+            this.isListEmpty = true;
         }
     }
 
@@ -66,8 +71,11 @@ class SortCommandTest {
      * throws an OrCashBuddyException indicating the expense list is empty.
      */
     @Test
-    void execute_withNoExpenses_displaysEmptyList() {
-        // When no expenses exist, SortCommand should throw an empty-list exception
-        assertThrows(OrCashBuddyException.class, () -> new SortCommand().execute(manager, ui));
+    void execute_withNoExpenses_displaysNoExpenseAddedMessage() throws Exception{
+        // Execute SortCommand when no expenses exist
+        new SortCommand().execute(manager, ui);
+
+        // Verify printed message
+        assertTrue(ui.isListEmpty);
     }
 }
