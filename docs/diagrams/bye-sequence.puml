@@ -1,0 +1,38 @@
+@startuml
+!theme vibrant
+actor User
+participant ":Main" as Main
+participant ":Parser" as Parser
+participant ":ByeCommand" as ByeCommand
+participant ":Ui" as Ui
+
+User -> Main : enters "bye"
+activate Main
+
+Main -> Parser : parse("bye")
+activate Parser
+
+create ByeCommand
+Parser -> ByeCommand
+activate ByeCommand
+Parser --> Main : byeCommand
+deactivate ByeCommand
+deactivate Parser
+
+Main -> ByeCommand : execute(expenseManager, ui)
+activate ByeCommand
+
+ByeCommand -> Ui : showGoodbye()
+activate Ui
+Ui --> User : displays goodbye message
+deactivate Ui
+
+deactivate ByeCommand
+
+Main -> ByeCommand : isExit()
+activate ByeCommand
+ByeCommand --> Main : true
+deactivate ByeCommand
+
+deactivate Main
+@enduml
