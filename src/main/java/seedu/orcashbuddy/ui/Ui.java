@@ -221,11 +221,6 @@ public class Ui {
      * @param sortedExpenses the list of expenses sorted from highest to lowest amount
      */
     public void showSortedList(ArrayList<Expense> sortedExpenses) {
-        if (sortedExpenses.isEmpty()) {
-            showListUsage();
-            return;
-        }
-
         System.out.println("Here is the list of sorted expenses, starting with the highest amount:");
         for (int i = 0; i < sortedExpenses.size(); i++) {
             assert sortedExpenses.get(i) != null : "Expense in sorted list must not be null";

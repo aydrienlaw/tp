@@ -199,12 +199,15 @@ public class ExpenseManager {
     /**
      * Sorts the expenses in descending order by amount and displays them using the UI.
      *
-     * @param ui the UI to display the sorted list of expenses
-     * @throws OrCashBuddyException if there are no expenses in the list
+     * @param ui the UI to display the sorted list of expenses or error message if list is empty.
      */
-    public void sortExpenses(Ui ui) throws OrCashBuddyException {
+    public void sortExpenses(Ui ui) {
         assert ui != null : "Ui must not be null";
-
+        if (expenses.isEmpty()) {
+            LOGGER.info("Unable to sort expenses as list is empty");
+            ui.showListUsage();
+            return;
+        }
         LOGGER.info("Sorting expenses in descending order by amount");
         ArrayList<Expense> sortedExpenses = new ArrayList<>(expenses);
         sortedExpenses.sort((e1, e2) -> Double.compare(e2.getAmount(), e1.getAmount()));
