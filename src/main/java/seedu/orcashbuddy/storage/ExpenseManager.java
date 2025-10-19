@@ -91,10 +91,15 @@ public class ExpenseManager {
     public Expense getExpense(int index) throws OrCashBuddyException{
         assert index >= 1 && index <= expenses.size() : "Parsed index out of valid range";
         validateIndex(index);
+        LOGGER.log(Level.FINE, "Getting expense at index {0}", index);
         return expenses.get(index - 1);
     }
 
     public void replaceExpense(int index, Expense newExpense) throws OrCashBuddyException {
+        assert index >= 1 && index <= expenses.size() : "Index out of range";
+        assert newExpense != null : "New expense must not be null";
+        LOGGER.log(Level.INFO, "Replacing expense at index {0}", index);
+
         deleteExpense(index);
         expenses.add(index - 1, newExpense);
     }

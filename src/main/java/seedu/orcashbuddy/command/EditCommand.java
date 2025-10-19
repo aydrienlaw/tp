@@ -6,8 +6,8 @@ import seedu.orcashbuddy.expense.Expense;
 import seedu.orcashbuddy.storage.ExpenseManager;
 import seedu.orcashbuddy.ui.Ui;
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.logging.Level;
 
 /**
  * Command to edit expense in the expense manager.
@@ -37,15 +37,24 @@ public class EditCommand extends Command {
 
     @Override
     public void execute(ExpenseManager expenseManager, Ui ui) throws OrCashBuddyException {
+        assert expenseManager != null : "ExpenseManager cannot be null";
+        assert ui != null : "Ui cannot be null";
+        assert index >= 1 : "Expense index must be >= 1";
+
+        LOGGER.log(Level.INFO, "Attempting to edit expense at index {0}", index);
 
         Expense original = expenseManager.getExpense(index);
         if (original == null) {
+            LOGGER.log(Level.WARNING, "No expense found at index {0}", index);
             throw new OrCashBuddyException("No expense found at index " + index);
         }
         double updatedAmount = (newAmount != null) ? newAmount : original.getAmount();
         String updatedDescription = (newDescription != null) ? newDescription : original.getDescription();
         String updatedCategory = (newCategory != null) ? newCategory : original.getCategory();
         boolean markStatus = original.isMarked();
+        LOGGER.log(Level.FINE, "Original expense: {0}", original.formatForDisplay());
+        LOGGER.log(Level.FINE, "Updated fields — amount: {0}, desc: {1}, category: {2}",
+                new Object[]{updatedAmount, updatedDescription, updatedCategory});
 
         Expense edited = new Expense(updatedAmount, updatedDescription, updatedCategory);
         expenseManager.replaceExpense(index, edited);
@@ -56,5 +65,6 @@ public class EditCommand extends Command {
 
         ui.showEditedExpense(edited);
         expenseManager.checkRemainingBalance(ui);
+        LOGGER.log(Level.INFO, "Expense at index {0} successfully edited.", index);
     }
 }
