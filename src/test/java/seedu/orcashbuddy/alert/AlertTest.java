@@ -1,5 +1,5 @@
 //@@author gumingyoujia
-package seedu;
+package seedu.orcashbuddy.alert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import seedu.orcashbuddy.storage.ExpenseManager;
