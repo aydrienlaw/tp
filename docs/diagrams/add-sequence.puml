@@ -6,6 +6,7 @@ participant ":Parser" as Parser
 participant ":ArgumentParser" as ArgumentParser
 participant ":InputValidator" as InputValidator
 participant ":AddCommand" as AddCommand
+participant ":InvalidCommand" as InvalidCommand
 participant ":Expense" as Expense
 participant ":ExpenseManager" as ExpenseManager
 participant ":Ui" as Ui
@@ -16,33 +17,53 @@ activate Main
 Main -> Parser : parse("add a/10 desc/lunch cat/food")
 activate Parser
 
-create ArgumentParser
-Parser -> ArgumentParser : "a/10 desc/lunch cat/food"
-activate ArgumentParser
-Parser -> ArgumentParser : getValue("a/")
-ArgumentParser --> Parser : "10"
-Parser -> ArgumentParser : getValue("desc/")
-ArgumentParser --> Parser : "lunch"
-Parser -> ArgumentParser : getOptionalValue("cat/")
-ArgumentParser --> Parser : "food"
-deactivate ArgumentParser
+alt successful parsing
 
-Parser -> InputValidator : validateAmount("10")
-activate InputValidator
-InputValidator --> Parser : 10.0
-deactivate InputValidator
-Parser -> InputValidator : validateDescription("lunch")
-activate InputValidator
-InputValidator --> Parser : "lunch"
-deactivate InputValidator
-Parser -> InputValidator : validateCategory("food")
-activate InputValidator
-InputValidator --> Parser : "food"
-deactivate InputValidator
+    create ArgumentParser
+    Parser -> ArgumentParser : "a/10 desc/lunch cat/food"
+    activate ArgumentParser
+    Parser -> ArgumentParser : getValue("a/")
+    ArgumentParser --> Parser : "10"
+    Parser -> ArgumentParser : getValue("desc/")
+    ArgumentParser --> Parser : "lunch"
+    deactivate ArgumentParser
 
-create AddCommand
-Parser -> AddCommand : 10.0, "lunch", "food"
-Parser --> Main : addCommand
+    opt get optional category
+        Parser -> ArgumentParser : getOptionalValue("cat/")
+        activate ArgumentParser
+        ArgumentParser --> Parser : "food"
+        deactivate ArgumentParser
+    end
+
+    Parser -> InputValidator : validateAmount("10")
+    activate InputValidator
+    InputValidator --> Parser : 10.0
+    deactivate InputValidator
+    Parser -> InputValidator : validateDescription("lunch")
+    activate InputValidator
+    InputValidator --> Parser : "lunch"
+    deactivate InputValidator
+    Parser -> InputValidator : validateCategory("food")
+    activate InputValidator
+    InputValidator --> Parser : "food"
+    deactivate InputValidator
+
+    create AddCommand
+    Parser -> AddCommand : 10.0, "lunch", "food"
+    Parser --> Main : addCommand
+
+else validation fails
+
+    Parser -> InputValidator : validateAmount("invalid")
+    activate InputValidator
+    InputValidator -->> Parser : throws OrCashBuddyException
+    deactivate InputValidator
+
+    create InvalidCommand
+    Parser -> InvalidCommand
+    Parser --> Main : invalidCommand
+
+end
 
 deactivate Parser
 
@@ -62,6 +83,16 @@ Ui --> User : displays confirmation
 deactivate Ui
 
 deactivate AddCommand
+
+alt command is invalid
+    Main -> InvalidCommand : execute(expenseManager, ui)
+    activate InvalidCommand
+    InvalidCommand -> Ui : showError(message)
+    activate Ui
+    Ui --> User : displays error message
+    deactivate Ui
+    deactivate InvalidCommand
+end
 
 deactivate Main
 @enduml

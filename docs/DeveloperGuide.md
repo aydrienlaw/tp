@@ -12,16 +12,12 @@ This Developer Guide (DG) introduces the internals of **orCASHbuddy**, outlines 
 1. [Introduction](#introduction)
 2. [Setting Up](#setting-up)
 3. [Design](#design)
-   1. [Overall Architecture](#overall-architecture)
-   2. [UI Component](#ui-component)
-   3. [Logic Component](#logic-component)
-   4. [Model Component](#model-component)
+   1. [UI Component](#ui-component)
+   2. [Logic Component](#logic-component)
+   3. [Model Component](#model-component)
 4. [Implementation](#implementation)
    1. [Add Expense Feature](#add-expense-feature)
-   2. [Budget Tracking (Mark/Unmark)](#budget-tracking-markunmark)
-   3. [Sorting Expenses](#sorting-expenses)
-   4. [Graceful Exit](#graceful-exit)
-   5. [Future Work](#future-work)
+   2. [Graceful Exit](#graceful-exit)
 5. [Appendix A: Product Scope](#appendix-a-product-scope)
 6. [Appendix B: User Stories](#appendix-b-user-stories)
 7. [Appendix C: Non-Functional Requirements](#appendix-c-non-functional-requirements)
@@ -44,19 +40,6 @@ Follow these steps to set up the project in IntelliJ IDEA:
 
 ## Design
 
-### Overall Architecture
-
-At runtime, `Main` wires together the `Ui`, `Parser`, and `ExpenseManager` classes. Commands returned by the parser encapsulate user actions and mutate the in-memory state stored in `ExpenseManager`.
-
-The core relationships are captured in `docs/diagrams/architecture-overview.puml` (PlantUML source). Render it with `plantuml docs/diagrams/architecture-overview.puml` when a PNG export is required. The diagram shows:
-
-- `Main` reads user input and delegates to `Parser`.
-- `Parser` produces concrete subclasses of the `Command` abstract class.
-- Each `Command` manipulates `ExpenseManager` and feeds results to `Ui`.
-- `ExpenseManager` owns an `ArrayList<Expense>` plus running totals for budget tracking.
-
-This architecture keeps parsing, business rules, and presentation loosely coupled, simplifying future enhancements such as command history or persistence.
-
 ### UI Component
 
 ### Logic Component
@@ -70,8 +53,10 @@ Namespace: `seedu.orcashbuddy.parser`, `seedu.orcashbuddy.command`
 Sequence for the `add` command (see `docs/diagrams/add-sequence.puml`; render with the same command as above):
 
 1. `Main` receives user input and calls `Parser#parse`.
-2. `Parser` returns a new `AddCommand` populated with validated parameters.
-3. `Main` invokes `AddCommand#execute`, which persists the `Expense` via `ExpenseManager` and renders feedback through `Ui`.
+2. `Parser` uses `ArgumentParser` to extract the amount, description, and category from the raw input.
+3. `InputValidator` is then used to validate the extracted values.
+4. `Parser` returns a new `AddCommand` populated with the validated parameters.
+5. `Main` invokes `AddCommand#execute`, which persists the `Expense` via `ExpenseManager` and renders feedback through `Ui`.
 
 ### Model Component
 
@@ -92,8 +77,8 @@ The add-expense workflow transforms a single line of user input into a populated
 #### Control Flow
 
 1. **Input capture:** `Main` reads the raw line and forwards it to `Parser`.
-2. **Tokenisation:** `Parser` delegates prefix extraction to `ArgumentParser`. Required prefixes (`a/`, `desc/`) trigger `OrCashBuddyException` if missing, ensuring we fail fast.
-3. **Validation:** `InputValidator` converts the amount into a double (rejecting non-positive or malformed numbers), trims the description, and normalises the optional category. Categories must start with an alphabetic character and may include spaces or hyphens; invalid values raise explicit exceptions so `Ui` can present informative error messages.
+2. **Tokenisation:** `Parser` uses `ArgumentParser` to extract the amount, description, and category from the raw input. Required prefixes (`a/`, `desc/`) trigger `OrCashBuddyException` if missing, ensuring we fail fast.
+3. **Validation:** `InputValidator` is then used to validate the extracted values. It converts the amount into a double (rejecting non-positive or malformed numbers), trims the description, and normalises the optional category. Categories must start with an alphabetic character and may include spaces or hyphens; invalid values raise explicit exceptions so `Ui` can present informative error messages.
 4. **Command creation:** A new `AddCommand` instance is constructed with the validated primitives. All downstream logic remains immutable; there is no shared mutable state between parser and command.
 5. **Execution:** `AddCommand#execute` wraps the primitives into an `Expense`, calls `ExpenseManager#addExpense`, and then defers to `Ui#showNewExpense`.
 
@@ -133,7 +118,7 @@ Exiting the application used to depend on `Main` inspecting raw input (checking 
 
 1. **Parsing:** When the user enters `bye`, `Parser` instantly returns a `ByeCommand`. Any trailing arguments result in an `OrCashBuddyException`, protecting against typos such as `bye later`.
 2. **Execution:** `Main` calls `command.execute(expenseManager, ui)` without special casing. `ByeCommand` logs a concise INFO message and calls `Ui#showGoodbye`.
-3. **Exit signalling:** After execution, `Main` queries `command.isExit()`. Only commands that explicitly override this method return `true`. Once `true`, the run loop terminates cleanly.
+3. **Exit signalling:** After execution, `Main` queries `command.isExit()`, which `ByeCommand` overrides to return `true`. Once `Main` receives `true`, the run loop terminates cleanly.
 
 The sequence diagram stored at `docs/diagrams/bye-sequence.puml` captures this flow. Rendering it clarifies that no other component interacts with the exit decision, preserving a single exit pathway.
 
@@ -195,7 +180,7 @@ All tests assume the repository has been cloned and Java 17 is available.
 6. **Unmark Expense**: Enter `unmark 1` and verify totals reset to `$0.00` spent.
 7. **Sort Expenses**: Add two more entries of varying amounts and run `sort`; check that output is descending by amount.
 8. **Delete Expense**: Execute `delete 2` (adjust index if needed) and confirm the list shrinks accordingly.
-9. **Exit**: Finish with `bye` and ensure the farewell message is printed.
+9. **Exit**: Finish with `bye`. Expect a “Bye. Hope to see you again soon!” message, and the application should terminate.
 10. **Regression Script**: The Windows batch script `text-ui-test/runtest.bat` (or `text-ui-test/runtest.sh` on macOS/Linux) rebuilds the JAR and exercises the help command. Ensure `EXPECTED.TXT` matches the actual output before committing changes to commands or messages.
 
 When verifying bug fixes or new features, prefer updating both JUnit tests in `src/test/java/seedu/orcashbuddy` and text UI expectations in `text-ui-test` to prevent regressions.
