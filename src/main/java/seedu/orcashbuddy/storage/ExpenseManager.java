@@ -267,15 +267,26 @@ public class ExpenseManager {
 
     //@@author gumingyoujia
     /**
-     * Checks if the remaining balance is below threshold and triggers alert.
+     * Checks if the remaining balance is below threshold and triggers the appropriate alert.
+     *
+     * @param ui the user interface used to display alerts
      */
     public void checkRemainingBalance(Ui ui) {
+        assert ui != null : "UI reference should not be null";
+
+        LOGGER.info("Checking remaining balance: " + remainingBalance);
         if (remainingBalance < 0) {
+            LOGGER.warning("Remaining balance is negative. Triggering exceed alert.");
             ui.showExceedAlert(remainingBalance);
         } else if (remainingBalance == 0) {
+            LOGGER.info("Remaining balance is zero. Triggering equal alert.");
             ui.showEqualAlert();
         } else if (remainingBalance < THRESHOLD_REMAINING_BALANCE) {
+            LOGGER.info("Remaining balance is below threshold (" +
+                    THRESHOLD_REMAINING_BALANCE + "). Triggering near alert.");
             ui.showNearAlert(remainingBalance);
+        } else {
+            LOGGER.info("Remaining balance is above threshold. No alert triggered.");
         }
     }
 }
