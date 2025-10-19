@@ -35,5 +35,6 @@ public class DeleteCommand extends Command {
                 new Object[]{index, removedExpense.getDescription()});
 
         ui.showDeletedExpense(removedExpense);
+        expenseManager.checkRemainingBalance(ui);
     }
 }

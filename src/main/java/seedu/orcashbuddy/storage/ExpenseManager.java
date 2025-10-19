@@ -13,11 +13,11 @@ import java.util.logging.Logger;
  */
 public class ExpenseManager {
     private static final Logger LOGGER = Logger.getLogger(ExpenseManager.class.getName());
+    private static final double THRESHOLD_REMAINING_BALANCE=10;
     private final ArrayList<Expense> expenses;
     private double budget = 0.0;
     private double totalExpenses = 0.0;
     private double remainingBalance = 0.0;
-
     /**
      * Constructs an ExpenseManager.
      */
@@ -179,6 +179,7 @@ public class ExpenseManager {
         remainingBalance = budget - totalExpenses;
     }
 
+
     //@@author aydrienlaw
     /**
      * Validates that an index is within the valid range.
@@ -262,5 +263,19 @@ public class ExpenseManager {
                 new Object[]{foundExpenses.size(), keyword});
 
         return foundExpenses;
+    }
+
+    //@@author gumingyoujia
+    /**
+     * Checks if the remaining balance is below threshold and triggers alert.
+     */
+    public void checkRemainingBalance(Ui ui) {
+        if (remainingBalance < 0) {
+            ui.showExceedAlert(remainingBalance);
+        } else if (remainingBalance == 0) {
+            ui.showEqualAlert();
+        } else if (remainingBalance < THRESHOLD_REMAINING_BALANCE) {
+            ui.showNearAlert(remainingBalance);
+        }
     }
 }

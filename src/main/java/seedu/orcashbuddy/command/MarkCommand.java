@@ -35,5 +35,6 @@ public class MarkCommand extends Command {
                 new Object[]{index, expense.getDescription()});
 
         ui.showMarkedExpense(expense);
+        expenseManager.checkRemainingBalance(ui);
     }
 }

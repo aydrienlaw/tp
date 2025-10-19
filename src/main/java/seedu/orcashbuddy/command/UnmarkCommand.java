@@ -35,5 +35,6 @@ public class UnmarkCommand extends Command {
                 new Object[]{index, expense.getDescription()});
 
         ui.showUnmarkedExpense(expense);
+        expenseManager.checkRemainingBalance(ui);
     }
 }
