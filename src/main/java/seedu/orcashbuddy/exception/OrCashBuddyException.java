@@ -41,8 +41,9 @@ public class OrCashBuddyException extends Exception {
      *
      * @return OrCashBuddyException for empty amount
      */
-    public static OrCashBuddyException emptyAmount() {
-        return new OrCashBuddyException("Amount is missing after 'a/'");
+    public static OrCashBuddyException emptyAmount(String commandName) {
+        return new OrCashBuddyException("Amount is missing after 'a/' " +
+                "after '" + commandName + "' command");
     }
 
     /**
@@ -92,8 +93,9 @@ public class OrCashBuddyException extends Exception {
      *
      * @return OrCashBuddyException for empty description
      */
-    public static OrCashBuddyException emptyDescription() {
-        return new OrCashBuddyException("Description is missing after 'desc/'");
+    public static OrCashBuddyException emptyDescription(String commandName) {
+        return new OrCashBuddyException("Description is missing after 'desc/' " +
+                "after '" + commandName + "' command");
     }
 
     /**
@@ -101,8 +103,9 @@ public class OrCashBuddyException extends Exception {
      *
      * @return OrCashBuddyException for empty category
      */
-    public static OrCashBuddyException emptyCategory() {
-        return new OrCashBuddyException("Category is missing after 'cat/'");
+    public static OrCashBuddyException emptyCategory(String commandName) {
+        return new OrCashBuddyException("Category is missing after 'cat/' after '"
+                + commandName + "' command");
     }
 
     /**

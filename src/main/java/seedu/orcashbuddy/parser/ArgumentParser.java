@@ -3,7 +3,7 @@ package seedu.orcashbuddy.parser;
 import seedu.orcashbuddy.exception.OrCashBuddyException;
 
 public class ArgumentParser {
-    private static final String[] allPrefixes = {"a/", "desc/", "cat/"};
+    private static final String[] allPrefixes = {"id/","a/", "desc/", "cat/"};
     private final String input;
 
     public ArgumentParser(String input) {

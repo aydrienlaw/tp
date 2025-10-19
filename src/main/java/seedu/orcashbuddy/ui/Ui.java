@@ -43,6 +43,14 @@ public class Ui {
     }
 
     /**
+     * Prints the confirmation for an edited expense.
+     */
+    public void showEditedExpense(Expense expense) {
+        System.out.println("Edited Expense:");
+        System.out.println(expense.formatForDisplay());
+    }
+
+    /**
      * Displays a confirmation message that an expense was deleted.
      *
      * @param expense The expense object that was deleted
@@ -256,6 +264,15 @@ public class Ui {
      */
     public void showFindUsage() {
         System.out.println("Invalid format. Use: find cat/CATEGORY or find desc/DESCRIPTION");
+    }
+
+    //@@author gumingyoujia
+    /**
+     * Displays usage information for the edit command.
+     */
+    public void showEditUsage() {
+        System.out.println("Invalid format. Use: edit id/INDEX a/AMOUNT or/and desc/DESCRIPTION" +
+                " or/and cat/CATEGORY");
     }
 
     /**

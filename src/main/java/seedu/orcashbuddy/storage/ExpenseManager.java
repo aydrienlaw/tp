@@ -86,6 +86,20 @@ public class ExpenseManager {
         return removedExpense;
     }
 
+    //@@author gumingyoujia
+
+    public Expense getExpense(int index) throws OrCashBuddyException{
+        assert index >= 1 && index <= expenses.size() : "Parsed index out of valid range";
+        validateIndex(index);
+        return expenses.get(index - 1);
+    }
+
+    public void replaceExpense(int index, Expense newExpense) throws OrCashBuddyException {
+        deleteExpense(index);
+        expenses.add(index - 1, newExpense);
+    }
+
+
     //@@author muadzyamani
     /**
      * Marks an expense at the specified index as paid.
