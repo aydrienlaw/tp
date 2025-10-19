@@ -13,11 +13,11 @@ import java.util.logging.Logger;
  */
 public class ExpenseManager {
     private static final Logger LOGGER = Logger.getLogger(ExpenseManager.class.getName());
+    private static final double THRESHOLD_REMAINING_BALANCE=10;
     private final ArrayList<Expense> expenses;
     private double budget = 0.0;
     private double totalExpenses = 0.0;
     private double remainingBalance = 0.0;
-
     /**
      * Constructs an ExpenseManager.
      */
@@ -179,6 +179,7 @@ public class ExpenseManager {
         remainingBalance = budget - totalExpenses;
     }
 
+
     //@@author aydrienlaw
     /**
      * Validates that an index is within the valid range.
@@ -262,5 +263,30 @@ public class ExpenseManager {
                 new Object[]{foundExpenses.size(), keyword});
 
         return foundExpenses;
+    }
+
+    //@@author gumingyoujia
+    /**
+     * Checks if the remaining balance is below threshold and triggers the appropriate alert.
+     *
+     * @param ui the user interface used to display alerts
+     */
+    public void checkRemainingBalance(Ui ui) {
+        assert ui != null : "UI reference should not be null";
+
+        LOGGER.info("Checking remaining balance: " + remainingBalance);
+        if (remainingBalance < 0) {
+            LOGGER.warning("Remaining balance is negative. Triggering exceed alert.");
+            ui.showExceedAlert(remainingBalance);
+        } else if (remainingBalance == 0) {
+            LOGGER.info("Remaining balance is zero. Triggering equal alert.");
+            ui.showEqualAlert();
+        } else if (remainingBalance < THRESHOLD_REMAINING_BALANCE) {
+            LOGGER.info("Remaining balance is below threshold (" +
+                    THRESHOLD_REMAINING_BALANCE + "). Triggering near alert.");
+            ui.showNearAlert(remainingBalance);
+        } else {
+            LOGGER.info("Remaining balance is above threshold. No alert triggered.");
+        }
     }
 }

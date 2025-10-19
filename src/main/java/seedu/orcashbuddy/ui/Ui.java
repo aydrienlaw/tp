@@ -257,4 +257,34 @@ public class Ui {
     public void showFindUsage() {
         System.out.println("Invalid format. Use: find cat/CATEGORY or find desc/DESCRIPTION");
     }
+
+    /**
+     * Displays an alert message to notify the user that their expenses
+     * are nearing the set budget limit. Also shows the remaining balance.
+     *
+     * @param remainingBalance the remaining balance before reaching the budget limit
+     */
+    public void showNearAlert(double remainingBalance) {
+        System.out.println("Alert: Your remaining balance is below $10.00!");
+        System.out.println("Remaining balance: $" + String.format("%.2f", remainingBalance));
+    }
+
+    /**
+     * Displays an alert message to notify the user that their expenses
+     * are equal to the set budget limit.
+     */
+    public void showEqualAlert() {
+        System.out.println("Alert: You have used up your budget!");
+    }
+
+    /**
+     * Displays an alert message to notify the user that their expenses
+     * have exceeded the set budget limit. Also shows the remaining balance.
+     *
+     * @param remainingBalance the remaining balance after exceeding the budget limit
+     */
+    public void showExceedAlert(double remainingBalance) {
+        System.out.println("Alert: Your expenses have exceeded your budget limit!");
+        System.out.println("Remaining balance: $" + String.format("%.2f", remainingBalance));
+    }
 }
