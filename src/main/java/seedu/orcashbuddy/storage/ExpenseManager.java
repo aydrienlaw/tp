@@ -4,6 +4,7 @@ import seedu.orcashbuddy.exception.OrCashBuddyException;
 import seedu.orcashbuddy.expense.Expense;
 import seedu.orcashbuddy.ui.Ui;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -13,6 +14,7 @@ import java.io.Serializable;
  * Manages a list of expenses.
  */
 public class ExpenseManager implements Serializable {
+    @Serial
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = Logger.getLogger(ExpenseManager.class.getName());
     private static final double THRESHOLD_REMAINING_BALANCE=10;
