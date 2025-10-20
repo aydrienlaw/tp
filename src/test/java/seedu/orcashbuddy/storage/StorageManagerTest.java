@@ -15,10 +15,6 @@ class MockUi extends Ui {
     public void showError(String message) {
         lastError = message;
     }
-
-    public String getLastError() {
-        return lastError;
-    }
 }
 
 public class StorageManagerTest {
