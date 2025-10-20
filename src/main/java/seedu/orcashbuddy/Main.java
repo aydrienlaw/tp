@@ -4,6 +4,7 @@ import seedu.orcashbuddy.command.Command;
 import seedu.orcashbuddy.exception.OrCashBuddyException;
 import seedu.orcashbuddy.parser.Parser;
 import seedu.orcashbuddy.storage.ExpenseManager;
+import seedu.orcashbuddy.storage.StorageManager;
 import seedu.orcashbuddy.ui.Ui;
 
 import java.util.NoSuchElementException;
@@ -32,7 +33,7 @@ public class Main {
 
     public Main() {
         this.ui = new Ui();
-        this.expenseManager = new ExpenseManager();
+        this.expenseManager = StorageManager.loadExpenseManager();
         this.parser = new Parser();
     }
 
@@ -76,6 +77,7 @@ public class Main {
         try {
             Command command = parser.parse(input);
             command.execute(expenseManager, ui);
+            StorageManager.saveExpenseManager(expenseManager);
             return command.isExit();
         } catch (OrCashBuddyException e) {
             // Handle expected application exceptions
