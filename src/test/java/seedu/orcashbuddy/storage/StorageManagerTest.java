@@ -8,14 +8,13 @@ import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class MockUi extends Ui {
-    private String lastError;
+/**
+ * Unit tests for the StorageManager class.
+ * This class tests the saving and loading functionality of ExpenseManager objects.
+ * It includes tests for normal operation, handling missing files, and cleanup after tests.
+ */
 
-    @Override
-    public void showError(String message) {
-        lastError = message;
-    }
-}
+class MockUi extends Ui { }
 
 public class StorageManagerTest {
 
@@ -25,6 +24,10 @@ public class StorageManagerTest {
     private Ui ui;
     private ExpenseManager manager;
 
+    /**
+     * Sets up a new ExpenseManager and MockUi before each test.
+     * Also deletes any previous test files or directories to ensure a clean environment.
+     */
     @BeforeEach
     void setUp() {
         ui = new MockUi();
@@ -40,6 +43,10 @@ public class StorageManagerTest {
         }
     }
 
+    /**
+     * Tests that saving and loading an ExpenseManager preserves its data.
+     * Verifies total expenses, budget, remaining balance, and individual expense details.
+     */
     @Test
     void testSaveAndLoadExpenseManager() {
         // Add an expense
@@ -65,6 +72,10 @@ public class StorageManagerTest {
         assertEquals(expense.getCategory(), loadedExpenses.get(0).getCategory());
     }
 
+    /**
+     * Tests loading when the storage file does not exist.
+     * Verifies that an empty ExpenseManager is returned and no exceptions are thrown.
+     */
     @Test
     void testLoadWhenFileDoesNotExist() {
         // Ensure no file exists
@@ -79,6 +90,10 @@ public class StorageManagerTest {
         assertEquals(0, loadedManager.getSize());
     }
 
+    /**
+     * Cleans up any files or directories created during the test.
+     * Runs after each test to ensure a clean environment for subsequent tests.
+     */
     @AfterEach
     void tearDown() {
         // Clean up test files

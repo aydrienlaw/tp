@@ -10,12 +10,28 @@ import java.io.ObjectOutputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Handles saving and loading of {@link ExpenseManager} objects to persistent storage.
+ * <p>
+ * Expenses are serialized to a file named {@code appdata.ser} inside a {@code data} folder.
+ * This class ensures that the storage folder and file exist, and provides user-friendly
+ * error messages via {@link Ui} in case of exceptions.
+ */
 public class StorageManager {
 
     private static final Logger LOGGER = Logger.getLogger(StorageManager.class.getName());
     private static final String DIRECTORY = "data";
     private static final String FILE_NAME = "appdata.ser";
 
+    /**
+     * Saves the given {@link ExpenseManager} to disk.
+     * <p>
+     * If the storage folder does not exist, it will be created. If saving fails,
+     * a user-friendly message is displayed via the {@link Ui} object.
+     *
+     * @param expenseManager the ExpenseManager object to save; must not be null
+     * @param ui             the UI object to display error messages; must not be null
+     */
     public static void saveExpenseManager(ExpenseManager expenseManager, Ui ui) {
         assert expenseManager != null : "ExpenseManager must not be null";
         assert ui != null : "Ui must not be null";
@@ -46,6 +62,16 @@ public class StorageManager {
         }
     }
 
+    /**
+     * Loads the {@link ExpenseManager} from disk.
+     * <p>
+     * If the storage folder or file does not exist, they will be created.
+     * If reading fails or data is corrupted, an empty ExpenseManager is returned
+     * and a user-friendly message is displayed via the {@link Ui} object.
+     *
+     * @param ui the UI object to display error messages; must not be null
+     * @return the loaded ExpenseManager object, or a new empty one if loading fails
+     */
     public static ExpenseManager loadExpenseManager(Ui ui) {
         assert ui != null : "Ui must not be null";
 
