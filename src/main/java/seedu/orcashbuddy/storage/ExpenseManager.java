@@ -19,6 +19,20 @@ public class ExpenseManager implements Serializable {
     private static final Logger LOGGER = Logger.getLogger(ExpenseManager.class.getName());
     private static final double THRESHOLD_REMAINING_BALANCE=10;
     private final ArrayList<Expense> expenses;
+    private double budget = 0.0;
+    private double totalExpenses = 0.0;
+    private double remainingBalance = 0.0;
+
+    /**
+     * Constructs an ExpenseManager.
+     */
+    public ExpenseManager() {
+        this.expenses = new ArrayList<>();
+    }
+
+    public double getBudget() {
+        return budget;
+    }
 
     public double getTotalExpenses() {
         return totalExpenses;
@@ -28,22 +42,8 @@ public class ExpenseManager implements Serializable {
         return remainingBalance;
     }
 
-    public double getBudget() {
-        return budget;
-    }
-
     public int getSize() {
         return expenses.size();
-    }
-
-    private double budget = 0.0;
-    private double totalExpenses = 0.0;
-    private double remainingBalance = 0.0;
-    /**
-     * Constructs an ExpenseManager.
-     */
-    public ExpenseManager() {
-        this.expenses = new ArrayList<>();
     }
 
     //@@author limzerui

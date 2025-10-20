@@ -1,3 +1,4 @@
+//@@author saheer17
 package seedu.orcashbuddy.storage;
 import seedu.orcashbuddy.ui.Ui;
 
@@ -94,8 +95,7 @@ public class StorageManager {
                     if (!fileCreated) {
                         ui.showError("Unable to create storage folder.");
                         LOGGER.warning("Failed to create storage file: " + file.getAbsolutePath());
-                    }
-                    else {
+                    } else {
                         LOGGER.info("Storage file created: " + file.getAbsolutePath());
                     }
                 } catch (IOException e) {

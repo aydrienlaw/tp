@@ -6,9 +6,9 @@ import java.io.Serializable;
  * Represents an expense with an amount, description, and category.
  */
 public class Expense implements Serializable{
+    public static final String DEFAULT_CATEGORY = "Uncategorized";
     @Serial
     private static final long serialVersionUID = 1L;
-    public static final String DEFAULT_CATEGORY = "Uncategorized";
     private final double amount;
     private final String description;
     private final String category;
