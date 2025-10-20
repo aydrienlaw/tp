@@ -6,9 +6,9 @@ import seedu.orcashbuddy.expense.Expense;
 public class InputValidator {
 
     //@@author limzerui
-    public static double validateAmount(String amountStr) throws OrCashBuddyException {
+    public static double validateAmount(String amountStr, String commandName) throws OrCashBuddyException {
         if (amountStr == null || amountStr.isEmpty()) {
-            throw OrCashBuddyException.emptyAmount();
+            throw OrCashBuddyException.emptyAmount(commandName);
         }
 
         double amount;
@@ -25,21 +25,21 @@ public class InputValidator {
         return amount;
     }
 
-    public static String validateDescription(String description) throws OrCashBuddyException {
+    public static String validateDescription(String description, String commandName) throws OrCashBuddyException {
         if (description == null || description.trim().isEmpty()) {
-            throw OrCashBuddyException.emptyDescription();
+            throw OrCashBuddyException.emptyDescription(commandName);
         }
         return description.trim();
     }
 
-    public static String validateCategory(String category) throws OrCashBuddyException {
+    public static String validateCategory(String category, String commandName) throws OrCashBuddyException {
         if (category == null) {
             return Expense.DEFAULT_CATEGORY;
         }
 
         String trimmed = category.trim();
         if (trimmed.isEmpty()) {
-            throw OrCashBuddyException.emptyCategory();
+            throw OrCashBuddyException.emptyCategory(commandName);
         }
 
         if (!trimmed.matches("[A-Za-z][A-Za-z0-9\\s-]{0,19}")) {

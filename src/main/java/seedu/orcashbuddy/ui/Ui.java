@@ -25,6 +25,8 @@ public class Ui {
         System.out.println("Mark an expense as paid:               mark EXPENSE_INDEX");
         System.out.println("Mark an expense as unpaid:             unmark EXPENSE_INDEX");
         System.out.println("Delete an expense:                     delete EXPENSE_INDEX");
+        System.out.println("Edit an expense:                       edit id/INDEX a/AMOUNT or/and " +
+                                                                  "desc/DESCRIPTION or/and cat/CATEGORY");
         System.out.println("Sort all expenses in descending order: sort");
         System.out.println("Exit the application:                  bye");
     }
@@ -39,6 +41,14 @@ public class Ui {
      */
     public void showNewExpense(Expense expense) {
         System.out.println("New Expense:");
+        System.out.println(expense.formatForDisplay());
+    }
+
+    /**
+     * Prints the confirmation for an edited expense.
+     */
+    public void showEditedExpense(Expense expense) {
+        System.out.println("Edited Expense:");
         System.out.println(expense.formatForDisplay());
     }
 
@@ -256,6 +266,15 @@ public class Ui {
      */
     public void showFindUsage() {
         System.out.println("Invalid format. Use: find cat/CATEGORY or find desc/DESCRIPTION");
+    }
+
+    //@@author gumingyoujia
+    /**
+     * Displays usage information for the edit command.
+     */
+    public void showEditUsage() {
+        System.out.println("Invalid format. Use: edit id/INDEX a/AMOUNT or/and desc/DESCRIPTION" +
+                " or/and cat/CATEGORY");
     }
 
     /**

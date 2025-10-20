@@ -46,7 +46,9 @@ public class InvalidCommand extends Command {
      * @param ui the UI to display messages
      */
     private void showContextualUsage(String errorMessage, Ui ui) {
-        if (errorMessage.contains("'add'") || errorMessage.contains("desc/") ||
+        if (errorMessage.contains("'edit'")){
+            ui.showEditUsage();
+        } else if (errorMessage.contains("'add'") || errorMessage.contains("desc/") ||
                 errorMessage.contains("Description") || errorMessage.contains("cat/") ||
                 errorMessage.contains("Category")) {
             ui.showAddUsage();

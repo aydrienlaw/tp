@@ -12,6 +12,7 @@ import seedu.orcashbuddy.command.HelpCommand;
 import seedu.orcashbuddy.command.InvalidCommand;
 import seedu.orcashbuddy.command.SortCommand;
 import seedu.orcashbuddy.command.ByeCommand;
+import seedu.orcashbuddy.command.EditCommand;
 import seedu.orcashbuddy.exception.OrCashBuddyException;
 
 import java.util.logging.Level;
@@ -30,6 +31,7 @@ public class Parser {
     private static final String AMOUNT_PREFIX = "a/";
     private static final String DESCRIPTION_PREFIX = "desc/";
     private static final String CATEGORY_PREFIX = "cat/";
+    private static final String INDEX_PREFIX = "id/";
 
     /**
      * Parses the user input and returns the corresponding Command object.
@@ -67,6 +69,8 @@ public class Parser {
                 return new SortCommand();
             case "find":
                 return parseFindCommand(arguments);
+            case "edit":
+                return parseEditCommand(arguments);
             case "bye":
                 return parseByeCommand(arguments);
             default:
@@ -97,9 +101,9 @@ public class Parser {
         String descStr = argParser.getValue(DESCRIPTION_PREFIX);
         String categoryStr = argParser.getOptionalValue(CATEGORY_PREFIX);
 
-        double amount = InputValidator.validateAmount(amountStr);
-        String description = InputValidator.validateDescription(descStr);
-        String category = InputValidator.validateCategory(categoryStr);
+        double amount = InputValidator.validateAmount(amountStr, "add");
+        String description = InputValidator.validateDescription(descStr, "add");
+        String category = InputValidator.validateCategory(categoryStr, "add");
 
         return new AddCommand(amount, description, category);
     }
@@ -130,7 +134,7 @@ public class Parser {
         ArgumentParser argParser = new ArgumentParser(arguments);
         String amountStr = argParser.getValue(AMOUNT_PREFIX);
 
-        double budget = InputValidator.validateAmount(amountStr);
+        double budget = InputValidator.validateAmount(amountStr,"setbudget");
         return new SetBudgetCommand(budget);
     }
 
@@ -165,5 +169,22 @@ public class Parser {
         }
 
         throw new OrCashBuddyException("Missing search criteria for 'find' command");
+    }
+
+    //@author gumingyoujia
+    private Command parseEditCommand(String arguments) throws OrCashBuddyException {
+        ArgumentParser argParser = new ArgumentParser(arguments);
+        String indexString = argParser.getValue(INDEX_PREFIX);
+        int index = InputValidator.validateIndex(indexString, "edit");
+
+        String amountStr = argParser.getOptionalValue(AMOUNT_PREFIX);
+        String descStr = argParser.getOptionalValue(DESCRIPTION_PREFIX);
+        String categoryStr = argParser.getOptionalValue(CATEGORY_PREFIX);
+
+        Double amount = (amountStr==null) ? null : InputValidator.validateAmount(amountStr,"edit");
+        String description = (descStr==null) ? null : InputValidator.validateDescription(descStr, "edit");
+        String category = (categoryStr==null) ? null : InputValidator.validateCategory(categoryStr, "edit");
+
+        return new EditCommand(index, amount, description, category);
     }
 }

@@ -6,6 +6,7 @@ Find expenses:                         find cat/CATEGORY or find desc/DESCRIPTIO
 Mark an expense as paid:               mark EXPENSE_INDEX
 Mark an expense as unpaid:             unmark EXPENSE_INDEX
 Delete an expense:                     delete EXPENSE_INDEX
+Edit an expense:                       edit id/INDEX a/AMOUNT or/and desc/DESCRIPTION or/and cat/CATEGORY
 Sort all expenses in descending order: sort
 Exit the application:                  bye
 Unknown command. Type 'help' to see available commands.
