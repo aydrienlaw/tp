@@ -2,15 +2,21 @@
 !theme vibrant
 actor User
 participant ":Main" as Main
+participant ":StorageManager" as StorageManager
 participant ":Parser" as Parser
 participant ":ByeCommand" as ByeCommand
 participant ":InvalidCommand" as InvalidCommand
 participant ":Ui" as Ui
 
+activate Main
+Main -> StorageManager : loadExpenseManager(ui)
+activate StorageManager
+StorageManager --> Main : expenseManager
+deactivate StorageManager
+
 loop until user enters "bye"
 
     User -> Main : enters command
-    activate Main
 
     Main -> Parser : parse(command)
     activate Parser
@@ -23,7 +29,7 @@ loop until user enters "bye"
         Parser --> Main : byeCommand
         deactivate ByeCommand
 
-    else invalid bye command
+    else invalid bye command (e.g., "bye extra")
 
         create InvalidCommand
         Parser -> InvalidCommand
@@ -33,7 +39,7 @@ loop until user enters "bye"
 
     deactivate Parser
 
-    alt command is bye
+    alt command is ByeCommand
         Main -> ByeCommand : execute(expenseManager, ui)
         activate ByeCommand
 
@@ -44,12 +50,16 @@ loop until user enters "bye"
 
         deactivate ByeCommand
 
+        Main -> StorageManager : saveExpenseManager(expenseManager, ui)
+        activate StorageManager
+        deactivate StorageManager
+
         Main -> ByeCommand : isExit()
         activate ByeCommand
         ByeCommand --> Main : true
         deactivate ByeCommand
 
-    else command is invalid
+    else command is InvalidCommand
         Main -> InvalidCommand : execute(expenseManager, ui)
         activate InvalidCommand
         InvalidCommand -> Ui : showError(message)
@@ -59,7 +69,7 @@ loop until user enters "bye"
         deactivate InvalidCommand
     end
 
-    deactivate Main
-
 end
+
+deactivate Main
 @enduml

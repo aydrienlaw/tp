@@ -2,6 +2,7 @@
 !theme vibrant
 actor User
 participant ":Main" as Main
+participant ":StorageManager" as StorageManager
 participant ":Parser" as Parser
 participant ":ArgumentParser" as ArgumentParser
 participant ":InputValidator" as InputValidator
@@ -11,8 +12,13 @@ participant ":Expense" as Expense
 participant ":ExpenseManager" as ExpenseManager
 participant ":Ui" as Ui
 
-User -> Main : enters "add a/10 desc/lunch cat/food"
 activate Main
+Main -> StorageManager : loadExpenseManager(ui)
+activate StorageManager
+StorageManager --> Main : expenseManager
+deactivate StorageManager
+
+User -> Main : enters "add a/10 desc/lunch cat/food"
 
 Main -> Parser : parse("add a/10 desc/lunch cat/food")
 activate Parser
@@ -35,15 +41,15 @@ alt successful parsing
         deactivate ArgumentParser
     end
 
-    Parser -> InputValidator : validateAmount("10")
+    Parser -> InputValidator : validateAmount("10", "add")
     activate InputValidator
     InputValidator --> Parser : 10.0
     deactivate InputValidator
-    Parser -> InputValidator : validateDescription("lunch")
+    Parser -> InputValidator : validateDescription("lunch", "add")
     activate InputValidator
     InputValidator --> Parser : "lunch"
     deactivate InputValidator
-    Parser -> InputValidator : validateCategory("food")
+    Parser -> InputValidator : validateCategory("food", "add")
     activate InputValidator
     InputValidator --> Parser : "food"
     deactivate InputValidator
@@ -54,7 +60,7 @@ alt successful parsing
 
 else validation fails
 
-    Parser -> InputValidator : validateAmount("invalid")
+    Parser -> InputValidator : validateAmount("invalid", "add")
     activate InputValidator
     InputValidator -->> Parser : throws OrCashBuddyException
     deactivate InputValidator
@@ -67,24 +73,25 @@ end
 
 deactivate Parser
 
-Main -> AddCommand : execute(expenseManager, ui)
-activate AddCommand
+alt command is AddCommand
+    Main -> AddCommand : execute(expenseManager, ui)
+    activate AddCommand
 
-create Expense
-AddCommand -> Expense : 10.0, "lunch", "food"
+    create Expense
+    AddCommand -> Expense : 10.0, "lunch", "food"
 
-AddCommand -> ExpenseManager : addExpense(expense)
-activate ExpenseManager
-deactivate ExpenseManager
+    AddCommand -> ExpenseManager : addExpense(expense)
+    activate ExpenseManager
+    deactivate ExpenseManager
 
-AddCommand -> Ui : showNewExpense(expense)
-activate Ui
-Ui --> User : displays confirmation
-deactivate Ui
+    AddCommand -> Ui : showNewExpense(expense)
+    activate Ui
+    Ui --> User : displays confirmation
+    deactivate Ui
 
-deactivate AddCommand
+    deactivate AddCommand
 
-alt command is invalid
+else command is InvalidCommand
     Main -> InvalidCommand : execute(expenseManager, ui)
     activate InvalidCommand
     InvalidCommand -> Ui : showError(message)
@@ -93,6 +100,10 @@ alt command is invalid
     deactivate Ui
     deactivate InvalidCommand
 end
+
+Main -> StorageManager : saveExpenseManager(expenseManager, ui)
+activate StorageManager
+deactivate StorageManager
 
 deactivate Main
 @enduml
