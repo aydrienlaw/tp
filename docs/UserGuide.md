@@ -81,7 +81,7 @@ Displays all expenses in descending order of amount (largest first). Sorting doe
 
 **Format:** `sort`
 
-If there are no expenses to sort, orCASHbuddy will prompt you to add one first.
+If there are no expenses to sort, orCASHbuddy will remind you that there are no expenses added yet.
 
 ### Deleting an Expense: `delete`
 Removes an expense permanently (there is no undo). The application rebalances your budget totals automatically.
@@ -99,11 +99,12 @@ Closes orCASHbuddy gracefully.
 
 You can also terminate the program by closing the terminal window, but using `bye` ensures the farewell message is displayed.
 
+### Saving and Loading Data
+
+The application automatically saves all your expenses and budget.
+Your data is stored automatically after every change and reloaded when you reopen the app, allowing you to continue from where you left off without manually saving or loading anything.
+
 ## FAQ
-
-**Q:** Does orCASHbuddy save my expenses between sessions?
-
-**A:** Not yet. The current version keeps data in memory only. To retain records, leave the application running or export the list manually before exiting.
 
 **Q:** What happens if I mistype a command?
 
