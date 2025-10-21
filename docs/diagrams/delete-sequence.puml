@@ -1,0 +1,82 @@
+@startuml
+!theme vibrant
+actor User
+participant ":Main" as Main
+participant ":Parser" as Parser
+participant ":ArgumentParser" as ArgumentParser
+participant ":InputValidator" as InputValidator
+participant ":DeleteCommand" as DeleteCommand
+participant ":InvalidCommand" as InvalidCommand
+participant ":Expense" as Expense
+participant ":ExpenseManager" as ExpenseManager
+participant ":Ui" as Ui
+
+User -> Main : enters "delete 3"
+activate Main
+
+Main -> Parser : parse("delete 3")
+activate Parser
+
+alt successful parsing
+    create ArgumentParser
+    Parser -> ArgumentParser : "3"
+    activate ArgumentParser
+    Parser -> ArgumentParser : getValue("id/")
+    ArgumentParser --> Parser : "3"
+    deactivate ArgumentParser
+
+    Parser -> InputValidator : validateId("3")
+    activate InputValidator
+    InputValidator --> Parser : 3
+    deactivate InputValidator
+
+    create DeleteCommand
+    Parser -> DeleteCommand : id=3
+    Parser --> Main : deleteCommand
+
+else validation fails
+    Parser -> InputValidator : validateId("invalid")
+    activate InputValidator
+    InputValidator -->> Parser : throws OrCashBuddyException
+    deactivate InputValidator
+
+    create InvalidCommand
+    Parser -> InvalidCommand
+    Parser --> Main : invalidCommand
+end
+
+deactivate Parser
+
+Main -> DeleteCommand : execute(expenseManager, ui)
+activate DeleteCommand
+
+DeleteCommand -> ExpenseManager : deleteExpense(3)
+activate ExpenseManager
+ExpenseManager -> Expense : locate expense with id 3
+activate Expense
+ExpenseManager -> Expense : remove from list
+ExpenseManager --> DeleteCommand : removedExpense
+destroy Expense
+deactivate ExpenseManager
+
+DeleteCommand -> Ui : showDeletedExpense(expense)
+activate Ui
+Ui --> User : displays confirmation
+deactivate Ui
+
+deactivate DeleteCommand
+destroy DeleteCommand
+
+alt command is invalid
+    Main -> InvalidCommand : execute(expenseManager, ui)
+    activate InvalidCommand
+    InvalidCommand -> Ui : showError(message)
+    activate Ui
+    Ui --> User : displays error message
+    deactivate Ui
+    deactivate InvalidCommand
+    destroy InvalidCommand
+end
+
+deactivate Main
+@enduml

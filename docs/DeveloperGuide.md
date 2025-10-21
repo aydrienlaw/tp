@@ -19,7 +19,10 @@ This Developer Guide (DG) introduces the internals of **orCASHbuddy**, outlines 
    1. [Add Expense Feature](#add-expense-feature)
    2. [Mark/Unmark Expense Feature](#markunmark-expense-feature)
    3. [Find Expense Feature](#find-expense-feature)
-   4. [Graceful Exit](#graceful-exit)
+   4. [Delete Expense Feature](#delete-expense-feature)
+   5. [Sort Expenses Feature](#sort-expenses-feature)
+   6. [Storage Management Feature](#storage-management-feature)
+   7. [Graceful Exit](#graceful-exit)
 5. [Appendix A: Product Scope](#appendix-a-product-scope)
 6. [Appendix B: User Stories](#appendix-b-user-stories)
 7. [Appendix C: Non-Functional Requirements](#appendix-c-non-functional-requirements)
@@ -298,6 +301,339 @@ Case-sensitive matching was rejected because:
 
 - **Search result caching:** We considered storing the last search results in `ExpenseManager` to support pagination or follow-up operations. Rejected because it introduces statefulness that complicates testing and doesn't align with the stateless command model used elsewhere.
 - **Multi-field unified search:** A single `search KEYWORD` command that checks all fields (category, description, amount) was considered but rejected because amount matching requires different logic (numerical comparison vs string matching), and unified results would be harder to interpret.
+
+### Delete Expense Feature
+
+#### Overview
+
+The delete workflow enables users to remove unwanted or incorrect expense entries from the list permanently. Users specify the expense to delete using its index in the displayed list (`delete INDEX`), maintaining consistency with other index-based commands such as `mark` and `unmark`. 
+The command updates the stored data automatically, ensuring that the deleted expense no longer appears after restarting the application.
+Deletion is an irreversible operation, once an expense is deleted, it cannot be recovered. However, we designed the workflow to be deliberate and safe by requiring explicit index input and validating that the list is not empty before proceeding. 
+This prevents accidental deletions and ensures data integrity.
+
+#### Control Flow
+
+1. **Input capture:** `Main` reads the user's command (`delete 3`) and passes it to `Parser`.
+2. **Tokenisation and validation:** `Parser` extracts the index argument using a helper validator method:
+    - `InputValidator.validateIndex(arguments, "delete")` ensures the index is a positive integer within list bounds.
+    - If validation fails, an `OrCashBuddyException` is thrown with an appropriate error message (e.g., "Invalid index: 5. There are only 3 expenses.").
+3. **Command creation:** `Parser` constructs a new `DeleteCommand` object and stores the parsed index for later execution.
+4. **Execution:** When `Main` invokes `command.execute(expenseManager, ui)`:
+    - The command calls `ExpenseManager#deleteExpense(index)` to remove the targeted expense.
+    - If the expense was marked as paid, the manager automatically updates total expenses and remaining balance.
+    - The deleted expense is passed to `Ui#showDeletedExpense` for user feedback.
+    - The system then triggers data persistence through `StorageManager#saveExpenseManager`.
+
+The sequence diagram in `docs/diagrams/delete-sequence.puml` illustrates these interactions from input parsing to UI display.
+
+#### Deletion Logic and Validation
+
+`ExpenseManager#deleteExpense(int index)` performs several key steps:
+
+```java
+public Expense deleteExpense(int index) throws OrCashBuddyException {
+    validateIndex(index);
+    Expense removedExpense = expenses.remove(index - 1);
+
+    if (removedExpense.isMarked()) {
+        totalExpenses -= removedExpense.getAmount();
+        recalculateRemainingBalance();
+    }
+
+    LOGGER.log(Level.INFO, "Deleted expense at index {0}: {1}",
+               new Object[]{index, removedExpense.getDescription()});
+    return removedExpense;
+}
+```
+
+##### Validation
+- The index must be within range and the list cannot be empty.
+- `validateIndex()` throws `OrCashBuddyException` if conditions are not met.
+
+##### Balance update
+If the deleted expense was marked, the total expenses and remaining balance are recalculated to reflect the deletion.
+
+#### Display Format and User Feedback
+
+`Ui#showDeletedExpense` displays feedback confirming successful deletion:
+
+```java
+public void showDeletedExpense(Expense expense) {
+    System.out.println("Deleted Expense:");
+    System.out.println(expense.formatForDisplay());
+}
+```
+
+Example output:
+
+```
+Deleted Expense:
+[X] [] Lunch - $8.50
+```
+
+This clear visual confirmation reassures users that the intended expense was deleted. The display includes the expense's previous marked status and category, maintaining consistency with other output formats.
+
+#### Logging and Diagnostics
+
+The `DeleteCommand` and `ExpenseManager` log relevant details at INFO level to aid debugging:
+
+```
+Executing delete command for index: 3
+Deleted expense at index 3: Lunch
+```
+
+If an invalid index is entered or the expense list is empty, a warning-level log is generated:
+
+```
+WARNING: Invalid index 5. No expense deleted.
+```
+
+These logs help trace command execution and identify user input errors during testing.
+
+#### Design Rationale
+
+##### Why index-based deletion?
+We chose index-based deletion instead of name-based deletion to:
+
+- Keep command syntax concise and consistent with other list-based commands.
+- Avoid ambiguity when multiple expenses share the same category or description.
+- Ensure predictable behaviour regardless of duplicate entries.
+
+##### Why immediate data persistence?
+Deleting an expense instantly updates the stored file, ensuring users never lose consistency between sessions. This design choice eliminates the need for manual saving commands.
+
+#### Extensibility and Future Enhancements
+
+- **Multiple deletions:** Extend syntax to `delete 2 4 5` to allow batch deletions. This requires modifying the parser to handle multiple indices and iteratively remove them in descending order.
+- **Soft delete / undo:** Instead of permanently deleting, expenses could be flagged as "archived" for recovery later. An `undo` or `restore` command could then reinsert them.
+- **Delete by search result:** Allow deleting directly from filtered lists (e.g., after `find cat/food`). This would require context tracking of last search results within `ExpenseManager`.
+
+#### Alternatives Considered
+
+##### Confirmation prompt before delete
+Considered adding a confirmation step (Are you sure? y/n) to prevent accidental deletions. Rejected because it slows down CLI usage and contradicts the lightweight command design philosophy.
+
+##### Name-based deletion
+Rejected due to ambiguity when duplicate names exist. Index-based deletion remains deterministic and simpler to implement.
+
+##### Deferred deletion
+We considered queuing deletions and saving all at exit. Rejected in favor of immediate persistence for reliability and simplicity.
+
+### Sort Expenses Feature
+
+#### Overview
+
+The sort workflow enables users to view all expenses in descending order of amount (`sort`).
+This provides an immediate way to identify the largest expenditures and helps users make informed budget decisions. 
+The command does not modify the original expense list to preserve insertion order, and it automatically updates the UI to display the sorted list. 
+If no expenses exist, the system provides a clear message instead of failing, ensuring a user-friendly experience.
+
+#### Control Flow
+
+1. **Input capture:** `Main` reads the user's command (`sort`) and passes it to `Parser`.
+2. **Command creation:** `Parser` recognizes the sort keyword and constructs a new `SortCommand` object.
+3. **Execution:** When `Main` invokes `command.execute(expenseManager, ui)`:
+    - The command calls `ExpenseManager#sortExpenses(ui)` to sort the expenses.
+    - The sorted list is displayed via `Ui#showSortedList`.
+    - If the expense list is empty, `Ui#showListUsage()` is invoked instead.
+4. **Data persistence:** Sorting does not change the stored data, so no file updates are required.
+
+The sequence diagram in `docs/diagrams/sort-sequence.puml` illustrates these interactions from input parsing to UI display.
+
+#### Sorting Logic and Validation
+
+`ExpenseManager#sortExpenses(Ui ui)` performs the sorting operation:
+
+```java
+public void sortExpenses(Ui ui) {
+    if (expenses.isEmpty()) {
+        ui.showListUsage();
+        return;
+    }
+
+    ArrayList<Expense> sortedExpenses = new ArrayList<>(expenses);
+    sortedExpenses.sort((e1, e2) -> Double.compare(e2.getAmount(), e1.getAmount()));
+    ui.showSortedList(sortedExpenses);
+}
+```
+
+##### Validation
+- The method first checks if the expense list is empty.
+- No sorting occurs if there are no expenses; a message is displayed instead.
+
+##### Sorting mechanism
+- A copy of the expense list is created to preserve the original order.
+- Expenses are sorted in descending order by their amount using a comparator.
+
+#### Display Format and User Feedback
+
+`Ui#showSortedList` displays the sorted expenses:
+
+```java
+public void showSortedList(ArrayList<Expense> sortedExpenses) {
+    System.out.println("Here is the list of sorted expenses, starting with the highest amount:");
+    for (int i = 0; i < sortedExpenses.size(); i++) {
+        System.out.println((i + 1) + ". " + sortedExpenses.get(i).formatForDisplay());
+    }
+}
+```
+
+Example output:
+
+```
+Here is the list of sorted expenses, starting with the highest amount:
+1. [X] [] Laptop - $1200.00
+2. [ ] [] Groceries - $85.50
+3. [ ] [] Lunch - $8.50
+```
+
+This format maintains consistency with other list displays while clearly highlighting the largest expenses first.
+
+#### Logging and Diagnostics
+
+The `SortCommand` and `ExpenseManager` log relevant details at INFO level:
+
+```
+Executing SortCommand
+Sorting expenses in descending order by amount
+SortCommand execution completed
+```
+
+If the expense list is empty:
+
+```
+INFO: Unable to sort expenses as list is empty
+```
+
+These logs help trace command execution and identify potential issues during testing.
+
+#### Design Rationale
+
+##### Why a separate sorted copy?
+Creating a copy preserves the original list order, allowing other commands like `list` to maintain chronological display.
+
+##### Why descending order?
+Descending order quickly highlights the largest expenses, which are typically the most important for budget analysis.
+
+##### Why no data persistence?
+Sorting is a view operation only; the stored data should remain unchanged. This ensures sorting is fast and non-destructive.
+
+#### Extensibility and Future Enhancements
+
+- **Alternative sort criteria:** Enable sorting by category, description, or date.
+- **Toggle order:** Allow ascending/descending toggle via `sort asc` or `sort desc`.
+- **Combined filters:** Sort results after `find` commands for more advanced queries.
+- **GUI integration:** Display sorted results in a table with sortable columns for future UI enhancements.
+
+#### Alternatives Considered
+
+##### Sort with data persistence
+Rejected since sorting is purely a viewing operation and should not alter stored data.
+
+##### Multi-criteria sorting
+Considered (e.g., sort by amount then category), but initially implemented simple descending amount sort to keep the CLI lightweight and intuitive.
+
+### Storage Management Feature
+
+#### Overview
+
+The `StorageManager` handles persistent storage of the application's `ExpenseManager`. 
+It serializes the entire object graph to a file and ensures that user data is safely saved and loaded across application sessions. 
+All interactions with disk storage are mediated by this class, centralising file I/O, error handling and logging. This is done automatically by the application. 
+Users do not have to key in a command to save or load data.
+
+**Key responsibilities:**
+* Save `ExpenseManager` to disk (`saveExpenseManager`).
+* Load `ExpenseManager` from disk (`loadExpenseManager`).
+* Automatically create storage directories and files if missing.
+* Handle exceptions gracefully and provide user feedback through `Ui`.
+* Log all important events for diagnostics.
+
+#### Storage Location
+
+* **Directory:** `data`
+* **File:** `appdata.ser`
+
+This is a binary serialized file using Java's built-in serialization mechanism (`ObjectOutputStream` / `ObjectInputStream`).
+
+#### Public Methods
+
+##### 1. `saveExpenseManager(ExpenseManager expenseManager, Ui ui)`
+
+**Purpose:** Saves the current state of expenses to disk.
+
+**Parameters:**
+* `expenseManager`: The current `ExpenseManager` instance to persist.
+* `ui`: Provides user feedback in case of errors.
+
+**Workflow:**
+1. Validate non-null arguments.
+2. Ensure the `data` folder exists, create if missing.
+3. Serialize `ExpenseManager` into `appdata.ser`.
+4. Catch and log any exceptions: `IOException`, `SecurityException`.
+5. Provide user-friendly messages for any failure.
+
+**Logging:**
+* Success: `INFO: ExpenseManager successfully saved to <path>`
+* Failure: `WARNING: Failed to save ExpenseManager`
+
+**Example Usage:**
+```java
+StorageManager.saveExpenseManager(expenseManager, ui);
+```
+
+##### 2. `loadExpenseManager(Ui ui)`
+
+**Purpose:** Loads the `ExpenseManager` from disk or returns a new instance if loading fails.
+
+**Parameters:**
+* `ui`: Provides user feedback in case of errors.
+
+**Workflow:**
+1. Validate non-null `ui`.
+2. Ensure `data` folder exists, create if missing.
+3. Ensure `appdata.ser` file exists; create if missing.
+4. Deserialize the object using `ObjectInputStream`.
+5. Validate that the loaded object is an instance of `ExpenseManager`.
+6. Catch exceptions: `IOException`, `ClassNotFoundException`, `SecurityException`.
+7. On failure, log the issue and return a new `ExpenseManager`.
+8. Provide user-friendly messages for corrupted, incompatible, or missing data.
+
+**Logging:**
+* Success: `INFO: ExpenseManager successfully loaded from <path>`
+* Failure: `WARNING: IOException / ClassNotFoundException / SecurityException while reading storage file`
+
+**Example Usage:**
+```java
+ExpenseManager expenseManager = StorageManager.loadExpenseManager(ui);
+```
+
+#### Error Handling
+
+* **Folder/File Creation Failure:** Displayed via `Ui.showError`, logged as `WARNING`.
+* **Serialization/Deserialization Failure:** Gracefully fallback to a new `ExpenseManager`.
+* **Permission Issues:** Displayed to user; logged as `WARNING`.
+
+All exceptions are caught internally to prevent the application from crashing due to storage issues.
+
+#### Design Rationale
+
+1. **Centralised Storage Handling:** All file operations go through `StorageManager`, keeping I/O logic separate from user interaction.
+2. **Immediate Data Saving:** Every command that modifies `ExpenseManager` calls `saveExpenseManager` immediately. This prevents data loss during unexpected shutdowns.
+3. **User-Friendly Error Feedback:** By coupling with `Ui`, storage errors are communicated in plain language rather than Java exceptions.
+4. **Robustness:** Handles missing directories/files, corrupted data, and permission issues. Never throws unchecked exceptions that crash the app.
+
+#### Extensibility and Future Enhancements
+
+* **Alternative File Formats:** Support JSON or XML for easier inspection and manual editing.
+* **Backup Mechanism:** Maintain a versioned backup of previous `ExpenseManager` states.
+* **Encryption:** Secure sensitive data by encrypting the serialized file.
+* **Incremental Save:** Save only modified parts of `ExpenseManager` instead of the whole object.
+
+#### Logging and Diagnostics
+
+* All storage events are logged at `INFO` for successful operations and `WARNING` for failures.
+* Enables tracing of storage-related issues during debugging or testing.
 
 ### Graceful Exit
 
