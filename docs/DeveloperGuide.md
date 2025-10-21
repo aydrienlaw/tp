@@ -371,9 +371,9 @@ All tests assume the repository has been cloned and Java 17 is available.
 6. **Unmark Expense**: Enter `unmark 1` and verify totals reset to `$0.00` spent.
 7. **Find by Category**: Add expenses with categories "Food", "Transport", "Facilities". Execute `find cat/food` and verify "Food" appear as a result.
 8. **Find by Description**: Add expenses with descriptions "Lunch meeting" and "Volleyball court". Execute `find desc/lunch` and verify only the first expense appears.
-8. **Sort Expenses**: Add two more entries of varying amounts and run `sort`; check that output is descending by amount.
-8. **Delete Expense**: Execute `delete 2` (adjust index if needed) and confirm the list shrinks accordingly.
-9. **Exit**: Finish with `bye`. Expect a “Bye. Hope to see you again soon!” message, and the application should terminate.
-10. **Regression Script**: The Windows batch script `text-ui-test/runtest.bat` (or `text-ui-test/runtest.sh` on macOS/Linux) rebuilds the JAR and exercises the help command. Ensure `EXPECTED.TXT` matches the actual output before committing changes to commands or messages.
+9. **Sort Expenses**: Add two more entries of varying amounts and run `sort`; check that output is descending by amount.
+10. **Delete Expense**: Execute `delete 2` (adjust index if needed) and confirm the list shrinks accordingly.
+11. **Exit**: Finish with `bye`. Expect a “Bye. Hope to see you again soon!” message, and the application should terminate.
+12. **Regression Script**: The Windows batch script `text-ui-test/runtest.bat` (or `text-ui-test/runtest.sh` on macOS/Linux) rebuilds the JAR and exercises the help command. Ensure `EXPECTED.TXT` matches the actual output before committing changes to commands or messages.
 
 When verifying bug fixes or new features, prefer updating both JUnit tests in `src/test/java/seedu/orcashbuddy` and text UI expectations in `text-ui-test` to prevent regressions.
