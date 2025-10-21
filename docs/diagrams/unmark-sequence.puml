@@ -1,0 +1,109 @@
+@startuml
+!theme vibrant
+actor User
+participant ":Main" as Main
+participant ":Parser" as Parser
+participant ":InputValidator" as InputValidator
+participant ":UnmarkCommand" as UnmarkCommand
+participant ":InvalidCommand" as InvalidCommand
+participant ":ExpenseManager" as ExpenseManager
+participant ":Expense" as Expense
+participant ":Ui" as Ui
+
+User -> Main : enters "unmark 1"
+activate Main
+
+Main -> Parser : parse("unmark 1")
+activate Parser
+
+alt successful parsing
+
+    Parser -> InputValidator : validateIndex("1", "unmark")
+    activate InputValidator
+    InputValidator --> Parser : 1
+    deactivate InputValidator
+
+    create UnmarkCommand
+    Parser -> UnmarkCommand : 1
+    Parser --> Main : unmarkCommand
+
+else validation fails
+
+    Parser -> InputValidator : validateIndex("invalid", "unmark")
+    activate InputValidator
+    InputValidator -->> Parser : throws OurCashBuddyException
+    deactivate InputValidator
+
+    create InvalidCommand
+    Parser -> InvalidCommand : OrCashBuddyException
+    Parser --> Main : invalidCommand
+
+end
+
+deactivate Parser
+
+Main -> UnmarkCommand : execute(expenseManager, ui)
+activate UnmarkCommand
+
+UnmarkCommand -> ExpenseManager : unmarkExpense(1)
+activate ExpenseManager
+
+ExpenseManager -> ExpenseManager : validateIndex(1)
+note right: Throws OrCashBuddyException\nif index out of range
+
+ExpenseManager -> Expense : unmark()
+activate Expense
+Expense -> Expense : isMarked = false
+deactivate Expense
+
+ExpenseManager -> ExpenseManager : updateBudgetAfterUnmark(expense)
+activate ExpenseManager
+ExpenseManager -> ExpenseManager : totalExpenses -= expense.getAmount()
+ExpenseManager -> ExpenseManager : recalculateRemainingBalance()
+note right: remainingBalance =\nbudget - totalExpenses
+deactivate ExpenseManager
+
+ExpenseManager --> UnmarkCommand : expense
+deactivate ExpenseManager
+
+UnmarkCommand -> Ui : showUnmarkedExpense(expense)
+activate Ui
+Ui --> User : displays "[ ] [CATEGORY] DESCRIPTION - $AMOUNT"
+deactivate Ui
+
+UnmarkCommand -> ExpenseManager : checkRemainingBalance(ui)
+activate ExpenseManager
+
+alt remainingBalance < 0
+    ExpenseManager -> Ui : showExceedAlert(remainingBalance)
+    activate Ui
+    Ui --> User : displays exceed alert
+    deactivate Ui
+else remainingBalance == 0
+    ExpenseManager -> Ui : showEqualAlert()
+    activate Ui
+    Ui --> User : displays equal alert
+    deactivate Ui
+else remainingBalance < 10.00
+    ExpenseManager -> Ui : showNearAlert(remainingBalance)
+    activate Ui
+    Ui --> User : displays near alert
+    deactivate Ui
+end
+
+deactivate ExpenseManager
+
+deactivate UnmarkCommand
+
+alt command is invalid
+    Main -> InvalidCommand : execute(expenseManager, ui)
+    activate InvalidCommand
+    InvalidCommand -> Ui : showUnmarkUsage(errorMessage)
+    activate Ui
+    Ui --> User : displays error message and usage
+    deactivate Ui
+    deactivate InvalidCommand
+end
+
+deactivate Main
+@enduml
