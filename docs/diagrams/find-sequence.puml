@@ -1,0 +1,139 @@
+@startuml
+!theme vibrant
+actor User
+participant ":Main" as Main
+participant ":Parser" as Parser
+participant ":ArgumentParser" as ArgumentParser
+participant ":FindCommand" as FindCommand
+participant ":InvalidCommand" as InvalidCommand
+participant ":ExpenseManager" as ExpenseManager
+participant ":Expense" as Expense
+participant ":Ui" as Ui
+
+User -> Main : enters "find cat/food"
+activate Main
+
+Main -> Parser : parse("find cat/food")
+activate Parser
+
+alt successful parsing
+
+    create ArgumentParser
+    Parser -> ArgumentParser : "cat/food"
+    activate ArgumentParser
+
+    Parser -> ArgumentParser : getOptionalValue("cat/")
+    ArgumentParser --> Parser : "food"
+
+    Parser -> ArgumentParser : getOptionalValue("desc/")
+    ArgumentParser --> Parser : null
+    deactivate ArgumentParser
+
+    note right of Parser: Category found, so\ncreate category-based search
+
+    create FindCommand
+    Parser -> FindCommand : "category", "food"
+    Parser --> Main : findCommand
+
+else no search criteria provided
+
+    Parser -> ArgumentParser : getOptionalValue("cat/")
+    activate ArgumentParser
+    ArgumentParser --> Parser : null
+    deactivate ArgumentParser
+
+    Parser -> ArgumentParser : getOptionalValue("desc/")
+    activate ArgumentParser
+    ArgumentParser --> Parser : null
+    deactivate ArgumentParser
+
+    note right of Parser: Both prefixes absent,\nthrow exception
+
+    create InvalidCommand
+    Parser -> InvalidCommand : OrCashBuddyException
+    Parser --> Main : invalidCommand
+
+end
+
+deactivate Parser
+
+Main -> FindCommand : execute(expenseManager, ui)
+activate FindCommand
+
+alt search by category
+
+    FindCommand -> ExpenseManager : findExpensesByCategory("food")
+    activate ExpenseManager
+
+    ExpenseManager -> ExpenseManager : searchTerm = "food".toLowerCase().trim()
+    note right: searchTerm = "food"
+
+    loop for each expense in expenses
+        ExpenseManager -> Expense : getCategory()
+        activate Expense
+        Expense --> ExpenseManager : category
+        deactivate Expense
+
+        ExpenseManager -> ExpenseManager : category.toLowerCase().contains(searchTerm)
+        note right: Check if "Food".toLowerCase()\ncontains "food"
+
+        alt match found
+            ExpenseManager -> ExpenseManager : foundExpenses.add(expense)
+        end
+    end
+
+    ExpenseManager --> FindCommand : foundExpenses (ArrayList<Expense>)
+    deactivate ExpenseManager
+
+else search by description
+
+    FindCommand -> ExpenseManager : findExpensesByDescription("lunch")
+    activate ExpenseManager
+
+    ExpenseManager -> ExpenseManager : searchTerm = "lunch".toLowerCase().trim()
+    note right: searchTerm = "lunch"
+
+    loop for each expense in expenses
+        ExpenseManager -> Expense : getDescription()
+        activate Expense
+        Expense --> ExpenseManager : description
+        deactivate Expense
+
+        ExpenseManager -> ExpenseManager : description.toLowerCase().contains(searchTerm)
+        note right: Check if "Team lunch meeting"\n.toLowerCase() contains "lunch"
+
+        alt match found
+            ExpenseManager -> ExpenseManager : foundExpenses.add(expense)
+        end
+    end
+
+    ExpenseManager --> FindCommand : foundExpenses (ArrayList<Expense>)
+    deactivate ExpenseManager
+
+end
+
+FindCommand -> Ui : showFoundExpenses(foundExpenses, "food", "category")
+activate Ui
+
+alt no matches found
+    Ui --> User : "No expenses found matching category: food"
+else one or more matches
+    Ui --> User : "Found {count} expense(s) matching category: food\n1. [ ] [Food] Lunch - $8.50\n2. [X] [Fast Food] Dinner - $12.00"
+end
+
+deactivate Ui
+
+deactivate FindCommand
+
+alt command is invalid
+    Main -> InvalidCommand : execute(expenseManager, ui)
+    activate InvalidCommand
+    InvalidCommand -> Ui : showFindUsage()
+    activate Ui
+    Ui --> User : displays error message and usage
+    deactivate Ui
+    deactivate InvalidCommand
+end
+
+deactivate Main
+@enduml
