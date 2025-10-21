@@ -76,6 +76,19 @@ Reverts a previously marked expense to unpaid, increasing your remaining balance
 
 **Example:** `unmark 2`
 
+### Finding an Expense: `find`
+Searches for expenses by category or description keyword, displaying all matching results.
+
+**Format:** `find cat/CATEGORY` or `find desc/DESCRIPTION`
+
+**Examples:**
+- `find cat/food` - Finds all expenses with categories containing "food"
+- `find desc/lunch` - Finds all expenses with descriptions containing "lunch"
+
+If no matches are found, orCASHbuddy displays "No expenses found matching [category/description]: [search term]".
+
+**Note:** The numbering in search results (1, 2, 3...) is for display only and does not correspond to the indices used by `mark`, `unmark`, or `delete` commands. Always use `list` to verify the correct index before modifying expenses.
+
 ### Sorting Expenses by Amount: `sort`
 Displays all expenses in descending order of amount (largest first). Sorting does not change the original order used by other commands.
 
@@ -110,6 +123,10 @@ Your data is stored automatically after every change and reloaded when you reope
 
 **A:** orCASHbuddy prints an error message describing what went wrong (e.g., missing prefixes or invalid numbers). Check the format in the `help` output and try again.
 
+**Q:** Why don't the numbers in find results match my list indices?
+
+**A:** Find results are renumbered (1, 2, 3...) for easier reading. To mark, unmark, or delete an expense, always use `list` first to see the actual indices.
+
 ## Command Summary
 
 | Action | Format | Example |
@@ -120,6 +137,7 @@ Your data is stored automatically after every change and reloaded when you reope
 | List summary | `list` | `list` |
 | Mark as paid | `mark INDEX` | `mark 3` |
 | Unmark expense | `unmark INDEX` | `unmark 3` |
+| Find expense | `find cat/CATEGORY` or `find desc/DESCRIPTION` | `find cat/food` |
 | Delete expense | `delete INDEX` | `delete 2` |
 | Sort expenses | `sort` | `sort` |
 | Exit | `bye` | `bye` |
