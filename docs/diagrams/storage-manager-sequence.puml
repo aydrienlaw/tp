@@ -1,0 +1,44 @@
+@startuml
+!theme vibrant
+actor Main
+participant StorageManager
+participant Ui
+participant "ExpenseManager" as EM
+
+activate Main
+Main -> StorageManager : loadExpenseManager(ui)
+activate StorageManager
+StorageManager -> StorageManager : check if directory exists
+alt directory missing
+    StorageManager -> StorageManager : create directory
+    StorageManager -> Ui : showError if failed
+end
+
+StorageManager -> StorageManager : check if file exists
+alt file exists and readable
+    StorageManager -> StorageManager : read ObjectInputStream
+    StorageManager -> StorageManager : validate object type
+    StorageManager -> EM : create ExpenseManager from file
+else file missing or corrupted
+    StorageManager -> Ui : showError(...)
+    StorageManager -> EM : create new empty ExpenseManager
+end
+
+StorageManager -> Main : return EM
+deactivate StorageManager
+
+Main -> EM : stores as expenseManager field
+
+Main -> StorageManager : saveExpenseManager(expenseManager, ui)
+activate StorageManager
+StorageManager -> StorageManager : ensure directory exists
+StorageManager -> StorageManager : write ObjectOutputStream
+alt success
+    StorageManager -> Main : log info
+else failure
+    StorageManager -> Ui : showError(...)
+    StorageManager -> Main : log warning
+end
+deactivate StorageManager
+deactivate Main
+@enduml

@@ -19,7 +19,10 @@ This Developer Guide (DG) introduces the internals of **orCASHbuddy**, outlines 
    1. [Add Expense Feature](#add-expense-feature)
    2. [Mark/Unmark Expense Feature](#markunmark-expense-feature)
    3. [Find Expense Feature](#find-expense-feature)
-   4. [Graceful Exit](#graceful-exit)
+   4. [Delete Expense Feature](#delete-expense-feature)
+   5. [Sort Expenses Feature](#sort-expenses-feature)
+   6. [Storage Management Feature](#storage-management-feature)
+   7. [Graceful Exit](#graceful-exit)
 5. [Appendix A: Product Scope](#appendix-a-product-scope)
 6. [Appendix B: User Stories](#appendix-b-user-stories)
 7. [Appendix C: Non-Functional Requirements](#appendix-c-non-functional-requirements)
@@ -529,6 +532,108 @@ Rejected since sorting is purely a viewing operation and should not alter stored
 
 ##### Multi-criteria sorting
 Considered (e.g., sort by amount then category), but initially implemented simple descending amount sort to keep the CLI lightweight and intuitive.
+
+### Storage Management Feature
+
+#### Overview
+
+The `StorageManager` handles persistent storage of the application's `ExpenseManager`. 
+It serializes the entire object graph to a file and ensures that user data is safely saved and loaded across application sessions. 
+All interactions with disk storage are mediated by this class, centralising file I/O, error handling and logging. This is done automatically by the application. 
+Users do not have to key in a command to save or load data.
+
+**Key responsibilities:**
+* Save `ExpenseManager` to disk (`saveExpenseManager`).
+* Load `ExpenseManager` from disk (`loadExpenseManager`).
+* Automatically create storage directories and files if missing.
+* Handle exceptions gracefully and provide user feedback through `Ui`.
+* Log all important events for diagnostics.
+
+#### Storage Location
+
+* **Directory:** `data`
+* **File:** `appdata.ser`
+
+This is a binary serialized file using Java's built-in serialization mechanism (`ObjectOutputStream` / `ObjectInputStream`).
+
+#### Public Methods
+
+##### 1. `saveExpenseManager(ExpenseManager expenseManager, Ui ui)`
+
+**Purpose:** Saves the current state of expenses to disk.
+
+**Parameters:**
+* `expenseManager`: The current `ExpenseManager` instance to persist.
+* `ui`: Provides user feedback in case of errors.
+
+**Workflow:**
+1. Validate non-null arguments.
+2. Ensure the `data` folder exists, create if missing.
+3. Serialize `ExpenseManager` into `appdata.ser`.
+4. Catch and log any exceptions: `IOException`, `SecurityException`.
+5. Provide user-friendly messages for any failure.
+
+**Logging:**
+* Success: `INFO: ExpenseManager successfully saved to <path>`
+* Failure: `WARNING: Failed to save ExpenseManager`
+
+**Example Usage:**
+```java
+StorageManager.saveExpenseManager(expenseManager, ui);
+```
+
+##### 2. `loadExpenseManager(Ui ui)`
+
+**Purpose:** Loads the `ExpenseManager` from disk or returns a new instance if loading fails.
+
+**Parameters:**
+* `ui`: Provides user feedback in case of errors.
+
+**Workflow:**
+1. Validate non-null `ui`.
+2. Ensure `data` folder exists, create if missing.
+3. Ensure `appdata.ser` file exists; create if missing.
+4. Deserialize the object using `ObjectInputStream`.
+5. Validate that the loaded object is an instance of `ExpenseManager`.
+6. Catch exceptions: `IOException`, `ClassNotFoundException`, `SecurityException`.
+7. On failure, log the issue and return a new `ExpenseManager`.
+8. Provide user-friendly messages for corrupted, incompatible, or missing data.
+
+**Logging:**
+* Success: `INFO: ExpenseManager successfully loaded from <path>`
+* Failure: `WARNING: IOException / ClassNotFoundException / SecurityException while reading storage file`
+
+**Example Usage:**
+```java
+ExpenseManager expenseManager = StorageManager.loadExpenseManager(ui);
+```
+
+#### Error Handling
+
+* **Folder/File Creation Failure:** Displayed via `Ui.showError`, logged as `WARNING`.
+* **Serialization/Deserialization Failure:** Gracefully fallback to a new `ExpenseManager`.
+* **Permission Issues:** Displayed to user; logged as `WARNING`.
+
+All exceptions are caught internally to prevent the application from crashing due to storage issues.
+
+#### Design Rationale
+
+1. **Centralised Storage Handling:** All file operations go through `StorageManager`, keeping I/O logic separate from user interaction.
+2. **Immediate Data Saving:** Every command that modifies `ExpenseManager` calls `saveExpenseManager` immediately. This prevents data loss during unexpected shutdowns.
+3. **User-Friendly Error Feedback:** By coupling with `Ui`, storage errors are communicated in plain language rather than Java exceptions.
+4. **Robustness:** Handles missing directories/files, corrupted data, and permission issues. Never throws unchecked exceptions that crash the app.
+
+#### Extensibility and Future Enhancements
+
+* **Alternative File Formats:** Support JSON or XML for easier inspection and manual editing.
+* **Backup Mechanism:** Maintain a versioned backup of previous `ExpenseManager` states.
+* **Encryption:** Secure sensitive data by encrypting the serialized file.
+* **Incremental Save:** Save only modified parts of `ExpenseManager` instead of the whole object.
+
+#### Logging and Diagnostics
+
+* All storage events are logged at `INFO` for successful operations and `WARNING` for failures.
+* Enables tracing of storage-related issues during debugging or testing.
 
 ### Graceful Exit
 
