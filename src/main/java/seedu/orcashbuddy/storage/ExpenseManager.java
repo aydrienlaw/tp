@@ -17,7 +17,7 @@ public class ExpenseManager implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = Logger.getLogger(ExpenseManager.class.getName());
-    private static final double THRESHOLD_REMAINING_BALANCE=10;
+    private static final double THRESHOLD_REMAINING_BALANCE = 10;
     private final ArrayList<Expense> expenses;
     private double budget = 0.0;
     private double totalExpenses = 0.0;
