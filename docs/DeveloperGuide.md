@@ -416,6 +416,120 @@ Rejected due to ambiguity when duplicate names exist. Index-based deletion remai
 ##### Deferred deletion
 We considered queuing deletions and saving all at exit. Rejected in favor of immediate persistence for reliability and simplicity.
 
+### Sort Expenses Feature
+
+#### Overview
+
+The sort workflow enables users to view all expenses in descending order of amount (`sort`).
+This provides an immediate way to identify the largest expenditures and helps users make informed budget decisions. 
+The command does not modify the original expense list to preserve insertion order, and it automatically updates the UI to display the sorted list. 
+If no expenses exist, the system provides a clear message instead of failing, ensuring a user-friendly experience.
+
+#### Control Flow
+
+1. **Input capture:** `Main` reads the user's command (`sort`) and passes it to `Parser`.
+2. **Command creation:** `Parser` recognizes the sort keyword and constructs a new `SortCommand` object.
+3. **Execution:** When `Main` invokes `command.execute(expenseManager, ui)`:
+    - The command calls `ExpenseManager#sortExpenses(ui)` to sort the expenses.
+    - The sorted list is displayed via `Ui#showSortedList`.
+    - If the expense list is empty, `Ui#showListUsage()` is invoked instead.
+4. **Data persistence:** Sorting does not change the stored data, so no file updates are required.
+
+The sequence diagram in `docs/diagrams/sort-sequence.puml` illustrates these interactions from input parsing to UI display.
+
+#### Sorting Logic and Validation
+
+`ExpenseManager#sortExpenses(Ui ui)` performs the sorting operation:
+
+```java
+public void sortExpenses(Ui ui) {
+    if (expenses.isEmpty()) {
+        ui.showListUsage();
+        return;
+    }
+
+    ArrayList<Expense> sortedExpenses = new ArrayList<>(expenses);
+    sortedExpenses.sort((e1, e2) -> Double.compare(e2.getAmount(), e1.getAmount()));
+    ui.showSortedList(sortedExpenses);
+}
+```
+
+##### Validation
+- The method first checks if the expense list is empty.
+- No sorting occurs if there are no expenses; a message is displayed instead.
+
+##### Sorting mechanism
+- A copy of the expense list is created to preserve the original order.
+- Expenses are sorted in descending order by their amount using a comparator.
+
+#### Display Format and User Feedback
+
+`Ui#showSortedList` displays the sorted expenses:
+
+```java
+public void showSortedList(ArrayList<Expense> sortedExpenses) {
+    System.out.println("Here is the list of sorted expenses, starting with the highest amount:");
+    for (int i = 0; i < sortedExpenses.size(); i++) {
+        System.out.println((i + 1) + ". " + sortedExpenses.get(i).formatForDisplay());
+    }
+}
+```
+
+Example output:
+
+```
+Here is the list of sorted expenses, starting with the highest amount:
+1. [X] [] Laptop - $1200.00
+2. [ ] [] Groceries - $85.50
+3. [ ] [] Lunch - $8.50
+```
+
+This format maintains consistency with other list displays while clearly highlighting the largest expenses first.
+
+#### Logging and Diagnostics
+
+The `SortCommand` and `ExpenseManager` log relevant details at INFO level:
+
+```
+Executing SortCommand
+Sorting expenses in descending order by amount
+SortCommand execution completed
+```
+
+If the expense list is empty:
+
+```
+INFO: Unable to sort expenses as list is empty
+```
+
+These logs help trace command execution and identify potential issues during testing.
+
+#### Design Rationale
+
+##### Why a separate sorted copy?
+Creating a copy preserves the original list order, allowing other commands like `list` to maintain chronological display.
+
+##### Why descending order?
+Descending order quickly highlights the largest expenses, which are typically the most important for budget analysis.
+
+##### Why no data persistence?
+Sorting is a view operation only; the stored data should remain unchanged. This ensures sorting is fast and non-destructive.
+
+#### Extensibility and Future Enhancements
+
+- **Alternative sort criteria:** Enable sorting by category, description, or date.
+- **Toggle order:** Allow ascending/descending toggle via `sort asc` or `sort desc`.
+- **Combined filters:** Sort results after `find` commands for more advanced queries.
+- **GUI integration:** Display sorted results in a table with sortable columns for future UI enhancements.
+
+#### Alternatives Considered
+
+##### Sort with data persistence
+Rejected since sorting is purely a viewing operation and should not alter stored data.
+
+##### Multi-criteria sorting
+Considered (e.g., sort by amount then category), but initially implemented simple descending amount sort to keep the CLI lightweight and intuitive.
+
 ### Graceful Exit
 
 #### Overview

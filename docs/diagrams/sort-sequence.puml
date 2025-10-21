@@ -1,0 +1,31 @@
+@startuml
+!theme vibrant
+title Sort Expenses Sequence Diagram
+
+actor User
+participant Main
+participant Parser
+participant SortCommand
+participant ExpenseManager
+participant Ui
+
+User -> Main : Enter command "sort"
+Main -> Parser : parse("sort")
+Parser -> SortCommand : new SortCommand()
+Parser --> Main : return SortCommand
+Main -> SortCommand : execute(expenseManager, ui)
+
+alt expense list not empty
+    SortCommand -> ExpenseManager : sortExpenses(ui)
+    ExpenseManager -> ExpenseManager : create copy of expenses list
+    ExpenseManager -> ExpenseManager : sort copy in descending order by amount
+    ExpenseManager -> Ui : showSortedList(sortedExpenses)
+else expense list empty
+    SortCommand -> ExpenseManager : sortExpenses(ui)
+    ExpenseManager -> Ui : showListUsage()
+end
+
+Ui --> User : Display sorted expenses or message
+SortCommand --> Main : Execution complete
+
+@enduml
