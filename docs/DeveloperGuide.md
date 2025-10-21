@@ -419,6 +419,101 @@ Rejected due to ambiguity when duplicate names exist. Index-based deletion remai
 ##### Deferred deletion
 We considered queuing deletions and saving all at exit. Rejected in favor of immediate persistence for reliability and simplicity.
 
+
+### Edit Expense Feature
+
+#### Overview
+
+The **Edit Expense** feature allows users to modify details of an existing expense, such as the amount, description, or category, without deleting and re-adding it. This makes it easier for users to correct mistakes or update expense information while keeping accurate totals.
+
+#### Implementation
+The `EditCommand` class extends `Command` and performs the update by replacing the specified `Expense` with a new `Expense` object containing the modified details.
+#### Control Flow
+
+1. **Input Capture:**  
+   `Main` reads the user's command (`edit`) along with any provided parameters and forwards it to `Parser`.
+
+2. **Input parsing and Command Creation:**  
+   The user inputs an edit command in the form:
+   ```
+   edit /id<index> /a<amount> /desc<description> /cat<category>
+   ```
+   The parser, recognizes the `edit` keyword, extracts the provided parameters and constructs an `EditCommand` object.
+   - Attributes `newAmount`, `newDescription`, and `newCategory` store the values provided by the user.
+   - If the user omits any parameter, the corresponding attribute remains `null`, indicating no change for that field.
+
+3. **Execution:**  
+   The existing expense is replaced with a new `Expense` instance containing updated fields. Only the provided fields are changed — unspecified fields remain the same.
+
+   When `Main` invokes `command.execute(expenseManager, ui)`:
+   - The command retrieves the original expense via `ExpenseManager#getExpense(index)`, capturing its amount, description, category, and marked status.
+   - For each editable field, the command determines the new value: if the user provided an update, it uses that; otherwise, it retains the original value.
+   - A new `Expense` object `edited` is constructed with the updated parameters.
+   - The command calls `ExpenseManager#replaceExpense(index, edited)` to replace the original expense in the list.
+   - If the original expense was marked, `ExpenseManager#markExpense(index)` is invoked to preserve the marked state.
+
+4. **UI Feedback:**
+   - The updated expense is displayed to the user via `Ui#showEditedExpense`.
+   - `ExpenseManager#checkRemainingBalance(ui)` is called to recalculate the budget and display alerts if thresholds are exceeded.
+
+5. **Data Persistence:**  
+   `StorageManager#saveExpenseManager` is invoked to immediately persist the updated expense list to disk, ensuring no data is lost.
+
+The sequence diagram in `docs/diagrams/edit-sequence.puml` illustrates the interactions between `Main`, `Parser`, `EditCommand`, `ExpenseManager`, `Ui`, and `StorageManager` during this workflow.
+
+
+#### Validation
+- Ensures the provided index corresponds to an existing expense.
+- Null values for fields (amount/description/category) preserve the original data, allowing partial edits.
+- Invalid or negative amounts trigger validation errors from `InputValidator`.
+
+#### Example
+
+##### User Input
+```
+edit /id 2 /a 20.50 /desc Dinner /cat Food
+```
+
+##### Expected Output
+```
+Edited expense: [ ] [Food] Dinner - $20.50
+```
+
+#### Logging and Diagnostics
+
+Logging statements in both `EditCommand` and `ExpenseManager` track the feature’s lifecycle:
+
+```
+INFO: Executing EditCommand for index 2
+INFO: Updated expense: [ ] [Food] Brunch - $15.00
+INFO: EditCommand execution completed
+```
+
+If validation fails:
+```
+WARNING: Attempted to edit expense with invalid index 7
+```
+
+These logs assist in debugging, regression testing, and tracing command history during QA.
+
+#### Design Rationale
+
+##### Why replace instead of mutate?
+The `Expense` class uses `final` fields to preserve immutability and data safety.  
+Creating a new `Expense` object ensures that once created, an instance cannot be corrupted by later edits.
+
+##### Why allow partial updates?
+Users may only want to fix one detail (e.g., typo in description), so optional parameters provide flexibility.
+
+
+
+#### Extensibility and Future Enhancements
+
+- **Support editing by keyword:** Allow editing by expense name instead of index (e.g., `edit "Lunch"`).
+- **Batch editing:** Enable simultaneous modification of multiple expenses.
+- **Undo/redo support:** Integrate with a command history system for reversible edits.
+
+
 ### Sort Expenses Feature
 
 #### Overview
