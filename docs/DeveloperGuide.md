@@ -299,6 +299,123 @@ Case-sensitive matching was rejected because:
 - **Search result caching:** We considered storing the last search results in `ExpenseManager` to support pagination or follow-up operations. Rejected because it introduces statefulness that complicates testing and doesn't align with the stateless command model used elsewhere.
 - **Multi-field unified search:** A single `search KEYWORD` command that checks all fields (category, description, amount) was considered but rejected because amount matching requires different logic (numerical comparison vs string matching), and unified results would be harder to interpret.
 
+### Delete Expense Feature
+
+#### Overview
+
+The delete workflow enables users to remove unwanted or incorrect expense entries from the list permanently. Users specify the expense to delete using its index in the displayed list (`delete INDEX`), maintaining consistency with other index-based commands such as `mark` and `unmark`. 
+The command updates the stored data automatically, ensuring that the deleted expense no longer appears after restarting the application.
+Deletion is an irreversible operation, once an expense is deleted, it cannot be recovered. However, we designed the workflow to be deliberate and safe by requiring explicit index input and validating that the list is not empty before proceeding. 
+This prevents accidental deletions and ensures data integrity.
+
+#### Control Flow
+
+1. **Input capture:** `Main` reads the user's command (`delete 3`) and passes it to `Parser`.
+2. **Tokenisation and validation:** `Parser` extracts the index argument using a helper validator method:
+    - `InputValidator.validateIndex(arguments, "delete")` ensures the index is a positive integer within list bounds.
+    - If validation fails, an `OrCashBuddyException` is thrown with an appropriate error message (e.g., "Invalid index: 5. There are only 3 expenses.").
+3. **Command creation:** `Parser` constructs a new `DeleteCommand` object and stores the parsed index for later execution.
+4. **Execution:** When `Main` invokes `command.execute(expenseManager, ui)`:
+    - The command calls `ExpenseManager#deleteExpense(index)` to remove the targeted expense.
+    - If the expense was marked as paid, the manager automatically updates total expenses and remaining balance.
+    - The deleted expense is passed to `Ui#showDeletedExpense` for user feedback.
+    - The system then triggers data persistence through `StorageManager#saveExpenseManager`.
+
+The sequence diagram in `docs/diagrams/delete-sequence.puml` illustrates these interactions from input parsing to UI display.
+
+#### Deletion Logic and Validation
+
+`ExpenseManager#deleteExpense(int index)` performs several key steps:
+
+```java
+public Expense deleteExpense(int index) throws OrCashBuddyException {
+    validateIndex(index);
+    Expense removedExpense = expenses.remove(index - 1);
+
+    if (removedExpense.isMarked()) {
+        totalExpenses -= removedExpense.getAmount();
+        recalculateRemainingBalance();
+    }
+
+    LOGGER.log(Level.INFO, "Deleted expense at index {0}: {1}",
+               new Object[]{index, removedExpense.getDescription()});
+    return removedExpense;
+}
+```
+
+##### Validation
+- The index must be within range and the list cannot be empty.
+- `validateIndex()` throws `OrCashBuddyException` if conditions are not met.
+
+##### Balance update
+If the deleted expense was marked, the total expenses and remaining balance are recalculated to reflect the deletion.
+
+#### Display Format and User Feedback
+
+`Ui#showDeletedExpense` displays feedback confirming successful deletion:
+
+```java
+public void showDeletedExpense(Expense expense) {
+    System.out.println("Deleted Expense:");
+    System.out.println(expense.formatForDisplay());
+}
+```
+
+Example output:
+
+```
+Deleted Expense:
+[X] [] Lunch - $8.50
+```
+
+This clear visual confirmation reassures users that the intended expense was deleted. The display includes the expense's previous marked status and category, maintaining consistency with other output formats.
+
+#### Logging and Diagnostics
+
+The `DeleteCommand` and `ExpenseManager` log relevant details at INFO level to aid debugging:
+
+```
+Executing delete command for index: 3
+Deleted expense at index 3: Lunch
+```
+
+If an invalid index is entered or the expense list is empty, a warning-level log is generated:
+
+```
+WARNING: Invalid index 5. No expense deleted.
+```
+
+These logs help trace command execution and identify user input errors during testing.
+
+#### Design Rationale
+
+##### Why index-based deletion?
+We chose index-based deletion instead of name-based deletion to:
+
+- Keep command syntax concise and consistent with other list-based commands.
+- Avoid ambiguity when multiple expenses share the same category or description.
+- Ensure predictable behaviour regardless of duplicate entries.
+
+##### Why immediate data persistence?
+Deleting an expense instantly updates the stored file, ensuring users never lose consistency between sessions. This design choice eliminates the need for manual saving commands.
+
+#### Extensibility and Future Enhancements
+
+- **Multiple deletions:** Extend syntax to `delete 2 4 5` to allow batch deletions. This requires modifying the parser to handle multiple indices and iteratively remove them in descending order.
+- **Soft delete / undo:** Instead of permanently deleting, expenses could be flagged as "archived" for recovery later. An `undo` or `restore` command could then reinsert them.
+- **Delete by search result:** Allow deleting directly from filtered lists (e.g., after `find cat/food`). This would require context tracking of last search results within `ExpenseManager`.
+
+#### Alternatives Considered
+
+##### Confirmation prompt before delete
+Considered adding a confirmation step (Are you sure? y/n) to prevent accidental deletions. Rejected because it slows down CLI usage and contradicts the lightweight command design philosophy.
+
+##### Name-based deletion
+Rejected due to ambiguity when duplicate names exist. Index-based deletion remains deterministic and simpler to implement.
+
+##### Deferred deletion
+We considered queuing deletions and saving all at exit. Rejected in favor of immediate persistence for reliability and simplicity.
+
 ### Graceful Exit
 
 #### Overview
