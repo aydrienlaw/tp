@@ -6,7 +6,7 @@ import seedu.orcashbuddy.expense.Expense;
 import seedu.orcashbuddy.storage.ExpenseManager;
 import seedu.orcashbuddy.ui.Ui;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -25,12 +25,12 @@ class FindCommandTest {
     private StubUi ui;
 
     static class StubUi extends Ui {
-        ArrayList<Expense> lastFoundExpenses = null;
+        List<Expense> lastFoundExpenses = null;
         String lastSearchTerm = null;
         String lastSearchType = null;
 
         @Override
-        public void showFoundExpenses(ArrayList<Expense> foundExpenses, String searchTerm, String searchType) {
+        public void showFoundExpenses(List<Expense> foundExpenses, String searchTerm, String searchType) {
             this.lastFoundExpenses = foundExpenses;
             this.lastSearchTerm = searchTerm;
             this.lastSearchType = searchType;

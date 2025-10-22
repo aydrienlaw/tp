@@ -2,6 +2,7 @@
 package seedu.orcashbuddy.alert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import seedu.orcashbuddy.storage.BudgetStatus;
 import seedu.orcashbuddy.storage.ExpenseManager;
 import seedu.orcashbuddy.ui.Ui;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -21,18 +22,10 @@ class AlertTest {
         boolean exceedAlertShown = false;
 
         @Override
-        public void showNearAlert(double remainingBalance) {
-            nearAlertShown = true;
-        }
-
-        @Override
-        public void showEqualAlert() {
-            equalAlertShown = true;
-        }
-
-        @Override
-        public void showExceedAlert(double remainingBalance) {
-            exceedAlertShown = true;
+        public void showBudgetStatus(BudgetStatus status, double remainingBalance) {
+            nearAlertShown = (status == BudgetStatus.NEAR);
+            equalAlertShown = (status == BudgetStatus.EQUAL);
+            exceedAlertShown = (status == BudgetStatus.EXCEEDED);
         }
     }
 

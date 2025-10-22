@@ -20,7 +20,8 @@ public class Ui {
     private static final String MARK_USAGE = "Invalid format. Use: mark EXPENSE_INDEX";
     private static final String UNMARK_USAGE = "Invalid format. Use: unmark EXPENSE_INDEX";
     private static final String FIND_USAGE = "Invalid format. Use: find cat/CATEGORY or find desc/DESCRIPTION";
-    private static final String EDIT_USAGE = "Invalid format. Use: edit id/INDEX a/AMOUNT or/and desc/DESCRIPTION or/and cat/CATEGORY";
+    private static final String EDIT_USAGE = "Invalid format. " +
+            "Use: edit id/INDEX a/AMOUNT or/and desc/DESCRIPTION or/and cat/CATEGORY";
 
     // ========== Display separators and decorators ==========
     public void showSeparator() {
@@ -56,16 +57,17 @@ public class Ui {
      */
     public void showMenu() {
         String[] menuItems = {
-                "Add an expense:                        add a/AMOUNT desc/DESCRIPTION [cat/CATEGORY]",
-                "Set a budget:                          setbudget a/AMOUNT",
-                "List all expenses & statistics:        list",
-                "Find expenses:                         find cat/CATEGORY or find desc/DESCRIPTION",
-                "Mark an expense as paid:               mark EXPENSE_INDEX",
-                "Mark an expense as unpaid:             unmark EXPENSE_INDEX",
-                "Delete an expense:                     delete EXPENSE_INDEX",
-                "Edit an expense:                       edit id/INDEX a/AMOUNT or/and desc/DESCRIPTION or/and cat/CATEGORY",
-                "Sort all expenses in descending order: sort",
-                "Exit the application:                  bye"
+            "Add an expense:                        add a/AMOUNT desc/DESCRIPTION [cat/CATEGORY]",
+            "Set a budget:                          setbudget a/AMOUNT",
+            "List all expenses & statistics:        list",
+            "Find expenses:                         find cat/CATEGORY or find desc/DESCRIPTION",
+            "Mark an expense as paid:               mark EXPENSE_INDEX",
+            "Mark an expense as unpaid:             unmark EXPENSE_INDEX",
+            "Delete an expense:                     delete EXPENSE_INDEX",
+            "Edit an expense:                       " +
+                    "edit id/INDEX a/AMOUNT or/and desc/DESCRIPTION or/and cat/CATEGORY",
+            "Sort all expenses in descending order: sort",
+            "Exit the application:                  bye"
         };
 
         for (String item : menuItems) {
@@ -183,7 +185,8 @@ public class Ui {
      * @param remainingBalance The remaining balance after expenses.
      * @param expenses The list of all expenses.
      */
-    public void showFinancialSummary(double totalExpense, double budget, double remainingBalance, List<Expense> expenses) {
+    public void showFinancialSummary(double totalExpense, double budget,
+                                     double remainingBalance, List<Expense> expenses) {
         showBudget(budget);
         showTotalExpenses(totalExpense);
         showRemainingBalance(remainingBalance);

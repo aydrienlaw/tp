@@ -56,7 +56,7 @@ public class InvalidCommand extends Command {
         } else if (errorMessage.contains("'delete'")) {
             ui.showDeleteUsage();
         } else if (errorMessage.contains("'edit'")){
-                ui.showEditUsage();
+            ui.showEditUsage();
         } else if (errorMessage.contains("budget") || errorMessage.contains("Budget")) {
             ui.showSetBudgetUsage();
         } else if (errorMessage.contains("find") || errorMessage.contains("search criteria")) {
