@@ -3,6 +3,7 @@ package seedu.orcashbuddy.command;
 
 import seedu.orcashbuddy.exception.OrCashBuddyException;
 import seedu.orcashbuddy.expense.Expense;
+import seedu.orcashbuddy.storage.BudgetStatus;
 import seedu.orcashbuddy.storage.ExpenseManager;
 import seedu.orcashbuddy.ui.Ui;
 
@@ -65,7 +66,11 @@ public class EditCommand extends Command {
 
         ui.showSeparator();
         ui.showEditedExpense(edited);
-        expenseManager.checkAndDisplayBudgetStatus(ui);
+        BudgetStatus status = expenseManager.determineBudgetStatus();
+        if (status != BudgetStatus.OK) {
+            double remainingBalance = expenseManager.getRemainingBalance();
+            ui.showBudgetStatus(status, remainingBalance);
+        }
         LOGGER.log(Level.INFO, "Expense at index {0} successfully edited.", index);
         ui.showSeparator();
     }

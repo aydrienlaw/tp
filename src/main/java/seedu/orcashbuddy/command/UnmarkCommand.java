@@ -3,6 +3,7 @@ package seedu.orcashbuddy.command;
 
 import seedu.orcashbuddy.exception.OrCashBuddyException;
 import seedu.orcashbuddy.expense.Expense;
+import seedu.orcashbuddy.storage.BudgetStatus;
 import seedu.orcashbuddy.storage.ExpenseManager;
 import seedu.orcashbuddy.ui.Ui;
 
@@ -36,7 +37,11 @@ public class UnmarkCommand extends Command {
 
         ui.showSeparator();
         ui.showUnmarkedExpense(expense);
-        expenseManager.checkAndDisplayBudgetStatus(ui);
+        BudgetStatus status = expenseManager.determineBudgetStatus();
+        if (status != BudgetStatus.OK) {
+            double remainingBalance = expenseManager.getRemainingBalance();
+            ui.showBudgetStatus(status, remainingBalance);
+        }
         ui.showSeparator();
     }
 }
