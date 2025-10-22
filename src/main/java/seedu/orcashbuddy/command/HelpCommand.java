@@ -15,7 +15,9 @@ public class HelpCommand extends Command {
     @Override
     public void execute(ExpenseManager expenseManager, Ui ui) {
         LOGGER.fine("Executing help command");
+        ui.showSeparator();
         ui.showMenu();
         LOGGER.info("Help menu displayed successfully");
+        ui.showSeparator();
     }
 }

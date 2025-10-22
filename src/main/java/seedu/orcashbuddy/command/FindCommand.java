@@ -47,6 +47,8 @@ public class FindCommand extends Command {
 
         LOGGER.log(Level.INFO, "Found {0} matching expenses", foundExpenses.size());
 
+        ui.showSeparator();
         ui.showFoundExpenses(foundExpenses, searchTerm, searchType);
+        ui.showSeparator();
     }
 }

@@ -25,7 +25,7 @@ public class Main {
 
     static {
         Logger rootLogger = Logger.getLogger("");
-        rootLogger.setLevel(Level.INFO);
+        rootLogger.setLevel(Level.OFF);
         for (Handler handler : rootLogger.getHandlers()) {
             handler.setLevel(Level.INFO);
         }

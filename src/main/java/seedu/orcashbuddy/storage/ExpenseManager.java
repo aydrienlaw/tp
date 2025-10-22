@@ -17,7 +17,7 @@ public class ExpenseManager implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = Logger.getLogger(ExpenseManager.class.getName());
-    private static final double THRESHOLD_REMAINING_BALANCE = 10;
+    private static final double THRESHOLD_REMAINING_BALANCE = 10.0;
     private final ArrayList<Expense> expenses;
     private double budget = 0.0;
     private double totalExpenses = 0.0;
@@ -171,12 +171,11 @@ public class ExpenseManager implements Serializable {
      */
     public void displayList(Ui ui){
         LOGGER.fine("displayList invoked.");
-        assert ui != null : "Ui must not be null";
         assert budget >= 0.0 : "Budget should never be negative";
         assert totalExpenses >= 0.0 : "Total expenses should never be negative";
         assert remainingBalance == budget - totalExpenses
                 : "Remaining balance must equal budget minus total expenses";
-        ui.showList(totalExpenses, budget, remainingBalance, expenses);
+        ui.showFinancialSummary(totalExpenses, budget, remainingBalance, expenses);
         LOGGER.fine(() -> "Expenses listed.");
     }
 
@@ -246,14 +245,14 @@ public class ExpenseManager implements Serializable {
         assert ui != null : "Ui must not be null";
         if (expenses.isEmpty()) {
             LOGGER.info("Unable to sort expenses as list is empty");
-            ui.showListUsage();
+            ui.showEmptyExpenseList();
             return;
         }
         LOGGER.info("Sorting expenses in descending order by amount");
         ArrayList<Expense> sortedExpenses = new ArrayList<>(expenses);
         sortedExpenses.sort((e1, e2) -> Double.compare(e2.getAmount(), e1.getAmount()));
         assert sortedExpenses.size() == expenses.size() : "Sorted expenses size should match original expenses size";
-        ui.showSortedList(sortedExpenses);
+        ui.showSortedExpenseList(sortedExpenses);
     }
 
     //@@author muadzyamani
@@ -317,14 +316,14 @@ public class ExpenseManager implements Serializable {
         LOGGER.info("Checking remaining balance: " + remainingBalance);
         if (remainingBalance < 0) {
             LOGGER.warning("Remaining balance is negative. Triggering exceed alert.");
-            ui.showExceedAlert(remainingBalance);
+            ui.showBudgetStatus(BudgetStatus.EXCEEDED, remainingBalance);
         } else if (remainingBalance == 0) {
             LOGGER.info("Remaining balance is zero. Triggering equal alert.");
-            ui.showEqualAlert();
+            ui.showBudgetStatus(BudgetStatus.EQUAL, remainingBalance);
         } else if (remainingBalance < THRESHOLD_REMAINING_BALANCE) {
             LOGGER.info("Remaining balance is below threshold (" +
                     THRESHOLD_REMAINING_BALANCE + "). Triggering near alert.");
-            ui.showNearAlert(remainingBalance);
+            ui.showBudgetStatus(BudgetStatus.NEAR, remainingBalance);
         } else {
             LOGGER.info("Remaining balance is above threshold. No alert triggered.");
         }

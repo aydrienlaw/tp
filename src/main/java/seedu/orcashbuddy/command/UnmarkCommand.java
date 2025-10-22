@@ -34,7 +34,9 @@ public class UnmarkCommand extends Command {
         LOGGER.log(Level.INFO, "Unmarked expense at index {0}: {1}",
                 new Object[]{index, expense.getDescription()});
 
+        ui.showSeparator();
         ui.showUnmarkedExpense(expense);
         expenseManager.checkRemainingBalance(ui);
+        ui.showSeparator();
     }
 }

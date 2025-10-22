@@ -7,7 +7,7 @@ import seedu.orcashbuddy.expense.Expense;
 import seedu.orcashbuddy.storage.ExpenseManager;
 import seedu.orcashbuddy.ui.Ui;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -26,7 +26,7 @@ class DeleteCommandTest {
         Double seenTotal = null;
         Double seenBudget= null;
         Double seenRemaining = null;
-        ArrayList<Expense> lastListedExpenses;
+        List<Expense> lastListedExpenses;
 
         @Override
         public void showDeletedExpense(Expense expense) {
@@ -34,8 +34,8 @@ class DeleteCommandTest {
         }
 
         @Override
-        public void showList(double totalExpense, double budget,
-                             double remainingBalance, ArrayList<Expense> expenses) {
+        public void showFinancialSummary(double totalExpense, double budget,
+                             double remainingBalance, List<Expense> expenses) {
             this.seenTotal = totalExpense;
             this.seenBudget = budget;
             this.seenRemaining = remainingBalance;

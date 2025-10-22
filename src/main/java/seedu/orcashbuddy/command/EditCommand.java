@@ -63,8 +63,10 @@ public class EditCommand extends Command {
             expenseManager.markExpense(index);
         }
 
+        ui.showSeparator();
         ui.showEditedExpense(edited);
         expenseManager.checkRemainingBalance(ui);
         LOGGER.log(Level.INFO, "Expense at index {0} successfully edited.", index);
+        ui.showSeparator();
     }
 }

@@ -7,7 +7,7 @@ import seedu.orcashbuddy.expense.Expense;
 import seedu.orcashbuddy.storage.ExpenseManager;
 import seedu.orcashbuddy.ui.Ui;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -23,16 +23,16 @@ class SortCommandTest {
     private StubUi ui;
 
     static class StubUi extends Ui {
-        ArrayList<Expense> lastSortedExpenses = null;
+        List<Expense> lastSortedExpenses = null;
         Boolean isListEmpty = false;
 
         @Override
-        public void showSortedList(ArrayList<Expense> expenses) {
+        public void showSortedExpenseList(List<Expense> expenses) {
             this.lastSortedExpenses = expenses;
         }
 
         @Override
-        public void showListUsage() {
+        public void showEmptyExpenseList() {
             this.isListEmpty = true;
         }
     }

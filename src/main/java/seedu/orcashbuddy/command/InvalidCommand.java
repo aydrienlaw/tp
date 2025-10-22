@@ -30,13 +30,16 @@ public class InvalidCommand extends Command {
 
     @Override
     public void execute(ExpenseManager expenseManager, Ui ui) {
+        ui.showSeparator();
         if (exception == null) {
             ui.showUnknownCommand();
+            ui.showSeparator();
             return;
         }
 
         String errorMessage = exception.getMessage();
         showContextualUsage(errorMessage, ui);
+        ui.showSeparator();
     }
 
     /**
@@ -46,22 +49,22 @@ public class InvalidCommand extends Command {
      * @param ui the UI to display messages
      */
     private void showContextualUsage(String errorMessage, Ui ui) {
-        if (errorMessage.contains("'edit'")){
-            ui.showEditUsage();
-        } else if (errorMessage.contains("'add'") || errorMessage.contains("desc/") ||
+        if (errorMessage.contains("'add'") || errorMessage.contains("desc/") ||
                 errorMessage.contains("Description") || errorMessage.contains("cat/") ||
                 errorMessage.contains("Category")) {
             ui.showAddUsage();
         } else if (errorMessage.contains("'delete'")) {
-            ui.showDeleteUsage(errorMessage);
+            ui.showDeleteUsage();
+        } else if (errorMessage.contains("'edit'")){
+            ui.showEditUsage();
         } else if (errorMessage.contains("budget") || errorMessage.contains("Budget")) {
             ui.showSetBudgetUsage();
         } else if (errorMessage.contains("find") || errorMessage.contains("search criteria")) {
             ui.showFindUsage();
         } else if (errorMessage.contains("'mark'")) {
-            ui.showMarkUsage(errorMessage);
+            ui.showMarkUsage();
         } else if (errorMessage.contains("'unmark'")) {
-            ui.showUnmarkUsage(errorMessage);
+            ui.showUnmarkUsage();
         } else {
             System.out.println(errorMessage);
         }

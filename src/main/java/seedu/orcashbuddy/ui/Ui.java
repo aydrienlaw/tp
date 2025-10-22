@@ -1,55 +1,104 @@
 package seedu.orcashbuddy.ui;
 
 import seedu.orcashbuddy.expense.Expense;
+import seedu.orcashbuddy.storage.BudgetStatus;
 
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Handles user interactions such as displaying messages.
  */
 public class Ui {
+    private static final String SEPARATOR = "---------------------------------------------------------------\n";
+    private static final String ERROR_PREFIX = "[ERROR]: ";
+    private static final String CURRENCY_FORMAT = "%.2f";
 
-    public void showWelcome() {
-        System.out.println("Welcome to orCASHbuddy");
-        showMenu();
+    // ========== Command usage constants ==========
+    private static final String ADD_USAGE = "Invalid format. Use: add a/AMOUNT desc/DESCRIPTION [cat/CATEGORY]";
+    private static final String DELETE_USAGE = "Invalid format. Use: delete EXPENSE_INDEX";
+    private static final String SETBUDGET_USAGE = "Invalid format. Use: setbudget a/AMOUNT";
+    private static final String MARK_USAGE = "Invalid format. Use: mark EXPENSE_INDEX";
+    private static final String UNMARK_USAGE = "Invalid format. Use: unmark EXPENSE_INDEX";
+    private static final String FIND_USAGE = "Invalid format. Use: find cat/CATEGORY or find desc/DESCRIPTION";
+    private static final String EDIT_USAGE = "Invalid format. " +
+            "Use: edit id/INDEX a/AMOUNT or/and desc/DESCRIPTION or/and cat/CATEGORY";
+
+    // ========== Display separators and decorators ==========
+    public void showSeparator() {
+        System.out.print(SEPARATOR);
     }
 
     /**
-     * Prints the main menu of available commands.
+     * Displays a general error message.
+     *
+     * @param message the error message to display
      */
-    public void showMenu(){
-        System.out.println("Add an expense:                        add a/AMOUNT desc/DESCRIPTION [cat/CATEGORY]");
-        System.out.println("Set a budget:                          setbudget a/AMOUNT");
-        System.out.println("List all expenses & statistics:        list");
-        System.out.println("Find expenses:                         find cat/CATEGORY or find desc/DESCRIPTION");
-        System.out.println("Mark an expense as paid:               mark EXPENSE_INDEX");
-        System.out.println("Mark an expense as unpaid:             unmark EXPENSE_INDEX");
-        System.out.println("Delete an expense:                     delete EXPENSE_INDEX");
-        System.out.println("Edit an expense:                       edit id/INDEX a/AMOUNT or/and " +
-                                                                  "desc/DESCRIPTION or/and cat/CATEGORY");
-        System.out.println("Sort all expenses in descending order: sort");
-        System.out.println("Exit the application:                  bye");
+    public void showError(String message) {
+        showSeparator();
+        System.out.println(ERROR_PREFIX + message);
+        showSeparator();
     }
 
+    // ========== Welcome and Goodbye messages ==========
+    public void showWelcome() {
+        System.out.println("Welcome to orCASHbuddy");
+        showSeparator();
+        showMenu();
+        showSeparator();
+    }
 
     public void showGoodbye() {
         System.out.println("Bye. Hope to see you again soon!");
+    }
+
+    // ========== Menu and help display ==========
+    /**
+     * Prints the main menu of available commands.
+     */
+    public void showMenu() {
+        String[] menuItems = {
+            "Add an expense:                        add a/AMOUNT desc/DESCRIPTION [cat/CATEGORY]",
+            "Set a budget:                          setbudget a/AMOUNT",
+            "List all expenses & statistics:        list",
+            "Find expenses:                         find cat/CATEGORY or find desc/DESCRIPTION",
+            "Mark an expense as paid:               mark EXPENSE_INDEX",
+            "Mark an expense as unpaid:             unmark EXPENSE_INDEX",
+            "Delete an expense:                     delete EXPENSE_INDEX",
+            "Edit an expense:                       " +
+                    "edit id/INDEX a/AMOUNT or/and desc/DESCRIPTION or/and cat/CATEGORY",
+            "Sort all expenses in descending order: sort",
+            "Exit the application:                  bye"
+        };
+
+        for (String item : menuItems) {
+            System.out.println(item);
+        }
+    }
+
+    // ========== Expense display methods ==========
+    /**
+     * Helper method to display an expense with a label.
+     *
+     * @param label The label to display before the expense
+     * @param expense The expense to display
+     */
+    private void showExpenseWithLabel(String label, Expense expense) {
+        System.out.println(label);
+        System.out.println(expense.formatForDisplay());
     }
 
     /**
      * Prints the confirmation for a newly added expense.
      */
     public void showNewExpense(Expense expense) {
-        System.out.println("New Expense:");
-        System.out.println(expense.formatForDisplay());
+        showExpenseWithLabel("New Expense:", expense);
     }
 
     /**
      * Prints the confirmation for an edited expense.
      */
     public void showEditedExpense(Expense expense) {
-        System.out.println("Edited Expense:");
-        System.out.println(expense.formatForDisplay());
+        showExpenseWithLabel("Edited Expense:", expense);
     }
 
     /**
@@ -58,26 +107,35 @@ public class Ui {
      * @param expense The expense object that was deleted
      */
     public void showDeletedExpense(Expense expense) {
-        System.out.println("Deleted Expense:");
-        System.out.println(expense.formatForDisplay());
+        showExpenseWithLabel("Deleted Expense:", expense);
     }
 
+    /**
+     * Displays a confirmation message that an expense was marked.
+     *
+     * @param expense The expense object that was marked
+     */
+    public void showMarkedExpense(Expense expense) {
+        showExpenseWithLabel("Marked Expense:", expense);
+    }
+
+    /**
+     * Displays a confirmation message that an expense was unmarked.
+     *
+     * @param expense The expense object that was unmarked
+     */
+    public void showUnmarkedExpense(Expense expense) {
+        showExpenseWithLabel("Unmarked Expense:", expense);
+    }
+
+    // ========== Budget-related display methods ==========
     /**
      * Displays a confirmation message showing the newly set total budget.
      *
      * @param budget the new budget amount to display
      */
     public void showNewBudget(double budget) {
-        System.out.println("Your total budget is now $" + String.format("%.2f", budget) + ".");
-    }
-
-    /**
-     * Displays the total expenses.
-     *
-     * @param totalExpense The total amount of expenses.
-     */
-    private void showTotalExpenses(double totalExpense){
-        System.out.println("Total expenses: $" + String.format("%.2f", totalExpense));
+        System.out.println("Your total budget is now " + formatCurrency(budget) + ".");
     }
 
     /**
@@ -85,8 +143,17 @@ public class Ui {
      *
      * @param budget The budget amount.
      */
-    public void showBudget(double budget){
-        System.out.println("Budget set: $" + String.format("%.2f", budget));
+    public void showBudget(double budget) {
+        System.out.println("Budget set: " + formatCurrency(budget));
+    }
+
+    /**
+     * Displays the total expenses.
+     *
+     * @param totalExpense The total amount of expenses.
+     */
+    private void showTotalExpenses(double totalExpense) {
+        System.out.println("Total expenses: " + formatCurrency(totalExpense));
     }
 
     /**
@@ -95,26 +162,20 @@ public class Ui {
      * @param remainingBalance The remaining balance amount.
      */
     private void showRemainingBalance(double remainingBalance) {
-        System.out.println("Remaining balance: $" + String.format("%.2f", remainingBalance));
+        System.out.println("Remaining balance: " + formatCurrency(remainingBalance));
     }
 
     /**
-     * Displays the list of expenses.
-     * If the list is empty, a message indicating no expenses is shown.
+     * Formats a monetary amount as a currency string.
      *
-     * @param expenses The list of expenses to display.
+     * @param amount The amount to format
+     * @return Formatted currency string
      */
-    private void showListOfExpenses(ArrayList<Expense> expenses) {
-        if (expenses.isEmpty()) {
-            showListUsage();
-            return;
-        }
-        System.out.println("Here is the list of expenses:");
-        for (int i = 0; i < expenses.size(); i++) {
-            System.out.println((i + 1) + ". " + expenses.get(i).formatForDisplay());
-        }
+    private String formatCurrency(double amount) {
+        return "$" + String.format(CURRENCY_FORMAT, amount);
     }
 
+    // ========== List display methods ==========
     /**
      * Displays total expenses, budget,
      * remaining balance, and the full list of expenses.
@@ -124,104 +185,34 @@ public class Ui {
      * @param remainingBalance The remaining balance after expenses.
      * @param expenses The list of all expenses.
      */
-    public void showList(double totalExpense, double budget,
-            double remainingBalance, ArrayList<Expense> expenses) {
+    public void showFinancialSummary(double totalExpense, double budget,
+                                     double remainingBalance, List<Expense> expenses) {
         showBudget(budget);
         showTotalExpenses(totalExpense);
         showRemainingBalance(remainingBalance);
-        showListOfExpenses(expenses);
+        showExpenseList(expenses);
     }
 
     /**
-     * Displays a confirmation message that an expense was marked.
+     * Displays the list of expenses.
+     * If the list is empty, a message indicating no expenses is shown.
      *
-     * @param expense The expense object that was marked
+     * @param expenses The list of expenses to display.
      */
-    public void showMarkedExpense(Expense expense) {
-        System.out.println("Marked Expense:");
-        System.out.println(expense.formatForDisplay());
+    private void showExpenseList(List<Expense> expenses) {
+        if (expenses.isEmpty()) {
+            showEmptyExpenseList();
+            return;
+        }
+        System.out.println("Here is the list of expenses:");
+        showNumberedExpenses(expenses);
     }
 
-    /**
-     * Displays a confirmation message that an expense was unmarked.
-     *
-     * @param expense The expense object that was unmarked
-     */
-    public void showUnmarkedExpense(Expense expense) {
-        System.out.println("Unmarked Expense:");
-        System.out.println(expense.formatForDisplay());
-    }
-
-    /**
-     * Prints the correct usage for the add command.
-     */
-    public void showAddUsage() {
-        System.out.println("Invalid format. Use: add a/AMOUNT desc/DESCRIPTION [cat/CATEGORY]");
-    }
-
-    /**
-     * Displays usage information for the delete command.
-     * Format: delete EXPENSE_INDEX
-     */
-    public void showDeleteUsage(String errorMessage) {
-        System.out.println(errorMessage);
-        System.out.println("Invalid format. Use: delete EXPENSE_INDEX");
-    }
-
-    /**
-     * Displays usage instructions for the {@code setbudget} command
-     * when the user provides invalid input.
-     * <p>
-     * Correct format: {@code setbudget a/AMOUNT}
-     */
-    public void showSetBudgetUsage() {
-        System.out.println("Invalid format. Use: setbudget a/AMOUNT");
-    }
-
-    /**
-     * Displays usage information for the mark command.
-     * Format: mark EXPENSE_INDEX
-     *
-     * @param errorMessage the specific error message to display
-     */
-    public void showMarkUsage(String errorMessage) {
-        System.out.println(errorMessage);
-        System.out.println("Invalid format. Use: mark EXPENSE_INDEX");
-        System.out.println("Type list to view expense indices");
-    }
-
-    /**
-     * Displays usage information for the unmark command.
-     * Format: unmark EXPENSE_INDEX
-     *
-     * @param errorMessage the specific error message to display
-     */
-    public void showUnmarkUsage(String errorMessage) {
-        System.out.println(errorMessage);
-        System.out.println("Invalid format. Use: unmark EXPENSE_INDEX");
-        System.out.println("Type list to view expense indices");
-    }
-
-    /**
-     * Displays a message for unknown commands.
-     */
-    public void showUnknownCommand() {
-        System.out.println("Unknown command. Type 'help' to see available commands.");
-    }
     /**
      * Displays a message for empty list.
      */
-    public void showListUsage() {
+    public void showEmptyExpenseList() {
         System.out.println("No expenses added so far.");
-    }
-
-    /**
-     * Displays a general error message.
-     *
-     * @param message the error message to display
-     */
-    public void showError(String message) {
-        System.out.println("Error: " + message);
     }
 
     //@@author saheer17
@@ -231,12 +222,9 @@ public class Ui {
      *
      * @param sortedExpenses the list of expenses sorted from highest to lowest amount
      */
-    public void showSortedList(ArrayList<Expense> sortedExpenses) {
+    public void showSortedExpenseList(List<Expense> sortedExpenses) {
         System.out.println("Here is the list of sorted expenses, starting with the highest amount:");
-        for (int i = 0; i < sortedExpenses.size(); i++) {
-            assert sortedExpenses.get(i) != null : "Expense in sorted list must not be null";
-            System.out.println((i + 1) + ". " + sortedExpenses.get(i).formatForDisplay());
-        }
+        showNumberedExpenses(sortedExpenses);
     }
 
     //@@author muadzyamani
@@ -248,7 +236,7 @@ public class Ui {
      * @param searchTerm the term that was searched for
      * @param searchType the type of search performed ("category" or "description")
      */
-    public void showFoundExpenses(ArrayList<Expense> foundExpenses, String searchTerm, String searchType) {
+    public void showFoundExpenses(List<Expense> foundExpenses, String searchTerm, String searchType) {
         if (foundExpenses.isEmpty()) {
             System.out.println("No expenses found matching " + searchType + ": " + searchTerm);
             return;
@@ -256,16 +244,69 @@ public class Ui {
 
         System.out.println("Found " + foundExpenses.size() + " expense(s) matching " +
                 searchType + ": " + searchTerm);
-        for (int i = 0; i < foundExpenses.size(); i++) {
-            System.out.println((i + 1) + ". " + foundExpenses.get(i).formatForDisplay());
+        showNumberedExpenses(foundExpenses);
+    }
+
+    /**
+     * Helper method to display a numbered list of expenses.
+     *
+     * @param expenses The list of expenses to display
+     */
+    private void showNumberedExpenses(List<Expense> expenses) {
+        for (int i = 0; i < expenses.size(); i++) {
+            Expense expense = expenses.get(i);
+            assert expense != null : "Expense in list must not be null";
+            System.out.println((i + 1) + ". " + expense.formatForDisplay());
         }
+    }
+
+    // ========== Command usage methods ==========
+    /**
+     * Prints the correct usage for the add command.
+     */
+    public void showAddUsage() {
+        System.out.println(ADD_USAGE);
+    }
+
+    /**
+     * Displays usage information for the delete command.
+     * Format: delete EXPENSE_INDEX
+     */
+    public void showDeleteUsage() {
+        System.out.println(DELETE_USAGE);
+    }
+
+    /**
+     * Displays usage instructions for the {@code setbudget} command
+     * when the user provides invalid input.
+     * <p>
+     * Correct format: {@code setbudget a/AMOUNT}
+     */
+    public void showSetBudgetUsage() {
+        System.out.println(SETBUDGET_USAGE);
+    }
+
+    /**
+     * Displays usage information for the mark command.
+     * Format: mark EXPENSE_INDEX
+     */
+    public void showMarkUsage() {
+        System.out.println(MARK_USAGE);
+    }
+
+    /**
+     * Displays usage information for the unmark command.
+     * Format: unmark EXPENSE_INDEX
+     */
+    public void showUnmarkUsage() {
+        System.out.println(UNMARK_USAGE);
     }
 
     /**
      * Displays usage information for the find command.
      */
     public void showFindUsage() {
-        System.out.println("Invalid format. Use: find cat/CATEGORY or find desc/DESCRIPTION");
+        System.out.println(FIND_USAGE);
     }
 
     //@@author gumingyoujia
@@ -273,37 +314,29 @@ public class Ui {
      * Displays usage information for the edit command.
      */
     public void showEditUsage() {
-        System.out.println("Invalid format. Use: edit id/INDEX a/AMOUNT or/and desc/DESCRIPTION" +
-                " or/and cat/CATEGORY");
+        System.out.println(EDIT_USAGE);
     }
 
     /**
-     * Displays an alert message to notify the user that their expenses
-     * are nearing the set budget limit. Also shows the remaining balance.
-     *
-     * @param remainingBalance the remaining balance before reaching the budget limit
+     * Displays a message for unknown commands.
      */
-    public void showNearAlert(double remainingBalance) {
-        System.out.println("Alert: Your remaining balance is below $10.00!");
-        System.out.println("Remaining balance: $" + String.format("%.2f", remainingBalance));
+    public void showUnknownCommand() {
+        System.out.println("Unknown command. Type 'help' to see available commands.");
     }
 
-    /**
-     * Displays an alert message to notify the user that their expenses
-     * are equal to the set budget limit.
-     */
-    public void showEqualAlert() {
-        System.out.println("Alert: You have used up your budget!");
-    }
-
-    /**
-     * Displays an alert message to notify the user that their expenses
-     * have exceeded the set budget limit. Also shows the remaining balance.
-     *
-     * @param remainingBalance the remaining balance after exceeding the budget limit
-     */
-    public void showExceedAlert(double remainingBalance) {
-        System.out.println("Alert: Your expenses have exceeded your budget limit!");
-        System.out.println("Remaining balance: $" + String.format("%.2f", remainingBalance));
+    // ========== Budget alert methods ==========
+    public void showBudgetStatus(BudgetStatus status, double remaining) {
+        switch (status) {
+        case EXCEEDED -> {
+            System.out.println("Alert: You have exceeded your budget!");
+            System.out.println("Remaining balance: " + formatCurrency(remaining));
+        }
+        case EQUAL -> System.out.println("Alert: You have used up your budget!");
+        case NEAR -> {
+            System.out.println("Alert: Your remaining balance is low.");
+            System.out.println("Remaining balance: " + formatCurrency(remaining));
+        }
+        default -> { /* no-op */ }
+        }
     }
 }
