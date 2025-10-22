@@ -36,7 +36,7 @@ public class UnmarkCommand extends Command {
 
         ui.showSeparator();
         ui.showUnmarkedExpense(expense);
-        expenseManager.checkRemainingBalance(ui);
+        expenseManager.checkAndDisplayBudgetStatus(ui);
         ui.showSeparator();
     }
 }

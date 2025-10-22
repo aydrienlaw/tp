@@ -36,7 +36,7 @@ public class MarkCommand extends Command {
 
         ui.showSeparator();
         ui.showMarkedExpense(expense);
-        expenseManager.checkRemainingBalance(ui);
+        expenseManager.checkAndDisplayBudgetStatus(ui);
         ui.showSeparator();
     }
 }

@@ -65,7 +65,7 @@ public class EditCommand extends Command {
 
         ui.showSeparator();
         ui.showEditedExpense(edited);
-        expenseManager.checkRemainingBalance(ui);
+        expenseManager.checkAndDisplayBudgetStatus(ui);
         LOGGER.log(Level.INFO, "Expense at index {0} successfully edited.", index);
         ui.showSeparator();
     }

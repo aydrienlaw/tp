@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 import seedu.orcashbuddy.expense.Expense;
 import seedu.orcashbuddy.ui.Ui;
 import java.io.File;
-import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -68,7 +68,7 @@ public class StorageManagerTest {
         assertEquals(manager.getBudget(), loadedManager.getBudget());
         assertEquals(manager.getRemainingBalance(), loadedManager.getRemainingBalance());
 
-        ArrayList<Expense> loadedExpenses = loadedManager.findExpensesByDescription("Groceries");
+        List<Expense> loadedExpenses = loadedManager.findExpensesByDescription("Groceries");
         assertEquals(1, loadedExpenses.size());
         assertEquals(expense.getAmount(), loadedExpenses.get(0).getAmount());
         assertEquals(expense.getDescription(), loadedExpenses.get(0).getDescription());

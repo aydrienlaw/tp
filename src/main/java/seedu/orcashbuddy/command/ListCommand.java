@@ -16,7 +16,7 @@ public class ListCommand extends Command {
     public void execute(ExpenseManager expenseManager, Ui ui) {
         LOGGER.fine("Executing list command");
         ui.showSeparator();
-        expenseManager.displayList(ui);
+        expenseManager.displayFinancialSummary(ui);
         ui.showSeparator();
     }
 }

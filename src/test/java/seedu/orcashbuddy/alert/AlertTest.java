@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Tests for {@link ExpenseManager#checkRemainingBalance(Ui)}.
+ * Tests for {@link ExpenseManager#checkAndDisplayBudgetStatus(Ui)}.
  */
 class AlertTest {
 
@@ -43,7 +43,7 @@ class AlertTest {
         new seedu.orcashbuddy.command.AddCommand(95.0, "Dinner").execute(manager, ui);
         new seedu.orcashbuddy.command.MarkCommand(1).execute(manager, ui);
 
-        manager.checkRemainingBalance(ui);
+        manager.checkAndDisplayBudgetStatus(ui);
 
         assertTrue(ui.nearAlertShown);
         assertFalse(ui.equalAlertShown);
@@ -55,7 +55,7 @@ class AlertTest {
         new seedu.orcashbuddy.command.AddCommand(100.0, "Laptop").execute(manager, ui);
         new seedu.orcashbuddy.command.MarkCommand(1).execute(manager, ui);
 
-        manager.checkRemainingBalance(ui);
+        manager.checkAndDisplayBudgetStatus(ui);
 
         assertTrue(ui.equalAlertShown);
         assertFalse(ui.nearAlertShown);
@@ -67,7 +67,7 @@ class AlertTest {
         new seedu.orcashbuddy.command.AddCommand(120.0, "Shoes").execute(manager, ui);
         new seedu.orcashbuddy.command.MarkCommand(1).execute(manager, ui);
 
-        manager.checkRemainingBalance(ui);
+        manager.checkAndDisplayBudgetStatus(ui);
 
         assertTrue(ui.exceedAlertShown);
         assertFalse(ui.equalAlertShown);
@@ -79,7 +79,7 @@ class AlertTest {
         new seedu.orcashbuddy.command.AddCommand(20.0, "Snacks").execute(manager, ui);
         new seedu.orcashbuddy.command.MarkCommand(1).execute(manager, ui);
 
-        manager.checkRemainingBalance(ui);
+        manager.checkAndDisplayBudgetStatus(ui);
 
         assertFalse(ui.nearAlertShown);
         assertFalse(ui.equalAlertShown);
