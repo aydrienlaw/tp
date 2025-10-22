@@ -52,6 +52,8 @@ public class AddCommand extends Command {
         LOGGER.log(Level.INFO, "Added expense: amount={0}, desc={1}, category={2}",
                 new Object[]{amount, description, category});
 
+        ui.showSeparator();
         ui.showNewExpense(expense);
+        ui.showSeparator();
     }
 }

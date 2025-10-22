@@ -34,7 +34,9 @@ public class MarkCommand extends Command {
         LOGGER.log(Level.INFO, "Marked expense at index {0}: {1}",
                 new Object[]{index, expense.getDescription()});
 
+        ui.showSeparator();
         ui.showMarkedExpense(expense);
         expenseManager.checkRemainingBalance(ui);
+        ui.showSeparator();
     }
 }

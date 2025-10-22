@@ -23,7 +23,9 @@ public class SetBudgetCommand extends Command {
     public void execute(ExpenseManager expenseManager, Ui ui) {
         assert budget > 0.0 : "Budget must be positive";
 
+        ui.showSeparator();
         expenseManager.setBudget(budget);
         ui.showNewBudget(budget);
+        ui.showSeparator();
     }
 }

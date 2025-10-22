@@ -14,7 +14,9 @@ public class ByeCommand extends Command {
     @Override
     public void execute(ExpenseManager expenseManager, Ui ui) {
         LOGGER.info("Executing bye command");
+        ui.showSeparator();
         ui.showGoodbye();
+        ui.showSeparator();
     }
 
     @Override

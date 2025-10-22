@@ -42,6 +42,7 @@ public class InputValidator {
             throw OrCashBuddyException.emptyCategory(commandName);
         }
 
+        // Magic String
         if (!trimmed.matches("[A-Za-z][A-Za-z0-9\\s-]{0,19}")) {
             throw OrCashBuddyException.invalidCategory(trimmed);
         }

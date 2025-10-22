@@ -26,7 +26,9 @@ public class SortCommand extends Command{
         assert expenseManager != null : "ExpenseManager must not be null";
         assert ui != null : "Ui must not be null";
         LOGGER.info("Executing SortCommand");
+        ui.showSeparator();
         expenseManager.sortExpenses(ui);
         LOGGER.info("SortCommand execution completed");
+        ui.showSeparator();
     }
 }
