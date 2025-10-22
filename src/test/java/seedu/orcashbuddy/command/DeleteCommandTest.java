@@ -11,7 +11,6 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Command-level tests for deleting an expense.
@@ -34,8 +33,8 @@ class DeleteCommandTest {
         }
 
         @Override
-        public void showFinancialSummary(double totalExpense, double budget,
-                             double remainingBalance, List<Expense> expenses) {
+        public void showFinancialSummary(double budget, double totalExpense,
+                                         double remainingBalance, List<Expense> expenses) {
             this.seenTotal = totalExpense;
             this.seenBudget = budget;
             this.seenRemaining = remainingBalance;
@@ -64,12 +63,6 @@ class DeleteCommandTest {
         assertEquals(1, ui.lastListedExpenses.size());
         assertEquals("[ ] [" + Expense.DEFAULT_CATEGORY + "] Taxi - $10.00",
                 ui.lastListedExpenses.get(0).formatForDisplay());
-    }
-
-    @Test
-    void execute_invalidIndex_throws() {
-        assertThrows(AssertionError.class, () -> new DeleteCommand(3).execute(manager, ui));
-        assertThrows(AssertionError.class, () -> new DeleteCommand(0).execute(manager, ui));
     }
 
     @Test

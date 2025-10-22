@@ -35,8 +35,8 @@ class AddCommandTest {
         }
 
         @Override
-        public void showFinancialSummary(double totalExpense, double budget,
-                             double remainingBalance, List<Expense> expenses) {
+        public void showFinancialSummary(double budget, double totalExpense,
+                                         double remainingBalance, List<Expense> expenses) {
             this.seenTotal = totalExpense;
             this.seenBudget = budget;
             this.seenRemaining = remainingBalance;
