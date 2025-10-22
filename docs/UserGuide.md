@@ -44,12 +44,27 @@ Creates a new expense entry with an amount, description, and optional category.
 
 The newly added expense appears as `[ ] [CATEGORY] DESCRIPTION - $AMOUNT`. The `[ ]` will switch to `[X]` once the expense is marked as paid.
 
+### Editing an Expense: `edit`
+Edit the amount and/or the description and/or the category of an expense. Updates the expense list and recalculates the remaining budget.
+
+**Format:** `edit id/INDEX a/AMOUNT or/and desc/DESCRIPTION or/and cat/CATEGORY`
+
+**Parameters:**
+- `INDEX` — Positive integer index of the expense in the list.
+- `AMOUNT` (optional) — Positive number up to two decimal places (e.g., `12.50`).
+- `DESCRIPTION` (optional) — Short sentence describing the expense.
+- `CATEGORY` (optional) — It must start with a letter and can include letters, numbers, spaces, or hyphens (maximum 20 characters).
+
+**Example:** `edit id/1 a/25 desc/pizza`
+
+You can change one or more attributes of the expense at once. 
+
 ### Setting a Budget: `setbudget`
 Defines your total spending budget so orCASHbuddy can compute remaining balance.
 
 **Format:** `setbudget a/AMOUNT`
 
-Setting a new budget overwrites the previous one. The application recalculates your remaining balance whenever you mark or unmark expenses.
+Setting a new budget overwrites the previous one. The application recalculates your remaining balance whenever you mark or unmark expenses. It also sends alert when remaining balances is below \$10, $0 or negative. 
 
 **Example:** `setbudget a/500`
 
