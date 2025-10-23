@@ -322,7 +322,7 @@ This prevents accidental deletions and ensures data integrity.
     - The command calls `ExpenseManager#deleteExpense(index)` to remove the targeted expense.
     - If the expense was marked as paid, the manager automatically updates total expenses and remaining balance.
     - The deleted expense is passed to `Ui#showDeletedExpense` for user feedback.
-    - The system then triggers data persistence through `StorageManager#saveExpenseManager`.
+    - Data persistence is triggered by the main application logic after command execution, ensuring consistency without coupling storage logic into `ExpenseManager`.
 
 The sequence diagram in `docs/diagrams/delete-sequence.puml` illustrates these interactions from input parsing to UI display.
 
@@ -381,7 +381,7 @@ The `DeleteCommand` and `ExpenseManager` log relevant details at INFO level to a
 Executing delete command for index: 3
 Deleted expense at index 3: Lunch
 ```
-
+If an invalid index is entered or the expense list is empty, an OrCashBuddyException is thrown to signal the error.
 If an invalid index is entered or the expense list is empty, a warning-level log is generated:
 
 ```
