@@ -3,13 +3,12 @@
 actor User
 participant ":Main" as Main
 participant ":Parser" as Parser
-participant ":ArgumentParser" as ArgumentParser
 participant ":InputValidator" as InputValidator
 participant ":DeleteCommand" as DeleteCommand
 participant ":InvalidCommand" as InvalidCommand
-participant ":Expense" as Expense
 participant ":ExpenseManager" as ExpenseManager
 participant ":Ui" as Ui
+participant ":StorageManager" as StorageManager
 
 User -> Main : enters "delete 3"
 activate Main
@@ -17,25 +16,18 @@ activate Main
 Main -> Parser : parse("delete 3")
 activate Parser
 
-alt successful parsing
-    create ArgumentParser
-    Parser -> ArgumentParser : "3"
-    activate ArgumentParser
-    Parser -> ArgumentParser : getValue("id/")
-    ArgumentParser --> Parser : "3"
-    deactivate ArgumentParser
-
-    Parser -> InputValidator : validateId("3")
+alt valid index
+    Parser -> InputValidator : validateIndex("3", "delete")
     activate InputValidator
-    InputValidator --> Parser : 3
+    InputValidator --> Parser : index = 3
     deactivate InputValidator
 
     create DeleteCommand
-    Parser -> DeleteCommand : id=3
+    Parser -> DeleteCommand : new DeleteCommand(3)
     Parser --> Main : deleteCommand
 
-else validation fails
-    Parser -> InputValidator : validateId("invalid")
+else invalid index
+    Parser -> InputValidator : validateIndex("invalid", "delete")
     activate InputValidator
     InputValidator -->> Parser : throws OrCashBuddyException
     deactivate InputValidator
@@ -47,27 +39,30 @@ end
 
 deactivate Parser
 
-Main -> DeleteCommand : execute(expenseManager, ui)
-activate DeleteCommand
+alt valid delete command
+    Main -> DeleteCommand : execute(expenseManager, ui)
+    activate DeleteCommand
 
-DeleteCommand -> ExpenseManager : deleteExpense(3)
-activate ExpenseManager
-ExpenseManager -> Expense : locate expense with id 3
-activate Expense
-ExpenseManager -> Expense : remove from list
-ExpenseManager --> DeleteCommand : removedExpense
-destroy Expense
-deactivate ExpenseManager
+    DeleteCommand -> ExpenseManager : deleteExpense(3)
+    activate ExpenseManager
+    ExpenseManager --> DeleteCommand : removedExpense
+    deactivate ExpenseManager
 
-DeleteCommand -> Ui : showDeletedExpense(expense)
-activate Ui
-Ui --> User : displays confirmation
-deactivate Ui
+    DeleteCommand -> Ui : showDeletedExpense(expense)
+    activate Ui
+    Ui --> User : displays confirmation
+    deactivate Ui
 
-deactivate DeleteCommand
-destroy DeleteCommand
+    deactivate DeleteCommand
+    destroy DeleteCommand
 
-alt command is invalid
+    ' --- Persistence handled by Main ---
+    Main -> StorageManager : saveExpenseManager(expenseManager, ui)
+    activate StorageManager
+    StorageManager --> Main
+    deactivate StorageManager
+
+else invalid command
     Main -> InvalidCommand : execute(expenseManager, ui)
     activate InvalidCommand
     InvalidCommand -> Ui : showError(message)

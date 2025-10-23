@@ -1,44 +1,113 @@
+'@enduml
+
 @startuml
 !theme vibrant
-actor Main
-participant StorageManager
-participant Ui
-participant "ExpenseManager" as EM
+actor User
+participant ":Main" as Main
+participant ":Ui" as Ui
+participant ":StorageManager" as StorageManager
+participant ":File" as File
 
+User -> Main : starts application
 activate Main
+
+Main -> Ui : instantiate Ui
+activate Ui
+Ui --> Main : return ui
+deactivate Ui
+
+' Load ExpenseManager on startup
 Main -> StorageManager : loadExpenseManager(ui)
 activate StorageManager
-StorageManager -> StorageManager : check if directory exists
-alt directory missing
-    StorageManager -> StorageManager : create directory
-    StorageManager -> Ui : showError if failed
-end
 
-StorageManager -> StorageManager : check if file exists
-alt file exists and readable
-    StorageManager -> StorageManager : read ObjectInputStream
-    StorageManager -> StorageManager : validate object type
-    StorageManager -> EM : create ExpenseManager from file
-else file missing or corrupted
-    StorageManager -> Ui : showError(...)
-    StorageManager -> EM : create new empty ExpenseManager
+StorageManager -> File : check if data directory exists
+activate File
+alt directory does not exist
+    File --> StorageManager : false
+    StorageManager -> File : mkdir()
+    File --> StorageManager : directory created
+else directory exists
+    File --> StorageManager : true
 end
+deactivate File
 
-StorageManager -> Main : return EM
+StorageManager -> File : check if appdata.ser exists
+activate File
+alt file does not exist
+    File --> StorageManager : false
+    StorageManager -> File : createNewFile()
+    File --> StorageManager : file created
+    create participant ":ExpenseManager" as ExpenseManager
+    StorageManager -> ExpenseManager : new ExpenseManager()
+    activate ExpenseManager
+    ExpenseManager --> StorageManager : empty instance
+    deactivate ExpenseManager
+else file exists
+    File --> StorageManager : true
+    StorageManager -> File : read from ObjectInputStream
+    File --> StorageManager : serialized data
+    StorageManager -> ExpenseManager : deserialize object
+    activate ExpenseManager
+    ExpenseManager --> StorageManager : loaded instance
+    deactivate ExpenseManager
+end
+deactivate File
+
+StorageManager --> Main : return ExpenseManager
 deactivate StorageManager
 
-Main -> EM : stores as expenseManager field
+activate ExpenseManager
 
+' Show welcome message
+Main -> Ui : showWelcome()
+activate Ui
+Ui --> Main : display welcome
+deactivate Ui
+
+' User input loop
+User -> Main : input command
+Main -> Main : executeCommand(input)
+activate Main
+Main -> ExpenseManager : execute command logic
+ExpenseManager --> Main : command executed
+deactivate Main
+
+' Save ExpenseManager after command execution
 Main -> StorageManager : saveExpenseManager(expenseManager, ui)
 activate StorageManager
-StorageManager -> StorageManager : ensure directory exists
-StorageManager -> StorageManager : write ObjectOutputStream
-alt success
-    StorageManager -> Main : log info
-else failure
-    StorageManager -> Ui : showError(...)
-    StorageManager -> Main : log warning
+
+StorageManager -> File : check if data directory exists
+activate File
+alt directory does not exist
+    File --> StorageManager : false
+    StorageManager -> File : mkdir()
+    File --> StorageManager : directory created
+else directory exists
+    File --> StorageManager : true
 end
+deactivate File
+
+StorageManager -> File : write to ObjectOutputStream
+activate File
+File -> ExpenseManager : serialize object
+ExpenseManager --> File : serialized data
+File --> StorageManager : write complete
+deactivate File
+
+StorageManager --> Main : save complete
 deactivate StorageManager
-deactivate Main
+
+' Continue loop or exit
+alt user enters "bye"
+    User -> Main : bye command
+    Main -> Ui : showGoodbye()
+    activate Ui
+    Ui --> Main : display goodbye
+    deactivate Ui
+    deactivate ExpenseManager
+    deactivate Main
+else continue
+    User -> Main : next command
+end
+
 @enduml

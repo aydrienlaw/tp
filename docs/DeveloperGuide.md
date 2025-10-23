@@ -322,7 +322,7 @@ This prevents accidental deletions and ensures data integrity.
     - The command calls `ExpenseManager#deleteExpense(index)` to remove the targeted expense.
     - If the expense was marked as paid, the manager automatically updates total expenses and remaining balance.
     - The deleted expense is passed to `Ui#showDeletedExpense` for user feedback.
-    - The system then triggers data persistence through `StorageManager#saveExpenseManager`.
+    - Data persistence is triggered by the main application logic after command execution, ensuring consistency without coupling storage logic into `ExpenseManager`.
 
 The sequence diagram in `docs/diagrams/delete-sequence.puml` illustrates these interactions from input parsing to UI display.
 
@@ -381,7 +381,7 @@ The `DeleteCommand` and `ExpenseManager` log relevant details at INFO level to a
 Executing delete command for index: 3
 Deleted expense at index 3: Lunch
 ```
-
+If an invalid index is entered or the expense list is empty, an OrCashBuddyException is thrown to signal the error.
 If an invalid index is entered or the expense list is empty, a warning-level log is generated:
 
 ```
@@ -526,12 +526,13 @@ If no expenses exist, the system provides a clear message instead of failing, en
 #### Control Flow
 
 1. **Input capture:** `Main` reads the user's command (`sort`) and passes it to `Parser`.
-2. **Command creation:** `Parser` recognizes the sort keyword and constructs a new `SortCommand` object.
+2. **Command creation:** `Parser` recognises the sort keyword and constructs a new `SortCommand` object.
 3. **Execution:** When `Main` invokes `command.execute(expenseManager, ui)`:
-    - The command calls `ExpenseManager#sortExpenses(ui)` to sort the expenses.
-    - The sorted list is displayed via `Ui#showSortedList`.
-    - If the expense list is empty, `Ui#showListUsage()` is invoked instead.
+    - The command calls `ExpenseManager#sortExpenses()` to sort the expenses.
+    - The sorted list of expenses is displayed via `Ui#showSortedExpenseList`.
+    - If the expense list is empty, `Ui#showEmptyExpenseList()` is invoked instead.
 4. **Data persistence:** Sorting does not change the stored data, so no file updates are required.
+   However, `StorageManager.saveExpenseManager(expenseManager, ui)` is still after execution, which just saves the existing list of data, not the sorted list.
 
 The sequence diagram in `docs/diagrams/sort-sequence.puml` illustrates these interactions from input parsing to UI display.
 
@@ -651,14 +652,14 @@ Users do not have to key in a command to save or load data.
 
 This is a binary serialized file using Java's built-in serialization mechanism (`ObjectOutputStream` / `ObjectInputStream`).
 
-#### Public Methods
+#### Control Flow
 
 ##### 1. `saveExpenseManager(ExpenseManager expenseManager, Ui ui)`
 
 **Purpose:** Saves the current state of expenses to disk.
 
 **Parameters:**
-* `expenseManager`: The current `ExpenseManager` instance to persist.
+* `expenseManager`: The current `ExpenseManager` instance to save.
 * `ui`: Provides user feedback in case of errors.
 
 **Workflow:**
@@ -702,6 +703,7 @@ StorageManager.saveExpenseManager(expenseManager, ui);
 ```java
 ExpenseManager expenseManager = StorageManager.loadExpenseManager(ui);
 ```
+The sequence diagram in `docs/diagrams/storage-manager-sequence.puml` illustrates these interactions.
 
 #### Error Handling
 
