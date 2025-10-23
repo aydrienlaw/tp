@@ -5,7 +5,7 @@ import seedu.orcashbuddy.expense.Expense;
 import seedu.orcashbuddy.storage.ExpenseManager;
 import seedu.orcashbuddy.ui.Ui;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -37,7 +37,7 @@ public class FindCommand extends Command {
         LOGGER.log(Level.INFO, "Executing find command: type={0}, term={1}",
                 new Object[]{searchType, searchTerm});
 
-        ArrayList<Expense> foundExpenses;
+        List<Expense> foundExpenses;
 
         if (searchType.equals("category")) {
             foundExpenses = expenseManager.findExpensesByCategory(searchTerm);

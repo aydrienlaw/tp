@@ -3,6 +3,7 @@ package seedu.orcashbuddy.command;
 
 import seedu.orcashbuddy.exception.OrCashBuddyException;
 import seedu.orcashbuddy.expense.Expense;
+import seedu.orcashbuddy.storage.BudgetStatus;
 import seedu.orcashbuddy.storage.ExpenseManager;
 import seedu.orcashbuddy.ui.Ui;
 
@@ -34,9 +35,12 @@ public class DeleteCommand extends Command {
         LOGGER.log(Level.INFO, "Deleted expense at index {0}: {1}",
                 new Object[]{index, removedExpense.getDescription()});
 
-        ui.showSeparator();
         ui.showDeletedExpense(removedExpense);
-        expenseManager.checkRemainingBalance(ui);
+        BudgetStatus status = expenseManager.determineBudgetStatus();
+        if (status != BudgetStatus.OK) {
+            double remainingBalance = expenseManager.getRemainingBalance();
+            ui.showBudgetStatus(status, remainingBalance);
+        }
         ui.showSeparator();
     }
 }

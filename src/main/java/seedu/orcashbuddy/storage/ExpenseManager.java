@@ -2,23 +2,27 @@ package seedu.orcashbuddy.storage;
 
 import seedu.orcashbuddy.exception.OrCashBuddyException;
 import seedu.orcashbuddy.expense.Expense;
-import seedu.orcashbuddy.ui.Ui;
 
 import java.io.Serial;
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.io.Serializable;
 
 /**
- * Manages a list of expenses.
+ * Manages a list of expenses and budget tracking.
+ * Provides operations to add, delete, edit, mark, and search expenses,
+ * as well as budget management and validation.
  */
 public class ExpenseManager implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = Logger.getLogger(ExpenseManager.class.getName());
-    private static final double THRESHOLD_REMAINING_BALANCE = 10.0;
-    private final ArrayList<Expense> expenses;
+    private static final double BUDGET_ALERT_THRESHOLD = 10.0;
+
+    // ========== State ==========
+    private final List<Expense> expenses;
     private double budget = 0.0;
     private double totalExpenses = 0.0;
     private double remainingBalance = 0.0;
@@ -30,6 +34,7 @@ public class ExpenseManager implements Serializable {
         this.expenses = new ArrayList<>();
     }
 
+    // ========== Getters ==========
     public double getBudget() {
         return budget;
     }
@@ -46,6 +51,12 @@ public class ExpenseManager implements Serializable {
         return expenses.size();
     }
 
+    public List<Expense> getExpenses() {
+        return expenses;
+    }
+
+    // ========== Expense Operations ==========
+
     //@@author limzerui
     /**
      * Adds an expense to the list.
@@ -53,29 +64,12 @@ public class ExpenseManager implements Serializable {
      * @param expense the expense to add
      */
     public void addExpense(Expense expense) {
-        assert expense != null : "Expense must not be null";
-        assert expense.getAmount() > 0.0 : "Parsed expense must be positive";
-        assert !expense.getDescription().isBlank() : "Parsed expense description must not be blank";
-        assert !expense.getCategory().isBlank() : "Parsed expense category must not be blank";
+        validateExpense(expense);
 
         expenses.add(expense);
         LOGGER.log(Level.INFO, "Added expense amount={0}, desc={1}, category={2}",
                 new Object[]{expense.getAmount(), expense.getDescription(), expense.getCategory()});
         LOGGER.fine(() -> "Expense list size is now " + expenses.size());
-    }
-
-    //@@author aydrienlaw
-    /**
-     * Sets the budget amount.
-     *
-     * @param budget the new budget amount
-     */
-    public void setBudget(double budget) {
-        assert budget > 0.0 : "Budget must be positive";
-
-        this.budget = budget;
-        recalculateRemainingBalance();
-        LOGGER.log(Level.INFO, "Budget set to {0}", budget);
     }
 
     //@@author saheer17
@@ -87,7 +81,6 @@ public class ExpenseManager implements Serializable {
      * @throws OrCashBuddyException if the index is out of range
      */
     public Expense deleteExpense(int index) throws OrCashBuddyException {
-        assert index >= 1 && index <= expenses.size() : "Parsed index out of valid range";
         validateIndex(index);
 
         Expense removedExpense = expenses.remove(index - 1);
@@ -95,11 +88,7 @@ public class ExpenseManager implements Serializable {
 
         // Rebalance if a marked expense was deleted
         if (removedExpense.isMarked()) {
-            totalExpenses -= removedExpense.getAmount();
-            assert totalExpenses >= 0.0 : "Total expenses should not go negative after delete";
-            recalculateRemainingBalance();
-            assert remainingBalance == budget - totalExpenses
-                    : "Remaining balance must equal budget minus total expenses after delete";
+            updateBudgetAfterUnmark(removedExpense);
         }
 
         LOGGER.log(Level.INFO, "Deleted expense at index {0}: {1}",
@@ -110,21 +99,26 @@ public class ExpenseManager implements Serializable {
     //@@author gumingyoujia
 
     public Expense getExpense(int index) throws OrCashBuddyException{
-        assert index >= 1 && index <= expenses.size() : "Parsed index out of valid range";
         validateIndex(index);
+
         LOGGER.log(Level.FINE, "Getting expense at index {0}", index);
         return expenses.get(index - 1);
     }
 
     public void replaceExpense(int index, Expense newExpense) throws OrCashBuddyException {
-        assert index >= 1 && index <= expenses.size() : "Index out of range";
-        assert newExpense != null : "New expense must not be null";
+        validateIndex(index);
+        validateExpense(newExpense);
+
         LOGGER.log(Level.INFO, "Replacing expense at index {0}", index);
 
-        deleteExpense(index);
+        Expense removedExpense = deleteExpense(index);
         expenses.add(index - 1, newExpense);
-    }
 
+        if (removedExpense.isMarked()) {
+            newExpense.mark();
+            updateBudgetAfterUnmark(removedExpense);
+        }
+    }
 
     //@@author muadzyamani
     /**
@@ -135,7 +129,6 @@ public class ExpenseManager implements Serializable {
      * @throws OrCashBuddyException if the index is out of range
      */
     public Expense markExpense(int index) throws OrCashBuddyException {
-        assert index >= 1: "Index must be at least 1";
         validateIndex(index);
 
         Expense expense = expenses.get(index - 1);
@@ -153,7 +146,6 @@ public class ExpenseManager implements Serializable {
      * @throws OrCashBuddyException if the index is out of range
      */
     public Expense unmarkExpense(int index) throws OrCashBuddyException {
-        assert index >= 1 : "Index must be at least 1";
         validateIndex(index);
 
         Expense expense = expenses.get(index - 1);
@@ -163,21 +155,110 @@ public class ExpenseManager implements Serializable {
         return expense;
     }
 
-    //@@author gumingyoujia
+    // ========== Budget Operations ==========
+
+    //@@author aydrienlaw
     /**
-     * Displays the list of expenses with budget information.
+     * Sets the budget amount.
      *
-     * @param ui the UI to display the information
+     * @param budget the new budget amount
      */
-    public void displayList(Ui ui){
-        LOGGER.fine("displayList invoked.");
-        assert budget >= 0.0 : "Budget should never be negative";
-        assert totalExpenses >= 0.0 : "Total expenses should never be negative";
-        assert remainingBalance == budget - totalExpenses
-                : "Remaining balance must equal budget minus total expenses";
-        ui.showFinancialSummary(totalExpenses, budget, remainingBalance, expenses);
-        LOGGER.fine(() -> "Expenses listed.");
+    public void setBudget(double budget) {
+        assert budget > 0.0 : "Budget must be positive";
+
+        this.budget = budget;
+        recalculateRemainingBalance();
+
+        LOGGER.log(Level.INFO, "Budget set to {0}", budget);
     }
+
+    /**
+     * Determines the current budget status based on remaining balance.
+     *
+     * @return the current budget status
+     */
+    public BudgetStatus determineBudgetStatus() {
+        if (remainingBalance < 0) {
+            return BudgetStatus.EXCEEDED;
+        } else if (remainingBalance == 0) {
+            return BudgetStatus.EQUAL;
+        } else if (remainingBalance < BUDGET_ALERT_THRESHOLD) {
+            return BudgetStatus.NEAR;
+        }
+        return BudgetStatus.OK;
+    }
+
+    // ========== Display Operations ==========
+
+    //@@author saheer17
+    /**
+     * Sorts the expenses in descending order by amount and displays them using the UI.
+     */
+    public List<Expense> sortExpenses() {
+        if (expenses.isEmpty()) {
+            LOGGER.info("Cannot sort expenses - list is empty");
+            return expenses;
+        }
+
+        LOGGER.info("Sorting expenses by amount in descending order");
+        List<Expense> sortedExpenses = new ArrayList<>(expenses);
+        sortedExpenses.sort((e1, e2) -> Double.compare(e2.getAmount(), e1.getAmount()));
+        assert sortedExpenses.size() == expenses.size() : "Sorted expenses size should match original expenses size";
+        return sortedExpenses;
+    }
+
+    // ========== Search Operations ==========
+
+    //@@author muadzyamani
+    /**
+     * Finds all expenses that match the specified category (case-insensitive).
+     *
+     * @param category the category to search for
+     * @return list of expenses matching the category
+     */
+    public List<Expense> findExpensesByCategory(String category) {
+        validateSearchTerm(category, "Category");
+
+        String searchTerm = category.toLowerCase().trim();
+        List<Expense> foundExpenses = new ArrayList<>();
+
+        for (Expense expense : expenses) {
+            if (expense.getCategory().toLowerCase().contains(searchTerm)) {
+                foundExpenses.add(expense);
+            }
+        }
+
+        LOGGER.log(Level.INFO, "Found {0} expenses matching category: {1}",
+                new Object[]{foundExpenses.size(), category});
+
+        return foundExpenses;
+    }
+
+    /**
+     * Finds all expenses that match the specified description keyword (case-insensitive).
+     *
+     * @param keyword the keyword to search for in descriptions
+     * @return list of expenses matching the keyword
+     */
+    public List<Expense> findExpensesByDescription(String keyword) {
+        validateSearchTerm(keyword, "Keyword");
+
+        String searchTerm = keyword.toLowerCase().trim();
+        List<Expense> foundExpenses = new ArrayList<>();
+
+        for (Expense expense : expenses) {
+            if (expense.getDescription().toLowerCase().contains(searchTerm)) {
+                foundExpenses.add(expense);
+            }
+        }
+
+        LOGGER.log(Level.INFO, "Found {0} expenses matching description: {1}",
+                new Object[]{foundExpenses.size(), keyword});
+
+        return foundExpenses;
+    }
+
+    // ========== Private Helper Methods ==========
 
     /**
      * Updates budget tracking when an expense is marked as paid.
@@ -212,14 +293,38 @@ public class ExpenseManager implements Serializable {
     }
 
     /**
-     * Recalculates the remaining balance.
+     * Recalculates the remaining balance based on budget and total expenses.
      */
     private void recalculateRemainingBalance() {
         remainingBalance = budget - totalExpenses;
+        assert Math.abs(remainingBalance - (budget - totalExpenses)) < 0.001
+                : "Remaining balance calculation error";
     }
 
+    // ========== Validation Methods ==========
 
     //@@author aydrienlaw
+    /**
+     * Validates that an expense object is valid.
+     *
+     * @param expense the expense to validate
+     * @throws IllegalArgumentException if expense is invalid
+     */
+    private void validateExpense(Expense expense) {
+        if (expense == null) {
+            throw new IllegalArgumentException("Expense must not be null");
+        }
+        if (expense.getAmount() <= 0.0) {
+            throw new IllegalArgumentException("Expense amount must be positive");
+        }
+        if (expense.getDescription().isBlank()) {
+            throw new IllegalArgumentException("Expense description must not be blank");
+        }
+        if (expense.getCategory().isBlank()) {
+            throw new IllegalArgumentException("Expense category must not be blank");
+        }
+    }
+
     /**
      * Validates that an index is within the valid range.
      *
@@ -235,97 +340,16 @@ public class ExpenseManager implements Serializable {
         }
     }
 
-    //@@author saheer17
     /**
-     * Sorts the expenses in descending order by amount and displays them using the UI.
+     * Validates that a search term is not null or blank.
      *
-     * @param ui the UI to display the sorted list of expenses or error message if list is empty.
+     * @param searchTerm the search term to validate
+     * @param fieldName the name of the field for error messages
+     * @throws IllegalArgumentException if search term is invalid
      */
-    public void sortExpenses(Ui ui) {
-        assert ui != null : "Ui must not be null";
-        if (expenses.isEmpty()) {
-            LOGGER.info("Unable to sort expenses as list is empty");
-            ui.showEmptyExpenseList();
-            return;
-        }
-        LOGGER.info("Sorting expenses in descending order by amount");
-        ArrayList<Expense> sortedExpenses = new ArrayList<>(expenses);
-        sortedExpenses.sort((e1, e2) -> Double.compare(e2.getAmount(), e1.getAmount()));
-        assert sortedExpenses.size() == expenses.size() : "Sorted expenses size should match original expenses size";
-        ui.showSortedExpenseList(sortedExpenses);
-    }
-
-    //@@author muadzyamani
-    /**
-     * Finds all expenses that match the specified category (case-insensitive).
-     *
-     * @param category the category to search for
-     * @return list of expenses matching the category
-     */
-    public ArrayList<Expense> findExpensesByCategory(String category) {
-        assert category != null && !category.isBlank() : "Category must not be blank";
-
-        ArrayList<Expense> foundExpenses = new ArrayList<>();
-        String searchTerm = category.toLowerCase().trim();
-
-        for (Expense expense : expenses) {
-            if (expense.getCategory().toLowerCase().contains(searchTerm)) {
-                foundExpenses.add(expense);
-            }
-        }
-
-        LOGGER.log(Level.INFO, "Found {0} expenses matching category: {1}",
-                new Object[]{foundExpenses.size(), category});
-
-        return foundExpenses;
-    }
-
-    /**
-     * Finds all expenses that match the specified description keyword (case-insensitive).
-     *
-     * @param keyword the keyword to search for in descriptions
-     * @return list of expenses matching the keyword
-     */
-    public ArrayList<Expense> findExpensesByDescription(String keyword) {
-        assert keyword != null && !keyword.isBlank() : "Keyword must not be blank";
-
-        ArrayList<Expense> foundExpenses = new ArrayList<>();
-        String searchTerm = keyword.toLowerCase().trim();
-
-        for (Expense expense : expenses) {
-            if (expense.getDescription().toLowerCase().contains(searchTerm)) {
-                foundExpenses.add(expense);
-            }
-        }
-
-        LOGGER.log(Level.INFO, "Found {0} expenses matching description: {1}",
-                new Object[]{foundExpenses.size(), keyword});
-
-        return foundExpenses;
-    }
-
-    //@@author gumingyoujia
-    /**
-     * Checks if the remaining balance is below threshold and triggers the appropriate alert.
-     *
-     * @param ui the user interface used to display alerts
-     */
-    public void checkRemainingBalance(Ui ui) {
-        assert ui != null : "UI reference should not be null";
-
-        LOGGER.info("Checking remaining balance: " + remainingBalance);
-        if (remainingBalance < 0) {
-            LOGGER.warning("Remaining balance is negative. Triggering exceed alert.");
-            ui.showBudgetStatus(BudgetStatus.EXCEEDED, remainingBalance);
-        } else if (remainingBalance == 0) {
-            LOGGER.info("Remaining balance is zero. Triggering equal alert.");
-            ui.showBudgetStatus(BudgetStatus.EQUAL, remainingBalance);
-        } else if (remainingBalance < THRESHOLD_REMAINING_BALANCE) {
-            LOGGER.info("Remaining balance is below threshold (" +
-                    THRESHOLD_REMAINING_BALANCE + "). Triggering near alert.");
-            ui.showBudgetStatus(BudgetStatus.NEAR, remainingBalance);
-        } else {
-            LOGGER.info("Remaining balance is above threshold. No alert triggered.");
+    private void validateSearchTerm(String searchTerm, String fieldName) {
+        if (searchTerm == null || searchTerm.isBlank()) {
+            throw new IllegalArgumentException(fieldName + " must not be blank");
         }
     }
 }

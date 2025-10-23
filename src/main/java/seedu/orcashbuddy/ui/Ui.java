@@ -185,7 +185,7 @@ public class Ui {
      * @param remainingBalance The remaining balance after expenses.
      * @param expenses The list of all expenses.
      */
-    public void showFinancialSummary(double totalExpense, double budget,
+    public void showFinancialSummary(double budget, double totalExpense,
                                      double remainingBalance, List<Expense> expenses) {
         showBudget(budget);
         showTotalExpenses(totalExpense);
