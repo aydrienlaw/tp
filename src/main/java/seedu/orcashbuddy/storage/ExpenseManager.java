@@ -132,8 +132,10 @@ public class ExpenseManager implements Serializable {
         validateIndex(index);
 
         Expense expense = expenses.get(index - 1);
-        expense.mark();
-        updateBudgetAfterMark(expense);
+        if (!expense.isMarked()) {
+            expense.mark();
+            updateBudgetAfterMark(expense);
+        }
 
         return expense;
     }
@@ -149,8 +151,10 @@ public class ExpenseManager implements Serializable {
         validateIndex(index);
 
         Expense expense = expenses.get(index - 1);
-        expense.unmark();
-        updateBudgetAfterUnmark(expense);
+        if (expense.isMarked()) {
+            expense.unmark();
+            updateBudgetAfterUnmark(expense);
+        }
 
         return expense;
     }
