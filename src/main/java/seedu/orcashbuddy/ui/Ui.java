@@ -245,7 +245,7 @@ public class Ui {
 
         // Left fills up to tick
         for (int i = 0; i < tickPos; i += 1) {
-            sb.append('█');
+            sb.append('=');
         }
 
         // Tick at current proportion
@@ -253,7 +253,7 @@ public class Ui {
 
         // Right spaces after tick until end
         for (int i = tickPos + 1; i < PROGRESS_BAR_WIDTH; i++) {
-            sb.append('░');
+            sb.append('-');
         }
 
         sb.append(']');
