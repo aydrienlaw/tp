@@ -43,9 +43,15 @@ loop until user enters "bye"
         Main -> ByeCommand : execute(expenseManager, ui)
         activate ByeCommand
 
+        ByeCommand -> Ui : showSeparator()
+        activate Ui
+        deactivate Ui
         ByeCommand -> Ui : showGoodbye()
         activate Ui
         Ui --> User : displays goodbye message
+        deactivate Ui
+        ByeCommand -> Ui : showSeparator()
+        activate Ui
         deactivate Ui
 
         deactivate ByeCommand

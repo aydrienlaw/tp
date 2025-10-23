@@ -84,9 +84,15 @@ alt command is AddCommand
     activate ExpenseManager
     deactivate ExpenseManager
 
+    AddCommand -> Ui : showSeparator()
+    activate Ui
+    deactivate Ui
     AddCommand -> Ui : showNewExpense(expense)
     activate Ui
     Ui --> User : displays confirmation
+    deactivate Ui
+    AddCommand -> Ui : showSeparator()
+    activate Ui
     deactivate Ui
 
     deactivate AddCommand
