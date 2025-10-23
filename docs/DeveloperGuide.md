@@ -652,14 +652,14 @@ Users do not have to key in a command to save or load data.
 
 This is a binary serialized file using Java's built-in serialization mechanism (`ObjectOutputStream` / `ObjectInputStream`).
 
-#### Public Methods
+#### Control Flow
 
 ##### 1. `saveExpenseManager(ExpenseManager expenseManager, Ui ui)`
 
 **Purpose:** Saves the current state of expenses to disk.
 
 **Parameters:**
-* `expenseManager`: The current `ExpenseManager` instance to persist.
+* `expenseManager`: The current `ExpenseManager` instance to save.
 * `ui`: Provides user feedback in case of errors.
 
 **Workflow:**
@@ -703,6 +703,7 @@ StorageManager.saveExpenseManager(expenseManager, ui);
 ```java
 ExpenseManager expenseManager = StorageManager.loadExpenseManager(ui);
 ```
+The sequence diagram in `docs/diagrams/storage-manager-sequence.puml` illustrates these interactions.
 
 #### Error Handling
 
