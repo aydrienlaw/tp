@@ -13,6 +13,16 @@ public class Ui {
     private static final String ERROR_PREFIX = "[ERROR]: ";
     private static final String CURRENCY_FORMAT = "%.2f";
 
+    // ========== Progress bar constants ==========
+    private static final int PROGRESS_BAR_WIDTH = 30;
+    private static final String NO_BUDGET_LABEL = "[no budget set]";
+
+    // ANSI color codes
+    private static final String ANSI_GREEN = "\u001B[32m";
+    private static final String ANSI_YELLOW = "\u001B[33m";
+    private static final String ANSI_RED = "\u001B[31m";
+    private static final String ANSI_BLACK = "\u001B[0m";
+
     // ========== Command usage constants ==========
     private static final String ADD_USAGE = "Invalid format. Use: add a/AMOUNT desc/DESCRIPTION [cat/CATEGORY]";
     private static final String DELETE_USAGE = "Invalid format. Use: delete EXPENSE_INDEX";
@@ -187,10 +197,82 @@ public class Ui {
      */
     public void showFinancialSummary(double budget, double totalExpense,
                                      double remainingBalance, List<Expense> expenses) {
+        System.out.println("FINANCIAL SUMMARY");
         showBudget(budget);
         showTotalExpenses(totalExpense);
         showRemainingBalance(remainingBalance);
+
+        System.out.println();
+        System.out.println("BUDGET STATUS");
+        showProgressBar(budget, totalExpense);
+
+        System.out.println();
         showExpenseList(expenses);
+    }
+
+    /**
+     * Builds a fixed-width progress bar representing totalExpense/budget.
+     * Example: |=========/             |  35%  (Remaining: $390.00)
+     * - Uses '/' as the tick marker at the current proportion.
+     * - Clamps within [0, PROGRESS_BAR_WIDTH - 1].
+     * - Annotates over-budget state.
+     */
+    private void showProgressBar(double budget, double totalExpense) {
+        if (budget <= 0) {
+            System.out.println(NO_BUDGET_LABEL);
+        }
+
+        double ratio = totalExpense / budget;
+
+        // Determine string colour based on budget usage
+        String colour;
+        if (ratio > 1.0) {
+            colour = ANSI_RED;
+        } else if (ratio >= 0.7) {
+            colour = ANSI_YELLOW;
+        } else {
+            colour = ANSI_GREEN;
+        }
+
+        // Clamp tick to [0, innerWidth - 1] so bar width stays constant
+        int tickPos = (int) Math.round(Math.max(0.0, Math.min(1.0, ratio)) * (PROGRESS_BAR_WIDTH - 1));
+
+        StringBuilder sb = new StringBuilder(PROGRESS_BAR_WIDTH * 2);
+
+        sb.append("Budget Used: ");
+        sb.append(colour); // Start color
+        sb.append('[');
+
+        // Left fills up to tick
+        for (int i = 0; i < tickPos; i += 1) {
+            sb.append('█');
+        }
+
+        // Tick at current proportion
+        sb.append('|');
+
+        // Right spaces after tick until end
+        for (int i = tickPos + 1; i < PROGRESS_BAR_WIDTH; i++) {
+            sb.append('░');
+        }
+
+        sb.append(']');
+        sb.append(ANSI_BLACK); // End color
+
+        // Percentage annotation (clamped 0–100)
+        double pct = Math.max(0.0, Math.min(100.0, ratio * 100.0));
+        sb.append(' ');
+        sb.append(String.format("%.2f%%", pct));
+
+        // Over-budget note
+        if (ratio > 1.0) {
+            sb.append("  (Over by ").append(formatCurrency(totalExpense - budget)).append(')');
+        } else {
+            sb.append("  (Remaining: ").append(formatCurrency(budget - totalExpense)).append(')');
+        }
+
+        System.out.println("Spent: " + formatCurrency(totalExpense) + " / " + formatCurrency(budget));
+        System.out.println(sb.toString());
     }
 
     /**
@@ -204,7 +286,7 @@ public class Ui {
             showEmptyExpenseList();
             return;
         }
-        System.out.println("Here is the list of expenses:");
+        System.out.println("Here is your list of expenses:");
         showNumberedExpenses(expenses);
     }
 
@@ -223,7 +305,7 @@ public class Ui {
      * @param sortedExpenses the list of expenses sorted from highest to lowest amount
      */
     public void showSortedExpenseList(List<Expense> sortedExpenses) {
-        System.out.println("Here is the list of sorted expenses, starting with the highest amount:");
+        System.out.println("Here is your list of sorted expenses, starting with the highest amount:");
         showNumberedExpenses(sortedExpenses);
     }
 
