@@ -526,12 +526,13 @@ If no expenses exist, the system provides a clear message instead of failing, en
 #### Control Flow
 
 1. **Input capture:** `Main` reads the user's command (`sort`) and passes it to `Parser`.
-2. **Command creation:** `Parser` recognizes the sort keyword and constructs a new `SortCommand` object.
+2. **Command creation:** `Parser` recognises the sort keyword and constructs a new `SortCommand` object.
 3. **Execution:** When `Main` invokes `command.execute(expenseManager, ui)`:
-    - The command calls `ExpenseManager#sortExpenses(ui)` to sort the expenses.
-    - The sorted list is displayed via `Ui#showSortedList`.
-    - If the expense list is empty, `Ui#showListUsage()` is invoked instead.
+    - The command calls `ExpenseManager#sortExpenses()` to sort the expenses.
+    - The sorted list of expenses is displayed via `Ui#showSortedExpenseList`.
+    - If the expense list is empty, `Ui#showEmptyExpenseList()` is invoked instead.
 4. **Data persistence:** Sorting does not change the stored data, so no file updates are required.
+   However, `StorageManager.saveExpenseManager(expenseManager, ui)` is still after execution, which just saves the existing list of data, not the sorted list.
 
 The sequence diagram in `docs/diagrams/sort-sequence.puml` illustrates these interactions from input parsing to UI display.
 

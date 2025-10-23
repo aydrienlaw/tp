@@ -1,31 +1,87 @@
+'@startuml
+'!theme vibrant
+'title Sort Expenses Sequence Diagram
+'
+'actor User
+'participant Main
+'participant Parser
+'participant SortCommand
+'participant ExpenseManager
+'participant Ui
+'
+'User -> Main : Enter command "sort"
+'Main -> Parser : parse("sort")
+'Parser -> SortCommand : new SortCommand()
+'Parser --> Main : return SortCommand
+'Main -> SortCommand : execute(expenseManager, ui)
+'
+'alt expense list not empty
+'    SortCommand -> ExpenseManager : sortExpenses(ui)
+'    ExpenseManager -> ExpenseManager : create copy of expenses list
+'    ExpenseManager -> ExpenseManager : sort copy in descending order by amount
+'    ExpenseManager -> Ui : showSortedList(sortedExpenses)
+'else expense list empty
+'    SortCommand -> ExpenseManager : sortExpenses(ui)
+'    ExpenseManager -> Ui : showListUsage()
+'end
+'
+'Ui --> User : Display sorted expenses or message
+'SortCommand --> Main : Execution complete
+'
+'@enduml
 @startuml
 !theme vibrant
-title Sort Expenses Sequence Diagram
-
 actor User
-participant Main
-participant Parser
-participant SortCommand
-participant ExpenseManager
-participant Ui
+participant ":Main" as Main
+participant ":Parser" as Parser
+participant ":ExpenseManager" as ExpenseManager
+participant ":Ui" as Ui
+participant ":StorageManager" as StorageManager
 
-User -> Main : Enter command "sort"
+User -> Main : enters "sort"
+activate Main
+
 Main -> Parser : parse("sort")
-Parser -> SortCommand : new SortCommand()
-Parser --> Main : return SortCommand
-Main -> SortCommand : execute(expenseManager, ui)
+activate Parser
 
-alt expense list not empty
-    SortCommand -> ExpenseManager : sortExpenses(ui)
-    ExpenseManager -> ExpenseManager : create copy of expenses list
-    ExpenseManager -> ExpenseManager : sort copy in descending order by amount
-    ExpenseManager -> Ui : showSortedList(sortedExpenses)
-else expense list empty
-    SortCommand -> ExpenseManager : sortExpenses(ui)
-    ExpenseManager -> Ui : showListUsage()
+' SortCommand appears only when instantiated
+create SortCommand
+Parser -> SortCommand : SortCommand()
+activate SortCommand
+SortCommand --> Parser : return SortCommand
+deactivate SortCommand
+
+Parser --> Main : return SortCommand
+deactivate Parser
+
+Main -> SortCommand : execute(expenseManager, ui)
+activate SortCommand
+
+alt expense list is empty
+    SortCommand -> Ui : showEmptyExpenseList()
+    activate Ui
+    Ui --> User : "No expenses added so far."
+    deactivate Ui
+else expense list not empty
+    SortCommand -> ExpenseManager : sortExpenses()
+    activate ExpenseManager
+    ExpenseManager --> SortCommand : sortedExpenses
+    deactivate ExpenseManager
+
+    SortCommand -> Ui : showSortedExpenseList(sortedExpenses)
+    activate Ui
+    Ui --> User : displays sorted expenses
+    deactivate Ui
 end
 
-Ui --> User : Display sorted expenses or message
-SortCommand --> Main : Execution complete
+deactivate SortCommand
+destroy SortCommand
 
+' Data persistence
+Main -> StorageManager : saveExpenseManager(expenseManager, ui)
+activate StorageManager
+StorageManager --> Main :
+deactivate StorageManager
+
+deactivate Main
 @enduml
