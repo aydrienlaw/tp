@@ -1,0 +1,49 @@
+@startuml
+!theme vibrant
+actor User
+participant ":Main" as Main
+participant ":Parser" as Parser
+participant ":HelpCommand" as HelpCommand
+participant ":Ui" as Ui
+participant ":StorageManager" as StorageManager
+
+activate Main
+Main -> StorageManager : loadExpenseManager(ui)
+activate StorageManager
+StorageManager --> Main : expenseManager
+deactivate StorageManager
+
+User -> Main : enters "help"
+
+Main -> Parser : parse("help")
+activate Parser
+
+create HelpCommand
+Parser -> HelpCommand
+Parser --> Main : helpCommand
+deactivate Parser
+
+Main -> HelpCommand : execute(expenseManager, ui)
+activate HelpCommand
+
+HelpCommand -> Ui : showSeparator()
+activate Ui
+deactivate Ui
+
+HelpCommand -> Ui : showMenu()
+activate Ui
+Ui --> User : displays help menu
+deactivate Ui
+
+HelpCommand -> Ui : showSeparator()
+activate Ui
+deactivate Ui
+
+deactivate HelpCommand
+
+Main -> StorageManager : saveExpenseManager(expenseManager, ui)
+activate StorageManager
+deactivate StorageManager
+
+deactivate Main
+@enduml
