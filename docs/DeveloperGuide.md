@@ -124,16 +124,20 @@ Marking an expense triggers three critical updates: the expense's internal paid 
 #### Control Flow
 
 1. **Input capture:** `Main` reads the raw command line and forwards it to `Parser`.
-2. **Tokenisation and validation:** `Parser` extracts the expense index string and delegates to `InputValidator#validateIndex`. The validator enforces that the index is a positive integer, throwing `OrCashBuddyException` if the input is malformed, missing, or less than 1. This fail-fast approach prevents downstream logic from handling invalid data.
+2. **Tokenisation and validation:** `Parser` extracts the index argument and delegates to `InputValidator#validateIndex`. The validator enforces that the index is a positive integer, throwing `OrCashBuddyException` if the input is malformed, missing, or less than 1. This fail-fast approach prevents downstream logic from handling invalid data.
 3. **Command creation:** `Parser` constructs either a `MarkCommand` or `UnmarkCommand` with the validated index. The command object remains lightweight as it stores only the integer index, avoiding premature expense lookups.
 4. **Execution:** `Main` invokes `command.execute(expenseManager, ui)`:
     - The command calls `ExpenseManager#markExpense(index)` or `unmarkExpense(index)`.
     - `ExpenseManager` first validates the index against the current expense list size via `validateIndex`, which throws `OrCashBuddyException` if the list is empty or the index is out of range.
-    - After validation, the manager retrieves the expense, calls `Expense#mark()` or `unmark()` to flip the boolean flag, then invokes `updateBudgetAfterMark` or `updateBudgetAfterUnmark`.
-    - Budget update methods adjust `totalExpenses` (add or subtract the expense amount) and call `recalculateRemainingBalance` to update `remainingBalance = budget - totalExpenses`.
+    - After validation, the manager retrieves the expense at position `index - 1` (converting from 1-based to 0-based indexing).
+    - The manager checks if the expense is already in the desired state (marked/unmarked) to avoid redundant operations.
+    - If state change is needed, the manager calls `Expense#mark()` or `unmark()` to flip the boolean flag.
+    - For marking: `updateBudgetAfterMark(expense)` is called, which adds the expense amount to `totalExpenses` and invokes `recalculateRemainingBalance()`.
+    - For unmarking: `updateBudgetAfterUnmark(expense)` is called, which subtracts the expense amount from `totalExpenses` and invokes `recalculateRemainingBalance()`.
     - The manager returns the modified `Expense` object to the command.
     - The command passes the expense to `Ui#showMarkedExpense` or `showUnmarkedExpense`, which displays the confirmation with the updated visual status (`[X]` for marked, `[ ]` for unmarked).
-    - Finally, `ExpenseManager#checkRemainingBalance` is invoked to evaluate if budget alerts should fire based on the new remaining balance.
+    - Finally, `ExpenseManager#determineBudgetStatus()` is invoked to evaluate if budget alerts should fire based on the new remaining balance. If status is not `OK`, the command calls `Ui#showBudgetStatus` with the status and remaining balance.
+5. **Data persistence:** `Main` calls `StorageManager.saveExpenseManager(expenseManager, ui)` after command execution to persist the updated state to disk.
 
 The sequence diagram in `docs/diagrams/mark-sequence.puml` illustrates these interactions. A corresponding `unmark-sequence.puml` captures the symmetrical unmark flow with budget decrements instead of increments.
 
@@ -155,17 +159,20 @@ public void unmark() {
 
 - **Index bounds:** Assertions verify `index >= 1` before calling manager methods. The `validateIndex` method throws exceptions for indices outside `[1, expenses.size()]` or when the list is empty.
 - **Budget consistency:** After any mark/unmark, the invariant `remainingBalance == budget - totalExpenses` must hold. This is enforced through `recalculateRemainingBalance`, which is called by both `updateBudgetAfterMark` and `updateBudgetAfterUnmark`.
-- **Non-negative totals:** Assertions check that `totalExpenses >= 0.0` after unmarking to catch underflow errors during development.
+- **Non-negative totals:** While not explicitly asserted in production code, the design ensures `totalExpenses >= 0.0` through careful decrement logic during unmarking.
 
-These invariants are verified via assertions (enabled in tests with `-ea`) and logged at INFO level, making it easy to diagnose state corruption during manual testing or debugging.
+These invariants are verified during development testing (when assertions are enabled with `-ea`) and logged at INFO level, making it easy to diagnose state corruption during manual testing or debugging.
 
-#### Budget Alert Integration
+#### Budget Status Integration
 
-After marking or unmarking an expense, `ExpenseManager#checkRemainingBalance` evaluates the new `remainingBalance` against predefined thresholds:
+After marking or unmarking an expense, `ExpenseManager#determineBudgetStatus()` evaluates the new `remainingBalance` against predefined thresholds and returns a `BudgetStatus` enum:
 
-- **Exceeded budget (`remainingBalance < 0`):** Triggers `Ui#showExceedAlert`, displaying the negative balance to emphasize overspending.
-- **Budget depleted (`remainingBalance == 0`):** Triggers `Ui#showEqualAlert`, notifying users they've reached their limit.
-- **Near threshold (`remainingBalance < $10.00`):** Triggers `Ui#showNearAlert`, providing early warning before budget exhaustion.
+- **`EXCEEDED` (`remainingBalance < 0`):** Budget has been exceeded.
+- **`EQUAL` (`remainingBalance == 0`):** Budget has been fully used.
+- **`NEAR` (`remainingBalance < $10.00`):** Remaining balance is below warning threshold.
+- **`OK`:** Sufficient budget remains.
+
+If the status is not `OK`, the command invokes `Ui#showBudgetStatus(status, remainingBalance)`, which displays contextual alerts.
 
 This immediate feedback loop helps users make informed spending decisions right after recording payments, rather than requiring a separate `list` command to check status.
 
@@ -173,52 +180,77 @@ This immediate feedback loop helps users make informed spending decisions right 
 
 Both `MarkCommand` and `UnmarkCommand` log structured entries at INFO level:
 
-```
-Marked expense at index {index}: {description}
-Unmarked expense at index {index}: {description}
+```java
+LOGGER.log(Level.INFO, "Marked expense at index {0}: {1}",
+        new Object[]{index, expense.getDescription()});
+
+LOGGER.log(Level.INFO, "Unmarked expense at index {0}: {1}",
+        new Object[]{index, expense.getDescription()});
 ```
 
 `ExpenseManager` logs budget updates after each operation:
 
-```
-Updated budget after mark: total={totalExpenses}, remaining={remainingBalance}
-Updated budget after unmark: total={totalExpenses}, remaining={remainingBalance}
+```java
+LOGGER.info(() -> "Updated budget after mark: total=" + totalExpenses +
+        ", remaining=" + remainingBalance);
+
+LOGGER.info(() -> "Updated budget after unmark: total=" + totalExpenses +
+        ", remaining=" + remainingBalance);
 ```
 
 These logs are essential for verifying correct budget arithmetic during manual testing and provide audit trails for debugging user-reported discrepancies.
 
 #### Alternatives Considered
 
-- **Separate "paid" and "unpaid" lists:** Rejected because it would fragment the expense view and complicate index management. A single list with visual markers (`[X]`/`[ ]`) keeps the mental model simple, following what we learnt when working on the iP.
-- **Automatic marking on add:** Some expense trackers assume all added expenses are immediately paid. We rejected this because our target users often log planned/recurring expenses before payment, requiring explicit mark actions.
+- **Automatic marking on add:** Some expense trackers assume all added expenses are immediately paid. We rejected this because our target users (students managing interest group budgets) often log planned expenses, recurring bills, or shared costs before payment occurs. Explicit marking preserves flexibility for diverse workflows.
+- **Visual indicators in list:** Instead of `[X]`/`[ ]` markers, we explored color coding (green for paid, red for unpaid) or emoji indicators (✓/✗). Rejected because:
+    - ANSI colors may not render consistently across all terminals.
+    - Emoji require Unicode support and increase display width.
+    - Bracket notation is text-based, universally compatible, and familiar to users from todo list applications (including the CS2113 iP assignment).
 
 ### Find Expense Feature
 
 #### Overview
 
-The find workflow enables users to quickly locate expenses by searching either category or description fields, returning all matching results in a filtered view. Users specify search criteria via prefix-based syntax (`find cat/CATEGORY` or `find desc/DESCRIPTION`), maintaining consistency with other commands in the application. We chose separate prefix-based searches over a unified keyword approach to give users more control since category searches target labels while description searches hunt for specific details.
+The find workflow enables users to quickly locate expenses by searching either category or description fields, returning all matching results in a filtered view. Users specify search criteria via prefix-based syntax (`find cat/CATEGORY` or `find desc/DESCRIPTION`), maintaining consistency with other commands in the application. We chose separate prefix-based searches over a unified keyword approach to give users precise control: category searches target organizational labels while description searches hunt for specific transaction details.
 
-The find operation performs case-insensitive substring matching, prioritizing ease of use over exact matching. A search for `cat/food` will match expenses categorized as "Food", "Fast Food", or "Seafood". This approach reduces the burden of remembering exact category names or descriptions, particularly useful when users manage dozens of expenses across multiple categories.
+The find operation performs case-insensitive substring matching, prioritizing ease of use over exact matching. A search for `cat/food` will match expenses categorized as "Food", "Fast Food", or "Seafood". This approach reduces the cognitive burden of remembering exact category names or descriptions, particularly useful when users manage dozens of expenses across multiple categories. The search is read-only and does not modify any data, making it safe to use exploratively without risk of accidental changes.
 
 #### Control Flow
 
-1. **Input capture:** `Main` reads the raw command line and forwards it to `Parser`.
+1. **Input capture:** `Main` reads the raw command line (`find cat/groceries` or `find desc/lunch`) and forwards it to `Parser`.
+
 2. **Tokenisation and validation:** `Parser` uses `ArgumentParser` to extract optional category and description values:
     - `ArgumentParser#getOptionalValue("cat/")` returns the category string if present, otherwise `null`.
     - `ArgumentParser#getOptionalValue("desc/")` returns the description keyword if present, otherwise `null`.
     - The parser checks category first: if a non-empty category is found, it constructs a category-based `FindCommand`.
     - If no category is present but a non-empty description exists, it constructs a description-based `FindCommand`.
-    - If both prefixes are absent or empty, `Parser` throws `OrCashBuddyException` with message "Missing search criteria for 'find' command".
-3. **Command creation:** `Parser` constructs a `FindCommand` with two parameters: `searchType` (either `"category"` or `"description"`) and `searchTerm` (the trimmed search string). The command stores these as strings, deferring actual search logic to execution time.
+    - If both prefixes are absent or contain only whitespace, `Parser` throws `OrCashBuddyException` with message "Missing search criteria for 'find' command".
+
+3. **Command creation:** `Parser` constructs a `FindCommand` with two string parameters:
+    - `searchType`: either `"category"` or `"description"` to indicate the search mode.
+    - `searchTerm`: the trimmed search string extracted from the user input.
+    - The command stores these as immutable fields, deferring actual search logic to execution time.
+
 4. **Execution:** `Main` invokes `command.execute(expenseManager, ui)`:
-    - The command asserts that both `searchType` and `searchTerm` are non-blank, catching any parser violations during development.
-    - Based on `searchType`, the command calls either `ExpenseManager#findExpensesByCategory(searchTerm)` or `findExpensesByDescription(searchTerm)`.
+    - The command asserts that both `searchType` and `searchTerm` are non-blank, catching any parser violations during development (when assertions are enabled with `-ea`).
+    - The command logs the search operation at INFO level: `"Executing find command: type={searchType}, term={searchTerm}"`.
+    - Based on `searchType`, the command calls either:
+        - `ExpenseManager#findExpensesByCategory(searchTerm)` for category searches
+        - `ExpenseManager#findExpensesByDescription(searchTerm)` for description searches
     - Both manager methods perform case-insensitive substring matching:
-        - Convert the search term to lowercase and trim whitespace.
-        - Iterate through the `expenses` list, checking if the target field (category or description) contains the search term as a substring.
+        - Validate that the search term is non-blank (throws `IllegalArgumentException` if violated, though this should be caught earlier by parser).
+        - Convert the search term to lowercase and trim whitespace: `String searchTerm = keyword.toLowerCase().trim()`.
+        - Iterate through the `expenses` list using an enhanced for loop.
+        - For each expense, retrieve the target field (category or description) and convert it to lowercase.
+        - Check if the field contains the search term as a substring using `String#contains`.
         - Accumulate matching expenses in a new `ArrayList<Expense>`.
-    - The manager logs the number of matches found at INFO level and returns the results list.
-    - The command passes the results, search term, and search type to `Ui#showFoundExpenses`, which formats the output for display.
+    - The manager logs the result count at INFO level: `"Found {count} expenses matching {type}: {term}"`.
+    - The manager returns the results list to the command.
+    - The command logs the result count: `"Found {count} matching expenses"`.
+    - The command passes the results list, search term, and search type to `Ui#showFoundExpenses`, which formats and displays the output.
+
+5. **Data persistence:** Since find is a read-only operation, `StorageManager.saveExpenseManager` is called after execution (as per the standard command execution flow in `Main`), but no actual data changes occur.
 
 The sequence diagram in `docs/diagrams/find-sequence.puml` illustrates these interactions, showing the branching logic for category versus description searches within `ExpenseManager`.
 
@@ -227,15 +259,26 @@ The sequence diagram in `docs/diagrams/find-sequence.puml` illustrates these int
 Both `findExpensesByCategory` and `findExpensesByDescription` use linear search with substring matching:
 
 ```java
-for (Expense expense : expenses) {
-    if (expense.getCategory().toLowerCase().contains(searchTerm)) {
-        foundExpenses.add(expense);
+public List<Expense> findExpensesByCategory(String category) {
+    validateSearchTerm(category, "Category");
+    
+    String searchTerm = category.toLowerCase().trim();
+    List<Expense> foundExpenses = new ArrayList<>();
+    
+    for (Expense expense : expenses) {
+        if (expense.getCategory().toLowerCase().contains(searchTerm)) {
+            foundExpenses.add(expense);
+        }
     }
+    
+    LOGGER.log(Level.INFO, "Found {0} expenses matching category: {1}",
+            new Object[]{foundExpenses.size(), category});
+    
+    return foundExpenses;
 }
 ```
 
-**Case insensitivity:** Achieved via `toLowerCase()` on both the expense field and search term. This adds minimal overhead compared to case-sensitive matching and improves user experience because users need not remember exact capitalization from previous entries.
-
+**Case insensitivity:** Achieved via `toLowerCase()` on both the expense field and search term. This adds minimal overhead (single-pass string conversion) compared to case-sensitive matching and significantly improves user experience because users need not remember exact capitalization from previous entries.
 **Substring matching rationale:** We chose `contains()` over `equals()` or `startsWith()` because:
 - Users often remember partial keywords (e.g., "lunch" from "Team lunch meeting").
 - Exact matching would frustrate users who mistype or abbreviate categories.
@@ -245,36 +288,52 @@ for (Expense expense : expenses) {
 
 `Ui#showFoundExpenses` handles three scenarios:
 
-1. **No matches found:** Displays "No expenses found matching {searchType}: {searchTerm}", helping users distinguish between empty lists and search misses.
-2. **One or more matches:** Shows count first ("Found {count} expense(s) matching {searchType}: {searchTerm}"), followed by a numbered list of matching expenses formatted via `Expense#formatForDisplay`. The numbering (1, 2, 3...) is display-only and does not correspond to original list indices—this prevents confusion since find results are a filtered subset.
-3. **Assertions:** The method asserts that `foundExpenses`, `searchTerm`, and `searchType` are non-null before rendering, catching any parser or command bugs during testing.
+1. **No matches found:** Displays `"No expenses found matching {searchType}: {searchTerm}"`, helping users distinguish between empty expense lists and unsuccessful searches.
+
+2. **One or more matches:** Shows count first (`"Found {count} expense(s) matching {searchType}: {searchTerm}"`), followed by a numbered list of matching expenses formatted via `Expense#formatForDisplay`. The numbering (1, 2, 3...) is display-only and does not correspond to original list indices: this prevents confusion since find results are a filtered subset.
+
+3. **Separator formatting:** The output is wrapped in separator lines for visual clarity, consistent with other command outputs.
 
 Example output for `find cat/food`:
 ```
+---------------------------------------------------------------
 Found 2 expense(s) matching category: food
 1. [ ] [Food] Lunch - $8.50
 2. [X] [Fast Food] Dinner - $12.00
+---------------------------------------------------------------
 ```
 
-Users can visually scan the marked status (`[X]`/`[ ]`) within results, supporting workflows where they want to find unpaid expenses in a specific category.
+Users can visually scan the marked status (`[X]`/`[ ]`) within results, supporting workflows where they want to find unpaid expenses in a specific category or locate specific transactions by description keywords.
 
 #### Logging and Diagnostics
 
 `FindCommand` logs at INFO level before and after search execution:
 
-```
-Executing find command: type={searchType}, term={searchTerm}
-Found {count} matching expenses
+```java
+LOGGER.log(Level.INFO, "Executing find command: type={0}, term={1}",
+        new Object[]{searchType, searchTerm});
+
+LOGGER.log(Level.INFO, "Found {0} matching expenses", foundExpenses.size());
 ```
 
 `ExpenseManager` search methods also log results:
 
-```
-Found {count} expenses matching category: {category}
-Found {count} expenses matching description: {keyword}
+```java
+LOGGER.log(Level.INFO, "Found {0} expenses matching category: {1}",
+        new Object[]{foundExpenses.size(), category});
+
+LOGGER.log(Level.INFO, "Found {0} expenses matching description: {1}",
+        new Object[]{foundExpenses.size(), keyword});
 ```
 
-These logs help verify search accuracy during manual testing and provide debugging context when users report unexpected results. Since searches are read-only operations, logging includes only counts, not full expense details, to keep log files manageable.
+These logs help verify search accuracy during manual testing and provide debugging context when users report unexpected results. Since searches are read-only operations, logging includes only counts and search terms, not full expense details, to keep log files manageable and avoid sensitive data exposure.
+
+Example log sequence for `find cat/food`:
+```
+INFO: Executing find command: type=category, term=food
+INFO: Found 2 expenses matching category: food
+INFO: Found 2 matching expenses
+```
 
 #### Design Rationale
 
