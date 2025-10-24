@@ -7,8 +7,8 @@ participant ":InputValidator" as InputValidator
 participant ":UnmarkCommand" as UnmarkCommand
 participant ":InvalidCommand" as InvalidCommand
 participant ":ExpenseManager" as ExpenseManager
-participant ":Expense" as Expense
 participant ":Ui" as Ui
+participant ":StorageManager" as StorageManager
 
 User -> Main : enters "unmark 1"
 activate Main
@@ -16,93 +16,90 @@ activate Main
 Main -> Parser : parse("unmark 1")
 activate Parser
 
-alt successful parsing
-
+alt valid index
     Parser -> InputValidator : validateIndex("1", "unmark")
     activate InputValidator
-    InputValidator --> Parser : 1
+    InputValidator --> Parser : index = 1
     deactivate InputValidator
 
     create UnmarkCommand
-    Parser -> UnmarkCommand : 1
+    Parser -> UnmarkCommand : new UnmarkCommand(1)
     Parser --> Main : unmarkCommand
 
-else validation fails
-
+else invalid index
     Parser -> InputValidator : validateIndex("invalid", "unmark")
     activate InputValidator
-    InputValidator -->> Parser : throws OurCashBuddyException
+    InputValidator -->> Parser : throws OrCashBuddyException
     deactivate InputValidator
 
     create InvalidCommand
-    Parser -> InvalidCommand : OrCashBuddyException
+    Parser -> InvalidCommand
     Parser --> Main : invalidCommand
-
 end
 
 deactivate Parser
 
-Main -> UnmarkCommand : execute(expenseManager, ui)
-activate UnmarkCommand
+alt valid unmark command
+    Main -> UnmarkCommand : execute(expenseManager, ui)
+    activate UnmarkCommand
 
-UnmarkCommand -> ExpenseManager : unmarkExpense(1)
-activate ExpenseManager
+    UnmarkCommand -> ExpenseManager : unmarkExpense(1)
+    activate ExpenseManager
+    ExpenseManager --> UnmarkCommand : unmarkedExpense
+    deactivate ExpenseManager
 
-ExpenseManager -> ExpenseManager : validateIndex(1)
-note right: Throws OrCashBuddyException\nif index out of range
-
-ExpenseManager -> Expense : unmark()
-activate Expense
-Expense -> Expense : isMarked = false
-deactivate Expense
-
-ExpenseManager -> ExpenseManager : updateBudgetAfterUnmark(expense)
-activate ExpenseManager
-ExpenseManager -> ExpenseManager : totalExpenses -= expense.getAmount()
-ExpenseManager -> ExpenseManager : recalculateRemainingBalance()
-note right: remainingBalance =\nbudget - totalExpenses
-deactivate ExpenseManager
-
-ExpenseManager --> UnmarkCommand : expense
-deactivate ExpenseManager
-
-UnmarkCommand -> Ui : showUnmarkedExpense(expense)
-activate Ui
-Ui --> User : displays "[ ] [CATEGORY] DESCRIPTION - $AMOUNT"
-deactivate Ui
-
-UnmarkCommand -> ExpenseManager : checkRemainingBalance(ui)
-activate ExpenseManager
-
-alt remainingBalance < 0
-    ExpenseManager -> Ui : showExceedAlert(remainingBalance)
+    UnmarkCommand -> Ui : showSeparator()
     activate Ui
-    Ui --> User : displays exceed alert
     deactivate Ui
-else remainingBalance == 0
-    ExpenseManager -> Ui : showEqualAlert()
+
+    UnmarkCommand -> Ui : showUnmarkedExpense(expense)
     activate Ui
-    Ui --> User : displays equal alert
+    Ui --> User : displays confirmation
     deactivate Ui
-else remainingBalance < 10.00
-    ExpenseManager -> Ui : showNearAlert(remainingBalance)
+
+    UnmarkCommand -> ExpenseManager : determineBudgetStatus()
+    activate ExpenseManager
+    ExpenseManager --> UnmarkCommand : status
+    deactivate ExpenseManager
+
+    opt status != OK
+        UnmarkCommand -> Ui : showBudgetStatus(status, remainingBalance)
+        activate Ui
+        Ui --> User : displays budget alert
+        deactivate Ui
+    end
+
+    UnmarkCommand -> Ui : showSeparator()
     activate Ui
-    Ui --> User : displays near alert
     deactivate Ui
-end
 
-deactivate ExpenseManager
+    deactivate UnmarkCommand
+    destroy UnmarkCommand
 
-deactivate UnmarkCommand
+    Main -> StorageManager : saveExpenseManager(expenseManager, ui)
+    activate StorageManager
+    StorageManager --> Main
+    deactivate StorageManager
 
-alt command is invalid
+else invalid command
     Main -> InvalidCommand : execute(expenseManager, ui)
     activate InvalidCommand
-    InvalidCommand -> Ui : showUnmarkUsage(errorMessage)
+
+    InvalidCommand -> Ui : showSeparator()
     activate Ui
-    Ui --> User : displays error message and usage
     deactivate Ui
+
+    InvalidCommand -> Ui : showUnmarkUsage()
+    activate Ui
+    Ui --> User : displays usage message
+    deactivate Ui
+
+    InvalidCommand -> Ui : showSeparator()
+    activate Ui
+    deactivate Ui
+
     deactivate InvalidCommand
+    destroy InvalidCommand
 end
 
 deactivate Main
