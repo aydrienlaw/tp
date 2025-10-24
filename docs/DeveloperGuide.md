@@ -833,23 +833,44 @@ orCASHbuddy offers a fast, distraction-free way to log expenses and check their 
 
 ## Appendix B: User Stories
 
-|Version| As a ... | I want to ... | So that I can ...|
-|--------|----------|---------------|------------------|
-|v1.0|new user|see usage instructions|refer to them when I forget how to use the application|
-|v2.0|user|find a to-do item by name|locate a to-do without having to go through the entire list|
+Priorities: High (must have) - ***, Medium (nice to have) - **, Low (unlikely to have) - *
+
+| Priority | As a ... | I want to ... | So that I can ... |
+| :------- | :------- | :------------ | :---------------- |
+| *        | new user | see usage instructions | refer to them when I forget how to use the application |
+| ***      | budget-conscious user     | add an expense with amount, description, and category | track my spending |
+| ***      | financially-aware user     | set a budget | manage my finances effectively |
+| ***      | organized user     | see a list of all my expenses with budget summary | get an overview of my spending and remaining budget |
+| **       | diligent user     | mark an expense as paid | accurately track my actual expenditures |
+| **       | careful user     | unmark an expense | correct mistakes or revert payment status |
+| **       | efficient user     | find expenses by category or description | quickly locate specific transactions |
+| **       | meticulous user     | edit an existing expense | correct mistakes or update details without re-entering |
+| *        | analytical user     | sort my expenses by amount | easily identify my largest expenditures |
+| ***      | responsible user     | delete an expense | remove incorrect or unwanted entries |
+| ***      | practical user     | exit the application | safely close the program and save my data |
+| **       | proactive user     | be alerted when my spending approaches or exceeds my budget | avoid overspending |
+| ***      | cautious user     | have my expenses automatically saved | avoid losing my data |
+
 ## Appendix C: Non-Functional Requirements
 1. The application must run on any system with Java 17 installed (Windows, macOS, Linux).
-2. Commands should execute within one second for up to 200 stored expenses.
-3. The codebase should pass `./gradlew checkstyleMain` with no warnings.
-4. The CLI should remain readable on terminals with at least 80 characters width.
-5. The project should provide at least 80% branch coverage for command logic tests.
-
+2. The codebase should pass `./gradlew checkstyleMain` with no warnings.
+3. The CLI should remain readable on terminals with at least 80 characters width.
+4. The application must reliably save and load all expense data to/from persistent storage, ensuring no data loss across sessions due to normal application termination or unexpected crashes.
+5. The application must gracefully handle invalid user input and file I/O errors, providing informative error messages to the user without crashing.
+6. The application must provide clear and immediate feedback to the user for all command executions, including success messages, error messages, and budget alerts.
+7. The codebase must be modular and testable, allowing for easy extension of new commands and features without significant refactoring of existing components.
 ## Appendix D: Glossary
 
 - **Command Prefix:** A short label (e.g., `a/`) that identifies the parameter being provided.
 - **Expense Index:** One-based position of an expense in the list output.
 - **Paid Expense:** An expense that has been marked as settled using the `mark` command.
-- **Uncategorized:** Default category assigned when the user omits the optional `cat/` parameter.
+- **Uncategorized:** The default category assigned to an expense when the user omits the optional `cat/` parameter during the `add` command.
+- **Mainstream OS:** Operating systems with significant user bases, such as Windows, macOS, and Linux.
+- **OrCashBuddyException:** A custom exception class used to signal recoverable application-specific errors, typically caught by the `Main` loop or `Parser` to provide user-friendly feedback.
+- **ExpenseManager:** The central component in the Model that manages the list of `Expense` objects, budget tracking, and operations like adding, deleting, marking, and searching expenses.
+- **Command (Pattern):** A design pattern where user actions are encapsulated as objects (subclasses of `Command`), allowing for flexible execution, logging, and potential undo/redo functionality.
+- **UI (User Interface):** The component responsible for all interactions with the user, including displaying messages, prompts, and application output.
+- **StorageManager:** The component responsible for handling the persistent saving and loading of the `ExpenseManager` object to/from disk, ensuring data integrity across application sessions.
 
 ## Appendix E: Instructions for Manual Testing
 
@@ -866,6 +887,5 @@ All tests assume the repository has been cloned and Java 17 is available.
 9. **Sort Expenses**: Add two more entries of varying amounts and run `sort`; check that output is descending by amount.
 10. **Delete Expense**: Execute `delete 2` (adjust index if needed) and confirm the list shrinks accordingly.
 11. **Exit**: Finish with `bye`. Expect a “Bye. Hope to see you again soon!” message, and the application should terminate.
-12. **Regression Script**: The Windows batch script `text-ui-test/runtest.bat` (or `text-ui-test/runtest.sh` on macOS/Linux) rebuilds the JAR and exercises the help command. Ensure `EXPECTED.TXT` matches the actual output before committing changes to commands or messages.
-
-When verifying bug fixes or new features, prefer updating both JUnit tests in `src/test/java/seedu/orcashbuddy` and text UI expectations in `text-ui-test` to prevent regressions.
+12. **Verify Persistence**: Relaunch the application (`./gradlew run`). Confirm that all expenses and budget settings from the previous session are still present.
+13. **Regression Script**: The Windows batch script `text-ui-test/runtest.bat` (or `text-ui-test/runtest.sh` on macOS/Linux) rebuilds the JAR and exercises the help command. Ensure `EXPECTED.TXT` matches the actual output before committing changes to commands or messages.
