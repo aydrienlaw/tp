@@ -27,6 +27,7 @@ This Developer Guide (DG) introduces the internals of **orCASHbuddy**, outlines 
    5. [Sort Expenses Feature](#sort-expenses-feature)
    6. [Storage Management Feature](#storage-management-feature)
    7. [Graceful Exit](#graceful-exit)
+   8. [Help Feature](#help-feature)
 5. [Appendix A: Product Scope](#appendix-a-product-scope)
 6. [Appendix B: User Stories](#appendix-b-user-stories)
 7. [Appendix C: Non-Functional Requirements](#appendix-c-non-functional-requirements)
@@ -83,7 +84,6 @@ Namespace: `seedu.orcashbuddy.expense`, `seedu.orcashbuddy.storage`
 
 - `Expense` is an immutable data carrier (amount, description, category, paid state).
 - `ExpenseManager` tracks aggregate figures (`budget`, `totalExpenses`, `remainingBalance`) and exposes behaviors consumed by commands (add, delete, mark/unmark, sort).
-- There is no persistent storage in v1.0; all data lives in memory until the process exits.
 
 <br>
 
@@ -1011,7 +1011,36 @@ The sequence diagram stored at `docs/diagrams/bye-sequence.puml` captures this f
 
 By keeping farewell handling within the command framework, orCASHbuddy maintains a coherent abstraction and prepares for richer lifecycle management in subsequent releases.
 
----
+### Help Feature
+
+#### Overview
+
+The help feature provides users with a comprehensive list of available commands and their usage formats. This is crucial for user onboarding and as a quick reference for command syntax. The `help` command is designed to be simple and stateless, focusing solely on displaying information.
+
+#### Control Flow
+
+1. **Input Capture:** `Main` reads the user's command (`help`) and forwards it to `Parser`.
+2. **Command Creation:** `Parser` recognizes the `help` keyword and directly constructs a new `HelpCommand` object. No arguments are expected or parsed for this command.
+3. **Execution:** When `Main` invokes `command.execute(expenseManager, ui)`:
+    - `HelpCommand` first calls `ui.showSeparator()` for visual formatting.
+    - It then calls `ui.showMenu()` to display the list of commands and their usage.
+    - Finally, it calls `ui.showSeparator()` again for consistent output formatting.
+4. **Data Persistence:** Since the `help` command is a read-only operation and does not modify any application data, `StorageManager.saveExpenseManager` is called after execution (as per the standard command execution flow in `Main`), but no actual data changes are persisted.
+
+The sequence diagram in `docs/diagrams/help-sequence.puml` illustrates these interactions.
+
+#### Rationale
+
+- **User-Friendliness:** Provides immediate access to command documentation, reducing the learning curve for new users and serving as a quick reference for experienced users.
+- **Simplicity:** The command is stateless and does not require any arguments, making it robust and easy to use.
+- **Consistency:** Integrates seamlessly with the existing command-driven architecture.
+
+#### Extensibility and Future Enhancements
+
+- **Contextual Help:** Future enhancements could include `help <command_name>` to provide specific details for a given command.
+- **Pagination:** For a very large number of commands, pagination could be introduced to display help information in chunks.
+
+
 
 ## Appendix A: Product Scope
 
