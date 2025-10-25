@@ -19,6 +19,7 @@ This Developer Guide (DG) introduces the internals of **orCASHbuddy**, outlines 
    1. [UI Component](#ui-component)
    2. [Logic Component](#logic-component)
    3. [Model Component](#model-component)
+   4. [Storage Component](#storage-component)
 4. [Implementation](#implementation)
    1. [Add Expense Feature](#add-expense-feature)
    2. [Mark/Unmark Expense Feature](#markunmark-expense-feature)
@@ -89,7 +90,16 @@ Namespace: `seedu.orcashbuddy.expense`, `seedu.orcashbuddy.storage`
 
 ### Storage Component
 
----
+The storage subsystem in orCASHbuddy is responsible for saving user expensse and budget data between sessions.
+It uses Java object serialization to store the entire `ExpenseManager` object (which contains all expenses and budget state) into a `.ser` file.
+1. **StorageManager**: Handles file I/O and serialisation (save/load).
+2. **ExpenseManager**: Serialisable class that maintains the list of `Expense` objects and budget-related values.
+3. **Expense**: Serialisable class representing an individual expense item.
+4. **Ui**: used by `StorageManager` to display user-friendly error messages during save/load operations. 
+
+Refer to docs/diagrams/storage-component-class.puml for the structure (represented using class diagram) of the Storage Component.
+Refer to [Storage Management Feature](#storage-management-feature) for a more detailed explanation of the implementation of the Storage Component. 
+
 
 ## Implementation
 

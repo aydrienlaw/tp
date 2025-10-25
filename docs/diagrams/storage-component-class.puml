@@ -1,0 +1,122 @@
+@startuml
+
+interface Serializable <<interface>> {
+}
+
+class StorageManager {
+  - {static} LOGGER : Logger
+  - {static} DIRECTORY : String = "data"
+  - {static} FILE_NAME : String = "appdata.ser"
+  --
+  + {static} saveExpenseManager(expenseManager : ExpenseManager, ui : Ui) : void
+  + {static} loadExpenseManager(ui : Ui) : ExpenseManager
+}
+
+class ExpenseManager implements Serializable {
+  - {static} serialVersionUID : long = 1L
+  - {static} LOGGER : Logger
+  - {static} BUDGET_ALERT_THRESHOLD : double = 10.0
+  - expenses : List<Expense>
+  - budget : double = 0.0
+  - totalExpenses : double = 0.0
+  - remainingBalance : double = 0.0
+  --
+  + ExpenseManager()
+  + getBudget() : double
+  + getTotalExpenses() : double
+  + getRemainingBalance() : double
+  + getSize() : int
+  + getExpenses() : List<Expense>
+  + addExpense(expense : Expense) : void
+  + deleteExpense(index : int) : Expense
+  + getExpense(index : int) : Expense
+  + replaceExpense(index : int, newExpense : Expense) : void
+  + markExpense(index : int) : Expense
+  + unmarkExpense(index : int) : Expense
+  + setBudget(budget : double) : void
+  + determineBudgetStatus() : BudgetStatus
+  + sortExpenses() : List<Expense>
+  + findExpensesByCategory(category : String) : List<Expense>
+  + findExpensesByDescription(keyword : String) : List<Expense>
+  - updateBudgetAfterMark(expense : Expense) : void
+  - updateBudgetAfterUnmark(expense : Expense) : void
+  - recalculateRemainingBalance() : void
+  - validateExpense(expense : Expense) : void
+  - validateIndex(index : int) : void
+  - validateSearchTerm(searchTerm : String, fieldName : String) : void
+}
+
+class Expense implements Serializable {
+  + {static} DEFAULT_CATEGORY : String = "Uncategorized"
+  - {static} serialVersionUID : long = 1L
+  - amount : double
+  - description : String
+  - category : String
+  - isMarked : boolean
+  --
+  + Expense(amount : double, description : String, category : String)
+  + getAmount() : double
+  + getDescription() : String
+  + getCategory() : String
+  + isMarked() : boolean
+  + mark() : void
+  + unmark() : void
+  + formatForDisplay() : String
+}
+
+class Ui {
+  - {static} SEPARATOR : String
+  - {static} ERROR_PREFIX : String
+  - {static} CURRENCY_FORMAT : String
+  --
+  + showError(message : String) : void
+  + showWelcome() : void
+  + showGoodbye() : void
+  + showMenu() : void
+  + showNewExpense(expense : Expense) : void
+  + showDeletedExpense(expense : Expense) : void
+  + showMarkedExpense(expense : Expense) : void
+  + showUnmarkedExpense(expense : Expense) : void
+  + showNewBudget(budget : double) : void
+  + showFinancialSummary(...) : void
+  {method} ... other UI methods
+}
+
+enum BudgetStatus {
+  EXCEEDED
+  EQUAL
+  NEAR
+  OK
+}
+
+StorageManager ..> ExpenseManager : <<uses>>
+StorageManager ..> Ui : <<uses>>
+ExpenseManager "1" *-- "0..*" Expense : contains
+ExpenseManager ..> BudgetStatus : <<uses>>
+
+note right of Serializable
+  Java standard interface
+  for object serialization
+end note
+
+note bottom of StorageManager
+  Handles persistence using
+  Java serialization (ObjectOutputStream
+  and ObjectInputStream)
+end note
+
+note bottom of ExpenseManager
+  Implements Serializable to enable
+  saving/loading via StorageManager.
+  Contains serialVersionUID for
+  version control.
+end note
+
+note bottom of Expense
+  Implements Serializable as part
+  of the ExpenseManager object graph.
+  Must be serializable since it's
+  stored in ExpenseManager's list.
+end note
+
+@enduml
