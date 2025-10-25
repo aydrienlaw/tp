@@ -106,7 +106,7 @@ Namespace: `seedu.orcashbuddy.expense`, `seedu.orcashbuddy.storage`
 
 ### Storage Component
 
-The storage subsystem in orCASHbuddy is responsible for saving user expensse and budget data between sessions.
+The storage subsystem in orCASHbuddy is responsible for saving user expense and budget data between sessions.
 It uses Java object serialization to store the entire `ExpenseManager` object (which contains all expenses and budget state) into a `.ser` file.
 1. **StorageManager**: Handles file I/O and serialisation (save/load).
 2. **ExpenseManager**: Serialisable class that maintains the list of `Expense` objects and budget-related values.
