@@ -59,6 +59,22 @@ Follow these steps to set up the project in IntelliJ IDEA:
 
 ### UI Component
 
+**API**: `Ui.java`
+
+The `Ui` class handles all console-based user interactions in orCASHbuddy.
+
+#### Structure of the UI Component
+![UI Component Class Diagram](docs/diagrams/ui-component-class.png)
+
+The `Ui` component is a single class that encapsulates all display logic. All output is rendered to the console using `System.out.println()`.
+
+The UI component:
+- **is invoked by commands** in the Command component to display results after execution
+- **displays data** from `Expense` objects and `BudgetStatus` enums in the Model component
+- **does not hold references** to `ExpenseManager` or any other stateful components
+- **receives all data as method parameters**, making it stateless and purely presentational
+- **uses ANSI color codes** for the budget progress bar visualization (green/yellow/red based on spending)
+
 <br>
 
 ### Logic Component
