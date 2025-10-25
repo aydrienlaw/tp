@@ -2,10 +2,14 @@
 
 This Developer Guide (DG) introduces the internals of **orCASHbuddy**, outlines design decisions, and documents how to extend, test, and deploy the project. It is written for developers who will maintain or enhance the application.
 
+---
+
 ## Acknowledgements
 
 - Command pattern architecture, testing strategy, and documentation structure were adapted from the [AddressBook-Level3](https://se-education.org/addressbook-level3/) (AB3) teaching codebase.
 - orCASHbuddy was bootstrapped from the CS2113 template project.
+
+---
 
 ## Table of Contents
 
@@ -30,9 +34,13 @@ This Developer Guide (DG) introduces the internals of **orCASHbuddy**, outlines 
 8. [Appendix D: Glossary](#appendix-d-glossary)
 9. [Appendix E: Instructions for Manual Testing](#appendix-e-instructions-for-manual-testing)
 
+---
+
 ## Introduction
 
 orCASHbuddy is a Java 17 command-line application that helps students track expenses against a lightweight budget without the overhead of spreadsheets. 
+
+---
 
 ## Setting Up
 
@@ -44,9 +52,13 @@ Follow these steps to set up the project in IntelliJ IDEA:
 4. Run `Main#main` once to verify that the welcome banner appears in the Run tool window.
 5. Execute `./gradlew test` (or `gradlew.bat test` on Windows) to confirm all JUnit tests pass.
 
+---
+
 ## Design
 
 ### UI Component
+
+<br>
 
 ### Logic Component
 
@@ -64,6 +76,8 @@ Sequence for the `add` command (see `docs/diagrams/add-sequence.puml`; render wi
 4. `Parser` returns a new `AddCommand` populated with the validated parameters.
 5. `Main` invokes `AddCommand#execute`, which persists the `Expense` via `ExpenseManager` and renders feedback through `Ui`.
 
+<br>
+
 ### Model Component
 
 Namespace: `seedu.orcashbuddy.expense`, `seedu.orcashbuddy.storage`
@@ -71,9 +85,20 @@ Namespace: `seedu.orcashbuddy.expense`, `seedu.orcashbuddy.storage`
 - `Expense` is an immutable data carrier (amount, description, category, paid state).
 - `ExpenseManager` tracks aggregate figures (`budget`, `totalExpenses`, `remainingBalance`) and exposes behaviors consumed by commands (add, delete, mark/unmark, sort).
 
+<br>
+
+### Storage Component
+
+---
+
 ## Implementation
 
+This section describes some noteworthy details on how certain features are implemented.
+
+<br>
+
 ### Add Expense Feature
+
 
 #### Overview
 
@@ -112,6 +137,167 @@ During parsing, `OrCashBuddyException`s raised by `InputValidator` are caught in
 
 - **Positional arguments:** Rejected because optional fields would force users to remember ordering, increasing input errors.
 - **Validation inside `AddCommand`:** We deliberately kept parsing and validation upstream; performing both in the command would dilute separation of concerns and complicate error messaging.
+
+<br>
+
+### Set Budget Feature
+
+#### Overview
+
+The set budget feature allows users to establish a total budget amount that serves as a spending limit for tracking expenses. Users specify the budget using the command `setbudget a/AMOUNT`, where the amount must be a positive decimal value. This budget becomes the baseline for all financial tracking, enabling the application to calculate remaining balance, detect overspending, and trigger budget alerts.
+
+The budget is persistent across application sessions and can be updated at any time by issuing a new `setbudget` command. When the budget is modified, the application immediately recalculates the remaining balance based on currently marked (paid) expenses.
+
+#### Control Flow
+
+1. **Input capture:** `Main` reads the user's command (e.g., `setbudget a/100.00`) and forwards it to `Parser`.
+2. **Tokenisation and validation:** `Parser` uses `ArgumentParser` to extract the budget amount:
+    - `ArgumentParser#getValue("a/")` retrieves the amount string after the `a/` prefix.
+    - If the prefix is missing, `ArgumentParser` throws `OrCashBuddyException` with message "Missing prefix: a/".
+    - `InputValidator#validateAmount(amountStr, "setbudget")` validates the extracted string:
+        - Checks if the string is null or empty, throwing `emptyAmount("setbudget")` if so.
+        - Attempts to parse as a double, throwing `invalidAmount(amountStr)` if parsing fails.
+        - Verifies the value is positive (> 0), throwing `amountNotPositive(amountStr)` if not.
+3. **Command creation:** `Parser` constructs a new `SetBudgetCommand` with the validated budget amount. The command stores only the primitive double value, keeping it lightweight and immutable.
+4. **Execution:** `Main` invokes `command.execute(expenseManager, ui)`:
+    - The command asserts that `budget > 0.0` to catch any validation bypasses during development.
+    - The command calls `ExpenseManager#setBudget(budget)` to update the budget.
+    - `ExpenseManager` performs its own assertion that the budget is positive, then stores the value and calls `recalculateRemainingBalance()`.
+    - `recalculateRemainingBalance()` updates `remainingBalance = budget - totalExpenses`, where `totalExpenses` represents the sum of all marked expenses.
+    - The command passes the new budget to `Ui#showNewBudget(budget)`, which displays confirmation: "Your total budget is now $X.XX."
+5. **Data persistence:** `Main` calls `StorageManager.saveExpenseManager(expenseManager, ui)` immediately after command execution, ensuring the new budget is persisted to disk.
+
+The sequence diagram in `docs/diagrams/setbudget-sequence.puml` illustrates these interactions from input parsing to storage persistence.
+
+#### Budget Calculation and State Management
+
+`ExpenseManager#setBudget(double)` manages budget state:
+```java
+public void setBudget(double budget) {
+    assert budget > 0.0 : "Budget must be positive";
+    
+    this.budget = budget;
+    recalculateRemainingBalance();
+    
+    LOGGER.log(Level.INFO, "Budget set to {0}", budget);
+}
+
+private void recalculateRemainingBalance() {
+    remainingBalance = budget - totalExpenses;
+    assert Math.abs(remainingBalance - (budget - totalExpenses)) < 0.001
+            : "Remaining balance calculation error";
+}
+```
+
+**Key Invariants:**
+- **Budget positivity:** The budget must always be greater than zero. This is enforced by both `InputValidator` during parsing and `ExpenseManager` via assertions.
+- **Balance consistency:** After any budget update, the invariant `remainingBalance = budget - totalExpenses` must hold exactly. The `recalculateRemainingBalance()` method ensures this, with an assertion checking for floating-point calculation errors.
+- **Total expenses independence:** Setting a new budget does not modify `totalExpenses`, which only changes when expenses are marked or unmarked. This separation ensures budget updates don't accidentally reset expense tracking.
+
+#### Display Format and User Feedback
+
+`Ui#showNewBudget(double)` provides simple confirmation:
+```java
+public void showNewBudget(double budget) {
+    System.out.println("Your total budget is now " + formatCurrency(budget) + ".");
+}
+```
+
+Example output:
+```
+---------------------------------------------------------------
+Your total budget is now $100.00.
+---------------------------------------------------------------
+```
+
+The confirmation message is intentionally concise, focusing on the action completed. Users can view detailed budget status (remaining balance, percentage used) by running the `list` command, which displays the full financial summary with progress bar visualization.
+
+#### Integration with Budget Tracking
+
+Once set, the budget immediately affects several system behaviors:
+
+**Budget Status Determination:**
+After marking or unmarking expenses, `ExpenseManager#determineBudgetStatus()` evaluates remaining balance:
+- `EXCEEDED` when `remainingBalance < 0` (overspent)
+- `EQUAL` when `remainingBalance == 0` (exactly at budget)
+- `NEAR` when `0 < remainingBalance < $10.00` (approaching limit)
+- `OK` otherwise (comfortable margin)
+
+**Visual Progress Bar:**
+The `list` command displays a color-coded progress bar:
+- Green: 0-70% of budget used
+- Yellow: 70-100% of budget used
+- Red: Over budget (>100%)
+
+**Budget Alerts:**
+Commands that modify total expenses (`mark`, `unmark`, `delete`) check budget status and display alerts via `Ui#showBudgetStatus()` when thresholds are crossed.
+
+#### Logging and Diagnostics
+
+`SetBudgetCommand` logs at INFO level:
+```
+INFO: Budget set to 100.0
+```
+
+This simple log entry provides an audit trail of budget changes, useful for debugging user-reported discrepancies or verifying command execution during manual testing.
+
+#### Design Rationale
+
+**Why require positive budget?**
+Zero or negative budgets have no meaningful interpretation in expense tracking. By rejecting these values early (during validation), we prevent downstream logic errors and provide clear error messages to users who might accidentally type `setbudget a/-50` or `setbudget a/0`.
+
+**Why allow budget updates?**
+Real-world budgets change frequently (monthly allowances, project budgets, semester spending limits). Allowing seamless updates without requiring deletion of existing expenses provides flexibility while maintaining expense history. The application recalculates remaining balance immediately, so users see accurate status after any budget change.
+
+**Why separate budget from total expenses?**
+This separation of concerns ensures that:
+- Budget represents the user's *intended* spending limit (input)
+- Total expenses represents *actual* spending (calculated from marked expenses)
+- Remaining balance is always derived from these two values (never stored independently)
+
+This design prevents inconsistencies where remaining balance might drift from the true calculation due to bugs or data corruption.
+
+#### Error Handling Strategy
+
+**Missing or invalid amounts:**
+If the user enters `setbudget` without an amount or with invalid input:
+- `InvalidCommand` wraps the `OrCashBuddyException` from parsing
+- `InvalidCommand#execute()` calls `Ui#showSetBudgetUsage()` to display correct format
+- Application continues without modifying the budget
+
+Example error messages:
+- `"Missing amount prefix 'a/'"` → shows usage
+- `"Amount is not a valid decimal: abc"` → shows usage
+- `"Amount must be greater than 0: -50.00"` → shows usage
+
+**Floating-point precision:**
+Budget amounts are stored as double primitives. While this introduces potential floating-point errors, the `recalculateRemainingBalance()` assertion uses a tolerance of 0.001 to catch significant deviations without triggering false positives from typical floating-point arithmetic.
+
+#### Extensibility and Future Enhancements
+
+- **Category-specific budgets:** Extend to support per-category limits (e.g., `setbudget cat/Food a/50`), requiring new fields in `ExpenseManager` and modified budget status logic to track multiple thresholds.
+- **Time-based budgets:** Add support for weekly or monthly budget periods with automatic reset (e.g., `setbudget a/500 period/monthly`), requiring date tracking for expenses and scheduled budget renewal.
+- **Budget history:** Maintain a log of budget changes over time to enable trend analysis and reporting (e.g., "Your budget increased 20% this semester").
+- **Multiple budgets:** Allow users to maintain separate budgets for different contexts (personal vs. club spending), requiring a budget selection mechanism in commands.
+- **Budget warnings:** Proactively alert users when adding an expense would exceed budget, before marking it as paid.
+
+#### Alternatives Considered
+
+**Budget as optional parameter to add:**
+Some expense trackers allow setting budget while adding the first expense (e.g., `add a/10 desc/Lunch budget/100`). Rejected because:
+- Mixing expense entry with budget configuration violates single responsibility principle
+- Users might accidentally override their budget when adding routine expenses
+- Separate commands provide clearer intent and simpler parsing logic
+
+**Confirmation prompt for budget changes:**
+We considered requiring confirmation when updating an existing budget (e.g., "Your current budget is $50. Change to $100? [y/n]"). Rejected because:
+- Adds friction to a common operation (monthly budget resets)
+- CLI power users expect commands to execute immediately without interactive prompts
+- Users can verify the change via `list` command immediately after if needed
+
+By keeping budget setting simple and immediate, orCASHbuddy maintains its lightweight, keyboard-centric design philosophy while providing the essential functionality needed for expense tracking.
+
+<br>
 
 ### Mark/Unmark Expense Feature
 
@@ -207,6 +393,8 @@ These logs are essential for verifying correct budget arithmetic during manual t
     - ANSI colors may not render consistently across all terminals.
     - Emoji require Unicode support and increase display width.
     - Bracket notation is text-based, universally compatible, and familiar to users from todo list applications (including the CS2113 iP assignment).
+
+<br>
 
 ### Find Expense Feature
 
@@ -361,6 +549,8 @@ Case-sensitive matching was rejected because:
 - **Search result caching:** We considered storing the last search results in `ExpenseManager` to support pagination or follow-up operations. Rejected because it introduces statefulness that complicates testing and doesn't align with the stateless command model used elsewhere.
 - **Multi-field unified search:** A single `search KEYWORD` command that checks all fields (category, description, amount) was considered but rejected because amount matching requires different logic (numerical comparison vs string matching), and unified results would be harder to interpret.
 
+<br>
+
 ### Delete Expense Feature
 
 #### Overview
@@ -478,6 +668,7 @@ Rejected due to ambiguity when duplicate names exist. Index-based deletion remai
 ##### Deferred deletion
 We considered queuing deletions and saving all at exit. Rejected in favor of immediate persistence for reliability and simplicity.
 
+<br>
 
 ### Edit Expense Feature
 
@@ -519,7 +710,6 @@ The `EditCommand` class extends `Command` and performs the update by replacing t
    `StorageManager#saveExpenseManager` is invoked to immediately persist the updated expense list to disk, ensuring no data is lost.
 
 The sequence diagram in `docs/diagrams/edit-sequence.puml` illustrates the interactions between `Main`, `Parser`, `EditCommand`, `ExpenseManager`, `Ui`, and `StorageManager` during this workflow.
-
 
 #### Validation
 - Ensures the provided index corresponds to an existing expense.
@@ -564,14 +754,13 @@ Creating a new `Expense` object ensures that once created, an instance cannot be
 ##### Why allow partial updates?
 Users may only want to fix one detail (e.g., typo in description), so optional parameters provide flexibility.
 
-
-
 #### Extensibility and Future Enhancements
 
 - **Support editing by keyword:** Allow editing by expense name instead of index (e.g., `edit "Lunch"`).
 - **Batch editing:** Enable simultaneous modification of multiple expenses.
 - **Undo/redo support:** Integrate with a command history system for reversible edits.
 
+<br>
 
 ### Sort Expenses Feature
 
@@ -688,6 +877,8 @@ Rejected since sorting is purely a viewing operation and should not alter stored
 ##### Multi-criteria sorting
 Considered (e.g., sort by amount then category), but initially implemented simple descending amount sort to keep the CLI lightweight and intuitive.
 
+<br>
+
 ### Storage Management Feature
 
 #### Overview
@@ -791,6 +982,8 @@ All exceptions are caught internally to prevent the application from crashing du
 * All storage events are logged at `INFO` for successful operations and `WARNING` for failures.
 * Enables tracing of storage-related issues during debugging or testing.
 
+<br>
+
 ### Graceful Exit
 
 #### Overview
@@ -861,6 +1054,8 @@ The sequence diagram in `docs/diagrams/help-sequence.puml` illustrates these int
 
 orCASHbuddy offers a fast, distraction-free way to log expenses and check their impact on a simple budget. Compared to spreadsheets, setup time is negligible and data entry is optimised for the keyboard.
 
+---
+
 ## Appendix B: User Stories
 
 Priorities: High (must have) - ***, Medium (nice to have) - **, Low (unlikely to have) - *
@@ -901,6 +1096,8 @@ Priorities: High (must have) - ***, Medium (nice to have) - **, Low (unlikely to
 - **Command (Pattern):** A design pattern where user actions are encapsulated as objects (subclasses of `Command`), allowing for flexible execution, logging, and potential undo/redo functionality.
 - **UI (User Interface):** The component responsible for all interactions with the user, including displaying messages, prompts, and application output.
 - **StorageManager:** The component responsible for handling the persistent saving and loading of the `ExpenseManager` object to/from disk, ensuring data integrity across application sessions.
+
+---
 
 ## Appendix E: Instructions for Manual Testing
 

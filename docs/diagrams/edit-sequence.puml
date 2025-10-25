@@ -1,0 +1,126 @@
+@startuml
+!theme vibrant
+actor User
+participant ":Main" as Main
+participant ":StorageManager" as StorageManager
+participant ":Parser" as Parser
+participant ":ArgumentParser" as ArgumentParser
+participant ":InputValidator" as InputValidator
+participant ":EditCommand" as EditCommand
+participant ":Expense" as Expense
+participant ":ExpenseManager" as ExpenseManager
+participant ":Ui" as Ui
+
+activate Main
+Main -> StorageManager : loadExpenseManager(ui)
+activate StorageManager
+StorageManager --> Main : expenseManager
+deactivate StorageManager
+
+User -> Main : enters "edit id/1 a/15 desc/dinner cat/food"
+
+Main -> Parser : parse("edit id/1 a/15 desc/dinner cat/food")
+activate Parser
+
+create ArgumentParser
+Parser -> ArgumentParser : "id/1 a/15 desc/dinner cat/food"
+activate ArgumentParser
+Parser -> ArgumentParser : getValue("id/")
+ArgumentParser --> Parser : "1"
+
+opt optional fields
+    Parser -> ArgumentParser : getOptionalValue("a/")
+    ArgumentParser --> Parser : "15"
+
+    Parser -> ArgumentParser : getOptionalValue("desc/")
+    ArgumentParser --> Parser : "dinner"
+
+    Parser -> ArgumentParser : getOptionalValue("cat/")
+    ArgumentParser --> Parser : "food"
+end
+deactivate ArgumentParser
+
+Parser -> InputValidator : validateIndex("1", "edit")
+activate InputValidator
+InputValidator --> Parser : 1
+deactivate InputValidator
+
+Parser -> InputValidator : validateAmount("15", "edit")
+activate InputValidator
+InputValidator --> Parser : 15.0
+deactivate InputValidator
+
+Parser -> InputValidator : validateDescription("dinner", "edit")
+activate InputValidator
+InputValidator --> Parser : "dinner"
+deactivate InputValidator
+
+Parser -> InputValidator : validateCategory("food", "edit")
+activate InputValidator
+InputValidator --> Parser : "food"
+deactivate InputValidator
+
+create EditCommand
+Parser -> EditCommand : (1, 15.0, "dinner", "food")
+Parser --> Main : editCommand
+deactivate Parser
+
+Main -> EditCommand : execute(expenseManager, ui)
+activate EditCommand
+
+EditCommand -> ExpenseManager : getExpense(1)
+activate ExpenseManager
+ExpenseManager --> EditCommand : Expense(original)
+deactivate ExpenseManager
+
+EditCommand -> Expense : getAmount(), getDescription(), getCategory(), isMarked()
+activate Expense
+Expense --> EditCommand : returns original details
+deactivate Expense
+
+create Expense
+EditCommand -> Expense : new Expense(15.0, "dinner", "food")
+
+EditCommand -> ExpenseManager : replaceExpense(1, newExpense)
+activate ExpenseManager
+ExpenseManager -> ExpenseManager : deleteExpense(1)
+ExpenseManager -> ExpenseManager : add(index-1, newExpense)
+ExpenseManager --> EditCommand
+deactivate ExpenseManager
+
+EditCommand -> ExpenseManager : markExpense(1) [if originally marked]
+activate ExpenseManager
+ExpenseManager --> EditCommand
+deactivate ExpenseManager
+
+EditCommand -> Ui : showSeparator()
+activate Ui
+deactivate Ui
+
+EditCommand -> Ui : showEditedExpense(newExpense)
+activate Ui
+Ui --> User : displays edited expense
+deactivate Ui
+
+EditCommand -> ExpenseManager : determineBudgetStatus()
+activate ExpenseManager
+ExpenseManager --> EditCommand : BudgetStatus
+deactivate ExpenseManager
+
+EditCommand -> Ui : showBudgetStatus(status, remainingBalance) [if not OK]
+activate Ui
+Ui --> User : displays budget warning
+deactivate Ui
+
+EditCommand -> Ui : showSeparator()
+activate Ui
+deactivate Ui
+
+deactivate EditCommand
+
+Main -> StorageManager : saveExpenseManager(expenseManager, ui)
+activate StorageManager
+deactivate StorageManager
+
+deactivate Main
+@enduml
