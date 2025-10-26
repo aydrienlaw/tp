@@ -30,7 +30,7 @@ orCASHbuddy is a Java 17 command-line application that helps students track expe
         *   **Testing:** Created test cases and code for the `bye` command, verifying its execution and the correct signaling of application exit.
 
     *   **Testing Contributions (General):**
-        *   Developed testing cases and code for core components including `Ui` (ensuring correct display of messages), `InputValidator` (comprehensive validation scenarios), `Parser` (correct command parsing), `InvalidCommandTest` (handling of invalid commands), `UnmarkCommandTest` (verifying unmarking logic), and `ArgumentParserTest` (robust argument extraction).
+        *   Developed testing cases and code for core components including `Ui` (ensuring correct display of messages), `InputValidator` (comprehensive validation scenarios), `Parser` (correct command parsing), `InvalidCommandTest` (handling of invalid commands), `UnmarkCommandTest` (verifying unmarking logic), and `ArgumentParserTest`. 
 
 *   **Contributions to team-based tasks:**
     *   Set up the template for the User Guide (UG) and Developer Guide (DG).
@@ -43,5 +43,3 @@ orCASHbuddy is a Java 17 command-line application that helps students track expe
     *   Actively coordinated and supported the team during in-person meetings and Telegram discussions—clarifying requirements, unblocking tasks, and maintaining alignment on goals.
     *   Assisted teammates with CI and bug triaging: reproduced failures, suggested fixes for failing builds.
 
-*   **Contributions beyond the project team:**
-    *   *(No specific instances recorded in our interaction. You can add evidence of helping others in forums, reporting bugs in other teams' products, or sharing technical information here.)*
