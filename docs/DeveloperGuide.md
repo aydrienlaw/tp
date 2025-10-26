@@ -1087,19 +1087,22 @@ Priorities: High (must have) - ***, Medium (nice to have) - **, Low (unlikely to
 | ***      | cautious user     | have my expenses automatically saved | avoid losing my data |
 
 ## Appendix C: Non-Functional Requirements
-1. The application must run on any system with Java 17 installed (Windows, macOS, Linux).
-2. The codebase should pass `./gradlew checkstyleMain` with no warnings.
-3. The CLI should remain readable on terminals with at least 80 characters width.
-4. The application must reliably save and load all expense data to/from persistent storage, ensuring no data loss across sessions due to normal application termination or unexpected crashes.
-5. The application must gracefully handle invalid user input and file I/O errors, providing informative error messages to the user without crashing.
-6. The application must provide clear and immediate feedback to the user for all command executions, including success messages, error messages, and budget alerts.
-7. The codebase must be modular and testable, allowing for easy extension of new commands and features without significant refactoring of existing components.
+1. **Runtime platform:** The application must run on any mainstream operating system (Windows, macOS, Linux) that has Java 17 LTS installed.
+2. **Performance:** Interactive commands (`add`, `list`, `find`, `mark`, `unmark`, `edit`, `delete`, `sort`, `setbudget`) should complete within one second on a typical student laptop (≥2 CPU cores, ≥8 GB RAM).
+3. **Persistence:** Every mutating command must trigger `StorageManager` to persist the updated state to `data/appdata.ser`. On startup, loading must recreate the most recent saved state.
+4. **Robustness:** Invalid user input or storage errors must be caught and presented as actionable error messages; the application must not terminate due to uncaught exceptions.
+5. **Feedback:** Each command must yield immediate feedback (success confirmation, error explanation, or budget alert) so that users know the outcome of their action.
+6. **Quality bar:** `./gradlew checkstyleMain checkstyleTest` and `./gradlew test` must pass before release.
+
 ## Appendix D: Glossary
 
 - **Command Prefix:** A short label (e.g., `a/`) that identifies the parameter being provided.
 - **Expense Index:** One-based position of an expense in the list output.
 - **Paid Expense:** An expense that has been marked as settled using the `mark` command.
 - **Uncategorized:** The default category assigned to an expense when the user omits the optional `cat/` parameter during the `add` command.
+- **Financial Summary:** The combined output showing budget, total marked expenses, remaining balance, and the progress bar.
+- **Budget Status:** The alert level (OK, NEAR, EQUAL, EXCEEDED) communicated to users when the remaining balance crosses defined thresholds.
+- **Remaining Balance:** Budget minus the sum of all marked expenses.
 - **Mainstream OS:** Operating systems with significant user bases, such as Windows, macOS, and Linux.
 - **OrCashBuddyException:** A custom exception class used to signal recoverable application-specific errors, typically caught by the `Main` loop or `Parser` to provide user-friendly feedback.
 - **ExpenseManager:** The central component in the Model that manages the list of `Expense` objects, budget tracking, and operations like adding, deleting, marking, and searching expenses.
