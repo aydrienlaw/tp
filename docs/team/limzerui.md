@@ -39,7 +39,9 @@ orCASHbuddy is a Java 17 command-line application that helps students track expe
     *   Maintained the issue tracker.
 
 *   **Review/mentoring contributions:**
-    *   *(No specific instances recorded in our interaction. You can add links to PRs you reviewed or describe how you helped teammates here.)*
+    *   Reviewed and mentored teammates on feature design and implementation, e.g. pull request [#54](https://github.com/AY2526S1-CS2113-T11-2/tp/pull/54), where I provided feedback on command parsing and validation logic to ensure consistency with project conventions.
+    *   Actively coordinated and supported the team during in-person meetings and Telegram discussions—clarifying requirements, unblocking tasks, and maintaining alignment on goals.
+    *   Assisted teammates with CI and bug triaging: reproduced failures, suggested fixes for failing builds.
 
 *   **Contributions beyond the project team:**
     *   *(No specific instances recorded in our interaction. You can add evidence of helping others in forums, reporting bugs in other teams' products, or sharing technical information here.)*
