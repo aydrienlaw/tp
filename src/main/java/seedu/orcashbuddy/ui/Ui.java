@@ -17,7 +17,7 @@ public class Ui {
     private static final int PROGRESS_BAR_WIDTH = 30;
     private static final String NO_BUDGET_LABEL = "[no budget set]";
 
-    // ANSI color codes
+    // ANSI color codes for visual budget bar
     private static final String ANSI_GREEN = "\u001B[32m";
     private static final String ANSI_YELLOW = "\u001B[33m";
     private static final String ANSI_RED = "\u001B[31m";
@@ -34,12 +34,16 @@ public class Ui {
             "Use: edit id/INDEX a/AMOUNT or/and desc/DESCRIPTION or/and cat/CATEGORY";
 
     // ========== Display separators and decorators ==========
+
+    /**
+     * Prints a horizontal separator for readability.
+     */
     public void showSeparator() {
         System.out.print(SEPARATOR);
     }
 
     /**
-     * Displays a general error message.
+     * Displays a general error message surrounded by separators.
      *
      * @param message the error message to display
      */
@@ -50,6 +54,10 @@ public class Ui {
     }
 
     // ========== Welcome and Goodbye messages ==========
+
+    /**
+     * Prints a welcome banner and the help menu.
+     */
     public void showWelcome() {
         System.out.println("Welcome to orCASHbuddy");
         showSeparator();
@@ -57,13 +65,18 @@ public class Ui {
         showSeparator();
     }
 
+    /**
+     * Prints a farewell message.
+     */
     public void showGoodbye() {
         System.out.println("Bye. Hope to see you again soon!");
     }
 
     // ========== Menu and help display ==========
+
     /**
-     * Prints the main menu of available commands.
+     * Prints the main menu of available commands and their formats.
+     * This serves as the built-in "help" text.
      */
     public void showMenu() {
         String[] menuItems = {
@@ -86,11 +99,12 @@ public class Ui {
     }
 
     // ========== Expense display methods ==========
+
     /**
-     * Helper method to display an expense with a label.
+     * Helper method to display a single expense with a label/header.
      *
-     * @param label The label to display before the expense
-     * @param expense The expense to display
+     * @param label the heading to show
+     * @param expense the expense to print
      */
     private void showExpenseWithLabel(String label, Expense expense) {
         System.out.println(label);
@@ -99,6 +113,8 @@ public class Ui {
 
     /**
      * Prints the confirmation for a newly added expense.
+     *
+     * @param expense the expense that was just added
      */
     public void showNewExpense(Expense expense) {
         showExpenseWithLabel("New Expense:", expense);
@@ -106,6 +122,8 @@ public class Ui {
 
     /**
      * Prints the confirmation for an edited expense.
+     *
+     * @param expense the updated expense
      */
     public void showEditedExpense(Expense expense) {
         showExpenseWithLabel("Edited Expense:", expense);
@@ -114,7 +132,7 @@ public class Ui {
     /**
      * Displays a confirmation message that an expense was deleted.
      *
-     * @param expense The expense object that was deleted
+     * @param expense the expense object that was deleted
      */
     public void showDeletedExpense(Expense expense) {
         showExpenseWithLabel("Deleted Expense:", expense);
@@ -123,7 +141,7 @@ public class Ui {
     /**
      * Displays a confirmation message that an expense was marked.
      *
-     * @param expense The expense object that was marked
+     * @param expense the expense that was marked
      */
     public void showMarkedExpense(Expense expense) {
         showExpenseWithLabel("Marked Expense:", expense);
@@ -132,13 +150,14 @@ public class Ui {
     /**
      * Displays a confirmation message that an expense was unmarked.
      *
-     * @param expense The expense object that was unmarked
+     * @param expense the expense object that was unmarked
      */
     public void showUnmarkedExpense(Expense expense) {
         showExpenseWithLabel("Unmarked Expense:", expense);
     }
 
     // ========== Budget-related display methods ==========
+
     /**
      * Displays a confirmation message showing the newly set total budget.
      *
@@ -149,18 +168,18 @@ public class Ui {
     }
 
     /**
-     * Displays the budget that has been set.
+     * Displays the user's budget.
      *
-     * @param budget The budget amount.
+     * @param budget the budget amount
      */
     public void showBudget(double budget) {
         System.out.println("Budget set: " + formatCurrency(budget));
     }
 
     /**
-     * Displays the total expenses.
+     * Displays the total expenses so far.
      *
-     * @param totalExpense The total amount of expenses.
+     * @param totalExpense the total amount of expenses
      */
     private void showTotalExpenses(double totalExpense) {
         System.out.println("Total expenses: " + formatCurrency(totalExpense));
@@ -169,31 +188,32 @@ public class Ui {
     /**
      * Displays the remaining balance after expenses.
      *
-     * @param remainingBalance The remaining balance amount.
+     * @param remainingBalance the remaining balance amount
      */
     private void showRemainingBalance(double remainingBalance) {
         System.out.println("Remaining balance: " + formatCurrency(remainingBalance));
     }
 
     /**
-     * Formats a monetary amount as a currency string.
+     * Formats a double-precision amount as a currency string, e.g. {@code $12.34}.
      *
-     * @param amount The amount to format
-     * @return Formatted currency string
+     * @param amount the amount to format
+     * @return formatted currency string
      */
     private String formatCurrency(double amount) {
         return "$" + String.format(CURRENCY_FORMAT, amount);
     }
 
     // ========== List display methods ==========
+
     /**
-     * Displays total expenses, budget,
-     * remaining balance, and the full list of expenses.
+     * Displays budget, total spent, remaining balance,
+     * a progress bar, and the full list of expenses.
      *
-     * @param totalExpense The total amount of expenses.
-     * @param budget The budget amount.
-     * @param remainingBalance The remaining balance after expenses.
-     * @param expenses The list of all expenses.
+     * @param budget            the configured budget
+     * @param totalExpense      total spent so far
+     * @param remainingBalance  budget - totalExpense
+     * @param expenses          all tracked expenses
      */
     public void showFinancialSummary(double budget, double totalExpense,
                                      double remainingBalance, List<Expense> expenses) {
@@ -211,11 +231,15 @@ public class Ui {
     }
 
     /**
-     * Builds a fixed-width progress bar representing totalExpense/budget.
-     * Example: |=========/             |  35%  (Remaining: $390.00)
-     * - Uses '/' as the tick marker at the current proportion.
-     * - Clamps within [0, PROGRESS_BAR_WIDTH - 1].
-     * - Annotates over-budget state.
+     * Builds and prints a fixed-width progress bar representing totalExpense/budget.
+     * Example output (color-coded in console):
+     * <pre>
+     * Budget Used: [====|-----]  35.00%  (Remaining: $390.00)
+     * </pre>
+     * The bar color changes as usage approaches/exceeds the budget.
+     *
+     * @param budget       the configured budget
+     * @param totalExpense how much has been spent
      */
     private void showProgressBar(double budget, double totalExpense) {
         if (budget <= 0) {
@@ -276,10 +300,10 @@ public class Ui {
     }
 
     /**
-     * Displays the list of expenses.
-     * If the list is empty, a message indicating no expenses is shown.
+     * Displays the list of expenses (numbered). If the list is empty,
+     * shows a dedicated "no expenses" message.
      *
-     * @param expenses The list of expenses to display.
+     * @param expenses the list of expenses to display
      */
     private void showExpenseList(List<Expense> expenses) {
         if (expenses.isEmpty()) {
@@ -291,7 +315,7 @@ public class Ui {
     }
 
     /**
-     * Displays a message for empty list.
+     * Displays a message indicating that there are no expenses yet.
      */
     public void showEmptyExpenseList() {
         System.out.println("No expenses added so far.");
@@ -311,12 +335,12 @@ public class Ui {
 
     //@@author muadzyamani
     /**
-     * Displays the list of expenses found by the find command.
-     * If no expenses are found, displays a message indicating no results.
+     * Displays the list of expenses found by the {@code find} command.
+     * If none are found, prints a "no results" message.
      *
-     * @param foundExpenses the list of expenses that match the search criteria
-     * @param searchTerm the term that was searched for
-     * @param searchType the type of search performed ("category" or "description")
+     * @param foundExpenses the list of matching expenses
+     * @param searchTerm    the term searched for
+     * @param searchType    the kind of match ("category" or "description")
      */
     public void showFoundExpenses(List<Expense> foundExpenses, String searchTerm, String searchType) {
         if (foundExpenses.isEmpty()) {
@@ -330,9 +354,9 @@ public class Ui {
     }
 
     /**
-     * Helper method to display a numbered list of expenses.
+     * Helper to print each expense in a list with its 1-based index.
      *
-     * @param expenses The list of expenses to display
+     * @param expenses the list to print
      */
     private void showNumberedExpenses(List<Expense> expenses) {
         for (int i = 0; i < expenses.size(); i++) {
@@ -344,48 +368,42 @@ public class Ui {
 
     // ========== Command usage methods ==========
     /**
-     * Prints the correct usage for the add command.
+     * Prints usage information for {@code add}.
      */
     public void showAddUsage() {
         System.out.println(ADD_USAGE);
     }
 
     /**
-     * Displays usage information for the delete command.
-     * Format: delete EXPENSE_INDEX
+     * Prints usage information for {@code delete}.
      */
     public void showDeleteUsage() {
         System.out.println(DELETE_USAGE);
     }
 
     /**
-     * Displays usage instructions for the {@code setbudget} command
-     * when the user provides invalid input.
-     * <p>
-     * Correct format: {@code setbudget a/AMOUNT}
+     * Prints usage information for {@code setbudget}.
      */
     public void showSetBudgetUsage() {
         System.out.println(SETBUDGET_USAGE);
     }
 
     /**
-     * Displays usage information for the mark command.
-     * Format: mark EXPENSE_INDEX
+     * Prints usage information for {@code mark}.
      */
     public void showMarkUsage() {
         System.out.println(MARK_USAGE);
     }
 
     /**
-     * Displays usage information for the unmark command.
-     * Format: unmark EXPENSE_INDEX
+     * Prints usage information for {@code unmark}.
      */
     public void showUnmarkUsage() {
         System.out.println(UNMARK_USAGE);
     }
 
     /**
-     * Displays usage information for the find command.
+     * Prints usage information for {@code find}.
      */
     public void showFindUsage() {
         System.out.println(FIND_USAGE);
@@ -393,20 +411,27 @@ public class Ui {
 
     //@@author gumingyoujia
     /**
-     * Displays usage information for the edit command.
+     * Prints usage information for {@code edit}.
      */
     public void showEditUsage() {
         System.out.println(EDIT_USAGE);
     }
 
     /**
-     * Displays a message for unknown commands.
+     * Displays a message for unknown commands and nudges the user toward {@code help}.
      */
     public void showUnknownCommand() {
         System.out.println("Unknown command. Type 'help' to see available commands.");
     }
 
     // ========== Budget alert methods ==========
+    /**
+     * Displays a warning or alert based on the user's current {@link BudgetStatus}.
+     * For example, if spending exceeds the budget, prints an "exceeded budget" alert.
+     *
+     * @param status    the computed budget status
+     * @param remaining the remaining balance (may be negative if exceeded)
+     */
     public void showBudgetStatus(BudgetStatus status, double remaining) {
         switch (status) {
         case EXCEEDED -> {
