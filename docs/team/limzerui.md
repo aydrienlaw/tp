@@ -22,18 +22,27 @@ orCASHbuddy is a Java 17 command-line application that helps students track expe
         *   **Testing:** Developed comprehensive test cases and code for the `add` command, covering various scenarios including valid inputs, missing required prefixes, and invalid data formats.
 
     *   **`bye` Feature Implementation:**
-        *   **Functionality:** Implemented the `bye` command for graceful application termination. This ensures that all data is saved and the application exits cleanly, providing a positive user experience.
-        *   **Class Contributions:**
-            *   `Parser.java`: Implemented the `parseByeCommand` method to recognize the `bye` command and handle cases with unexpected arguments.
-            *   `ByeCommand.java`: Developed the `execute` method to display a farewell message via the `Ui` and signal application exit through `isExit()`.
-            *   `Ui.java`: Contributed to displaying the goodbye message (`showGoodbye`) and consistent output formatting (`showSeparator`).
-        *   **Testing:** Created test cases and code for the `bye` command, verifying its execution and the correct signaling of application exit.
+        *   **Functionality:** Did up the `bye` command for graceful application termination, ensuring data persistence and a clean exit.
+        *   **Contributions:**
+            *   `Parser.java`: Implemented `parseByeCommand` to handle command recognition and unexpected arguments.
+            *   `ByeCommand.java`: Developed the `execute` method to orchestrate the farewell message display and signal application shutdown.
+            *   `Ui.java`: Contributed `showGoodbye` for the farewell message and `showSeparator` for consistent formatting.
+        *   **Testing:** Authored tests to validate the `bye` command's execution and proper exit signaling.
 
     *   **Testing Contributions (General):**
         *   Developed testing cases and code for core components including `Ui` (ensuring correct display of messages), `InputValidator` (comprehensive validation scenarios), `Parser` (correct command parsing), `InvalidCommandTest` (handling of invalid commands), `UnmarkCommandTest` (verifying unmarking logic), and `ArgumentParserTest`. 
 
+*   **Contributions to the User Guide:**
+    *   Wrote the documentation for the `add` and `bye` features.
+    *   Added the Command Summary section.
+    *   Wrote the FAQ section.
+
+*   **Contributions to the Developer Guide:**
+    *   Set up the initial skeleton of the Developer Guide.
+    *   Wrote the documentation for the `add`, `bye`, and `help` features, including their respective sequence diagrams.
+    *   Wrote the full appendix, from Appendix A to Appendix E.
+
 *   **Contributions to team-based tasks:**
-    *   Set up the template for the User Guide (UG) and Developer Guide (DG).
     *   Provided skeleton code for the initial beginning of the project.
     *   Contributed to the design and creation of the skeleton and template for sequence diagrams used in the documentation.
     *   Maintained the issue tracker.
@@ -41,5 +50,4 @@ orCASHbuddy is a Java 17 command-line application that helps students track expe
 *   **Review/mentoring contributions:**
     *   Reviewed and mentored teammates on feature design and implementation, e.g. pull request [#54](https://github.com/AY2526S1-CS2113-T11-2/tp/pull/54), where I provided feedback on command parsing and validation logic to ensure consistency with project conventions.
     *   Actively coordinated and supported the team during in-person meetings and Telegram discussions—clarifying requirements, unblocking tasks, and maintaining alignment on goals.
-    *   Assisted teammates with CI and bug triaging: reproduced failures, suggested fixes for failing builds.
 
