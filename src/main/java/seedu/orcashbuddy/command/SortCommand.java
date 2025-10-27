@@ -28,6 +28,7 @@ public class SortCommand extends Command{
         LOGGER.info("Executing SortCommand");
         ui.showSeparator();
         if (expenseManager.getSize() == 0) {
+            LOGGER.info("Cannot sort expenses - list is empty");
             ui.showEmptyExpenseList();  // prints "No expenses added so far."
         } else {
             ui.showSortedExpenseList(expenseManager.sortExpenses());
