@@ -66,7 +66,7 @@ public class Parser {
             case "help":
                 return new HelpCommand();
             case "sort":
-                return new SortCommand();
+                return parseSortCommand(arguments);
             case "find":
                 return parseFindCommand(arguments);
             case "edit":
@@ -186,5 +186,13 @@ public class Parser {
         String category = (categoryStr==null) ? null : InputValidator.validateCategory(categoryStr, "edit");
 
         return new EditCommand(index, amount, description, category);
+    }
+
+    //@author saheer17
+    private Command parseSortCommand(String arguments) throws OrCashBuddyException {
+        if (arguments != null && !arguments.isBlank()) {
+            throw new OrCashBuddyException("'sort' command does not take any arguments");
+        }
+        return new SortCommand();
     }
 }

@@ -89,6 +89,7 @@ public class ExpenseManager implements Serializable {
         // Rebalance if a marked expense was deleted
         if (removedExpense.isMarked()) {
             updateBudgetAfterUnmark(removedExpense);
+            assert totalExpenses >= 0 : "Total expenses became negative after deletion";
         }
 
         LOGGER.log(Level.INFO, "Deleted expense at index {0}: {1}",
