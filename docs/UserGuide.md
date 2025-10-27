@@ -2,33 +2,67 @@
 
 Welcome to the user guide for **orCASHbuddy**, a lightweight command-line assistant for tracking day-to-day expenses and monitoring how they affect your budget. This document explains how to set up the application, describes every available command, and provides quick references for day-to-day use.
 
+---
+
+## Table of Contents
+- [Quick Start](#quick-start)
+- [Using This Guide](#using-this-guide)
+- [Features](#features)
+    - [Viewing Help: `help`](#viewing-help-help)
+    - [Adding an Expense: `add`](#adding-an-expense-add)
+    - [Editing an Expense: `edit`](#editing-an-expense-edit)
+    - [Setting a Budget: `setbudget`](#setting-a-budget-setbudget)
+    - [Listing Expenses and Summary: `list`](#listing-expenses-and-summary-list)
+    - [Marking an Expense as Paid: `mark`](#marking-an-expense-as-paid-mark)
+    - [Unmarking an Expense: `unmark`](#unmarking-an-expense-unmark)
+    - [Finding an Expense: `find`](#finding-an-expense-find)
+    - [Sorting Expenses by Amount: `sort`](#sorting-expenses-by-amount-sort)
+    - [Deleting an Expense: `delete`](#deleting-an-expense-delete)
+    - [Exiting the Application: `bye`](#exiting-the-application-bye)
+    - [Saving and Loading Data](#saving-and-loading-data)
+- [FAQ](#faq)
+- [Command Summary](#command-summary)
+
+---
+
 ## Quick Start
 
 1. **Install Java 17.** orCASHbuddy requires Java 17 or later. You can verify your version by running `java -version` in your terminal.
-2. **Download the application.** Grab the latest `orcashbuddy.jar` from your course release or the project’s GitHub Releases page and place it in a convenient folder.
-3. **Launch the program.** Open a terminal in the folder containing the JAR and run `java -jar orcashbuddy.jar`.
+2. **Download the application.** Grab the latest `orcashbuddy.jar` from your course release or the project's GitHub Releases page and place it in a convenient folder.
+3. **Launch the program.** Open a terminal in the folder containing the JAR and run:
+   ```bash
+   java -jar orcashbuddy.jar
+   ```
 4. **Try a command.** After the welcome banner appears, type `help` and press Enter to see the list of supported commands.
 
-The application stores data only in memory; closing the program will clear all recorded expenses. Keep the terminal window open for the duration of your session.
+> **Note:** The application automatically saves your data to a `data` folder. Your expenses and budget will persist between sessions.
+
+---
 
 ## Using This Guide
 
-- Command keywords (e.g., `add`, `list`) are **case-insensitive**.
-- Words in `UPPER_SNAKE_CASE` are placeholders you replace with your own values.
-- Brackets like `[cat/CATEGORY]` indicate optional parameters. Do not type the brackets themselves.
-- Amounts must be positive decimal numbers. Invalid inputs prompt an informative error message.
-- Expense indices shown in command examples are **1-based** and correspond to the order displayed by the `list` command.
+- **Command keywords** (e.g., `add`, `list`) are **case-insensitive**.
+- **Placeholders** in `UPPER_SNAKE_CASE` are values you should replace with your own data.
+- **Optional parameters** are shown in brackets like `[cat/CATEGORY]`. Do not type the brackets themselves.
+- **Amounts** must be positive decimal numbers (e.g., `12.50`). Invalid inputs will display an informative error message.
+- **Expense indices** are **1-based** and correspond to the numbering shown by the `list` command.
+
+---
 
 ## Features
 
 ### Viewing Help: `help`
+
 Displays the command cheat sheet in the terminal.
 
 **Format:** `help`
 
 Use this whenever you need a quick reminder of the supported commands and their prefixes.
 
+---
+
 ### Adding an Expense: `add`
+
 Creates a new expense entry with an amount, description, and optional category.
 
 **Format:** `add a/AMOUNT desc/DESCRIPTION [cat/CATEGORY]`
@@ -43,6 +77,8 @@ Creates a new expense entry with an amount, description, and optional category.
 - `add a/32.90 desc/Weekly groceries cat/Household`
 
 The newly added expense appears as `[ ] [CATEGORY] DESCRIPTION - $AMOUNT`. The `[ ]` will switch to `[X]` once the expense is marked as paid.
+
+---
 
 ### Editing an Expense: `edit`
 Edit the amount and/or the description and/or the category of an expense. Updates the expense list and recalculates the remaining budget.
@@ -59,14 +95,43 @@ Edit the amount and/or the description and/or the category of an expense. Update
 
 You can change one or more attributes of the expense at once. 
 
+---
+
 ### Setting a Budget: `setbudget`
-Defines your total spending budget so orCASHbuddy can compute remaining balance.
+
+Defines your total spending budget for expense tracking and alerts.
 
 **Format:** `setbudget a/AMOUNT`
 
-Setting a new budget overwrites the previous one. The application recalculates your remaining balance whenever you mark or unmark expenses. It also sends alert when remaining balances is below \$10, $0 or negative. 
+**Parameters:**
+- `AMOUNT` — Your total budget as a positive number
 
-**Example:** `setbudget a/500`
+**Example:**
+```
+setbudget a/500
+```
+
+**Expected output:**
+```
+---------------------------------------------------------------
+Your total budget is now $500.00.
+---------------------------------------------------------------
+```
+
+**What it does:**
+- Sets or updates your monthly/weekly budget
+- Enables budget tracking in the `list` command
+- Triggers alerts when spending approaches or exceeds the budget:
+    - **Near threshold:** When remaining balance falls below $10.00
+    - **Equal:** When you've used exactly your budget
+    - **Exceeded:** When spending goes over budget
+
+**Notes:**
+- Setting a new budget **overwrites** the previous value
+- The remaining balance recalculates automatically when expenses are marked/unmarked
+- Only **marked** expenses count toward your budget usage
+
+---
 
 ### Listing Expenses and Summary: `list`
 Shows your current budget, total paid expenses, remaining balance, and every recorded expense in the order added.
@@ -74,6 +139,8 @@ Shows your current budget, total paid expenses, remaining balance, and every rec
 **Format:** `list`
 
 If you have no expenses yet, orCASHbuddy tells you so and suggests adding one with the `add` command.
+
+---
 
 ### Marking an Expense as Paid: `mark`
 Flags an expense as settled. Marked expenses contribute to the “total expenses” value displayed by `list`.
@@ -84,12 +151,16 @@ Flags an expense as settled. Marked expenses contribute to the “total expenses
 
 The index refers to the numbering shown by the most recent `list`. Once marked, the display changes to `[X] [CATEGORY] DESCRIPTION - $AMOUNT`, and the amount counts toward your budget usage.
 
+---
+
 ### Unmarking an Expense: `unmark`
 Reverts a previously marked expense to unpaid, increasing your remaining balance accordingly.
 
 **Format:** `unmark INDEX`
 
 **Example:** `unmark 2`
+
+---
 
 ### Finding an Expense: `find`
 Searches for expenses by category or description keyword, displaying all matching results.
@@ -104,12 +175,16 @@ If no matches are found, orCASHbuddy displays "No expenses found matching [categ
 
 **Note:** The numbering in search results (1, 2, 3...) is for display only and does not correspond to the indices used by `mark`, `unmark`, or `delete` commands. Always use `list` to verify the correct index before modifying expenses.
 
+---
+
 ### Sorting Expenses by Amount: `sort`
 Displays all expenses in descending order of amount (largest first). Sorting does not change the original order used by other commands.
 
 **Format:** `sort`
 
 If there are no expenses to sort, orCASHbuddy will remind you that there are no expenses added yet.
+
+---
 
 ### Deleting an Expense: `delete`
 Removes an expense permanently (there is no undo). The application rebalances your budget totals automatically.
@@ -120,6 +195,8 @@ Removes an expense permanently (there is no undo). The application rebalances yo
 
 After deletion, use `list` to confirm the remaining expenses and updated totals.
 
+---
+
 ### Exiting the Application: `bye`
 Closes orCASHbuddy gracefully.
 
@@ -127,34 +204,110 @@ Closes orCASHbuddy gracefully.
 
 You can also terminate the program by closing the terminal window, but using `bye` ensures the farewell message is displayed.
 
+---
+
 ### Saving and Loading Data
 
-The application automatically saves all your expenses and budget.
-Your data is stored automatically after every change and reloaded when you reopen the app, allowing you to continue from where you left off without manually saving or loading anything.
+**Automatic Saving:**
+- The application saves your data automatically after every command
+- Data is stored in a `data` folder as `appdata.ser`
+- You never need to manually save
+
+**Automatic Loading:**
+- When you start orCASHbuddy, it automatically loads your previous session
+- If no saved data exists, you start with an empty expense list and zero budget
+
+**Data Location:**
+- The `data` folder is created in the same directory as `orcashbuddy.jar`
+- Do not manually edit or delete `appdata.ser` unless you want to reset all data
+
+**What's Saved:**
+- All expenses (amount, description, category, marked/unmarked status)
+- Your current budget
+- Total expenses and remaining balance
+
+**Notes:**
+- If the save file is corrupted or incompatible, you'll start with a fresh session
+- The application will notify you if there are any issues loading data
+
+---
 
 ## FAQ
 
-**Q:** What happens if I mistype a command?
+**Q: What happens if I mistype a command?**
 
-**A:** orCASHbuddy prints an error message describing what went wrong (e.g., missing prefixes or invalid numbers). Check the format in the `help` output and try again.
+**A:** orCASHbuddy prints a helpful error message explaining what went wrong (e.g., "Missing prefix 'a/'" or "Amount must be positive"). Read the error, check the command format in the `help` menu, and try again.
 
-**Q:** Why don't the numbers in find results match my list indices?
+---
 
-**A:** Find results are renumbered (1, 2, 3...) for easier reading. To mark, unmark, or delete an expense, always use `list` first to see the actual indices.
+**Q: Why don't the numbers in `find` results match my list indices?**
+
+**A:** The `find` and `sort` commands renumber results (1, 2, 3...) for easier reading. These numbers are **display-only** and do not correspond to the actual indices used by `mark`, `unmark`, `edit`, or `delete`. Always use `list` first to verify the correct index before modifying expenses.
+
+---
+
+**Q: Can I have multiple expenses with the same description or category?**
+
+**A:** Yes! orCASHbuddy supports duplicate descriptions and categories. Each expense is tracked independently by its position in the list.
+
+---
+
+**Q: What happens if I mark an expense that's already marked?**
+
+**A:** Nothing changes. The expense remains marked, and the command has no effect. The same applies to unmarking an already unmarked expense.
+
+---
+
+**Q: Does deleting an expense change the indices of other expenses?**
+
+**A:** Yes. When you delete an expense, all expenses below it shift up by one position. Always check the current indices with `list` before performing multiple deletions.
+
+---
+
+**Q: What if my remaining balance is negative?**
+
+**A:** orCASHbuddy allows negative balances and will display them as such (e.g., "Remaining balance: $-45.30"). You'll also see a red alert message indicating you've exceeded your budget, along with how much you're over.
+
+---
+
+**Q: Can I change my budget after setting it?**
+
+**A:** Yes! Simply use the `setbudget` command again with a new amount. The new budget overwrites the old one, and your remaining balance is recalculated based on your current marked expenses.
+
+---
+
+**Q: Where is my data stored?**
+
+**A:** Your data is saved in a file called `appdata.ser` inside a `data` folder, located in the same directory as `orcashbuddy.jar`. This file is automatically created when you first add an expense or set a budget.
+
+---
+
+**Q: Do unmarked expenses count toward my budget?**
+
+**A:** No. Only **marked** expenses (shown with `[X]`) count toward your total expenses and affect your remaining balance. Unmarked expenses (shown with `[ ]`) are tracked but don't impact your budget calculations.
+
+---
 
 ## Command Summary
 
 | Action | Format | Example |
-| --- | --- | --- |
+|--------|--------|---------|
 | View help | `help` | `help` |
 | Add expense | `add a/AMOUNT desc/DESCRIPTION [cat/CATEGORY]` | `add a/19.99 desc/Notebook cat/School` |
+| Edit expense | `edit id/INDEX [a/AMOUNT] [desc/DESCRIPTION] [cat/CATEGORY]` | `edit id/1 a/25 desc/pizza` |
 | Set budget | `setbudget a/AMOUNT` | `setbudget a/250` |
 | List summary | `list` | `list` |
 | Mark as paid | `mark INDEX` | `mark 3` |
 | Unmark expense | `unmark INDEX` | `unmark 3` |
 | Find expense | `find cat/CATEGORY` or `find desc/DESCRIPTION` | `find cat/food` |
-| Delete expense | `delete INDEX` | `delete 2` |
 | Sort expenses | `sort` | `sort` |
+| Delete expense | `delete INDEX` | `delete 2` |
 | Exit | `bye` | `bye` |
 
-Refer back to the feature sections above for detailed explanations, parameter notes, and expected outcomes.
+---
+
+**For detailed explanations, parameter notes, and expected outcomes, refer to the [Features](#features) section above.**
+
+---
+
+*Last updated: v2.0*
