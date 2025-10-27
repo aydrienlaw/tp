@@ -4,6 +4,8 @@ package seedu.orcashbuddy.command;
 import seedu.orcashbuddy.exception.OrCashBuddyException;
 import seedu.orcashbuddy.storage.ExpenseManager;
 import seedu.orcashbuddy.ui.Ui;
+import seedu.orcashbuddy.expense.Expense;
+import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -27,12 +29,17 @@ public class SortCommand extends Command{
         assert ui != null : "Ui must not be null";
         LOGGER.info("Executing SortCommand");
         ui.showSeparator();
+
         if (expenseManager.getSize() == 0) {
             LOGGER.info("Cannot sort expenses - list is empty");
             ui.showEmptyExpenseList();  // prints "No expenses added so far."
         } else {
-            ui.showSortedExpenseList(expenseManager.sortExpenses());
+            List<Expense> sortedExpenses = expenseManager.sortExpenses();
+            assert sortedExpenses != null : "Sorted expenses should not be null";
+            assert sortedExpenses.size() == expenseManager.getSize() : "Sorted list size mismatch";
+            ui.showSortedExpenseList(sortedExpenses);
         }
+
         LOGGER.info("SortCommand execution completed");
         ui.showSeparator();
     }
