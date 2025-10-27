@@ -13,21 +13,28 @@ public class InvalidCommand extends Command {
     private final OrCashBuddyException exception;
 
     /**
-     * Constructs an InvalidCommand for unknown commands.
+     * Constructs an {@code InvalidCommand} for unknown commands
+     * with no specific parsing error.
      */
     public InvalidCommand() {
         this.exception = null;
     }
 
     /**
-     * Constructs an InvalidCommand with specific parsing error details.
+     * Constructs an {@code InvalidCommand} storing parsing/validation error details.
      *
-     * @param exception the exception containing error details
+     * @param exception the exception containing the cause of failure
      */
     public InvalidCommand(OrCashBuddyException exception) {
         this.exception = exception;
     }
 
+    /**
+     * Displays a usage hint based on the error context.
+     *
+     * @param expenseManager the central data model that stores all expenses and budget state (unused)
+     * @param ui the UI used to show output to the user
+     */
     @Override
     public void execute(ExpenseManager expenseManager, Ui ui) {
         ui.showSeparator();
@@ -46,7 +53,7 @@ public class InvalidCommand extends Command {
      * Shows appropriate usage message based on error context.
      *
      * @param errorMessage the error message from the exception
-     * @param ui the UI to display messages
+     * @param ui the UI to display contextual usage
      */
     private void showContextualUsage(String errorMessage, Ui ui) {
         if (errorMessage.contains("'add'") || errorMessage.contains("desc/") ||

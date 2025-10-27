@@ -11,7 +11,7 @@ public class SetBudgetCommand extends Command {
     private final double budget;
 
     /**
-     * Constructs a SetBudgetCommand with the specified budget amount.
+     * Constructs a {@code SetBudgetCommand} with the specified budget amount.
      *
      * @param budget the budget amount to set
      */
