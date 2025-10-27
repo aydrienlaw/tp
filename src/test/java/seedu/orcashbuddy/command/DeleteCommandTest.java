@@ -14,6 +14,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Command-level tests for deleting an expense.
+ * <p>
+ * These tests verify that the {@code DeleteCommand} correctly removes expenses,
+ * updates totals and remaining budget, and displays appropriate budget statuses
+ * under different conditions.
  */
 class DeleteCommandTest {
 
@@ -56,6 +60,12 @@ class DeleteCommandTest {
         new AddCommand(10.00, "Taxi").execute(manager, ui);
     }
 
+    /**
+     * Tests that executing {@code DeleteCommand} with a valid index successfully deletes
+     * the corresponding expense and that the UI correctly displays the deleted expense.
+     * <p>
+     * After deletion, the remaining expense list should exclude the deleted item.
+     */
     @Test
     void execute_validIndex_deletesAndReturnsExpense() throws Exception {
         new DeleteCommand(1).execute(manager, ui);
@@ -68,6 +78,13 @@ class DeleteCommandTest {
                 ui.lastListedExpenses.get(0).formatForDisplay());
     }
 
+    /**
+     * Tests that deleting an expense previously marked as spent correctly
+     * rebalances the total and remaining budget values.
+     * <p>
+     * This ensures that marked expenses are properly removed from the budget calculations
+     * and that subsequent listings reflect the updated financial summary.
+     */
     @Test
     void execute_deletePreviouslyMarked_rebalancesTotals() throws Exception {
         new AddCommand(40.00, "Books").execute(manager, ui);
@@ -83,6 +100,13 @@ class DeleteCommandTest {
         assertEquals(200.00, ui.seenRemaining, 1e-6);
     }
 
+    /**
+     * Tests that deleting an unmarked expense while the budget status is non-OK
+     * (e.g., NEAR or EXCEEDED) correctly triggers the UI to display the budget status.
+     * <p>
+     * This ensures that {@code DeleteCommand} prompts the user about their current
+     * budget situation when removing unmarked expenses under constrained budgets.
+     */
     @Test
     void execute_deleteUnmarkedWithNonOkBudgetStatus_showsBudgetStatus() throws Exception {
         new AddCommand(3.00, "Coffee").execute(manager, ui);
