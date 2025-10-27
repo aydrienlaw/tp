@@ -19,7 +19,7 @@ public class FindCommand extends Command {
     private final String searchTerm;
 
     /**
-     * Constructs a FindCommand with the specified search type and term.
+     * Constructs a {@code FindCommand} with the specified search type and term.
      *
      * @param searchType the type of search ("category" or "description")
      * @param searchTerm the term to search for
@@ -29,6 +29,13 @@ public class FindCommand extends Command {
         this.searchTerm = searchTerm;
     }
 
+    /**
+     * Searches the {@link ExpenseManager} for matching expenses,
+     * and displays the results via {@link Ui}.
+     *
+     * @param expenseManager the central data model that stores all expenses and budget state
+     * @param ui the UI used to show output to the user
+     */
     @Override
     public void execute(ExpenseManager expenseManager, Ui ui) {
         assert searchType != null && !searchType.isBlank() : "Search type must not be blank";

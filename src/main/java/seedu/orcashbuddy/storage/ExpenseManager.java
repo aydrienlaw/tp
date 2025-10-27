@@ -11,9 +11,31 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Manages a list of expenses and budget tracking.
- * Provides operations to add, delete, edit, mark, and search expenses,
- * as well as budget management and validation.
+ * Central data model for orCASHbuddy.
+ *
+ * <p>This class stores:
+ * <ul>
+ *   <li>All recorded {@link Expense} objects</li>
+ *   <li>The user's current budget</li>
+ *   <li>The running total of money spent (based on marked expenses)</li>
+ *   <li>The remaining balance</li>
+ * </ul>
+ *
+ * <p>Key invariants:
+ * <ul>
+ *   <li>{@code totalExpenses} is the sum of amounts of all <b>marked</b> expenses.</li>
+ *   <li>{@code remainingBalance} is always {@code budget - totalExpenses}.</li>
+ *   <li>All user-facing indexes are 1-based (the first expense is index 1).</li>
+ * </ul>
+ *
+ * <p>Responsibilities:
+ * <ul>
+ *   <li>Adding, deleting, and replacing expenses</li>
+ *   <li>Marking / unmarking expenses as "paid"</li>
+ *   <li>Maintaining budget totals when expenses are marked/unmarked/deleted</li>
+ *   <li>Sorting and searching expenses</li>
+ *   <li>Exposing budget status for UI alerts</li>
+ * </ul>
  */
 public class ExpenseManager implements Serializable {
     @Serial
@@ -28,29 +50,61 @@ public class ExpenseManager implements Serializable {
     private double remainingBalance = 0.0;
 
     /**
-     * Constructs an ExpenseManager.
+     * Constructs a new, empty ExpenseManager with no expenses
+     * and a budget of 0.
      */
     public ExpenseManager() {
         this.expenses = new ArrayList<>();
     }
 
     // ========== Getters ==========
+
+    /**
+     * Returns the current budget amount.
+     *
+     * @return the user's budget
+     */
     public double getBudget() {
         return budget;
     }
 
+    /**
+     * Returns the total money currently counted as "spent".
+     * This is the sum of all expenses that are marked.
+     *
+     * @return total of all marked expenses
+     */
     public double getTotalExpenses() {
         return totalExpenses;
     }
 
+    /**
+     * Returns the remaining balance in the budget.
+     * This is {@code budget - totalExpenses}.
+     *
+     * @return remaining balance (may be negative if overspent)
+     */
     public double getRemainingBalance() {
         return remainingBalance;
     }
 
+    /**
+     * Returns the number of expenses currently tracked.
+     *
+     * @return number of expenses
+     */
     public int getSize() {
         return expenses.size();
     }
 
+    /**
+     * Returns the full list of expenses.
+     * The returned list is the live internal list, so callers
+     * should not modify it directly unless they intend to mutate
+     * model state.
+     *
+     * @return the internal {@link List} of expenses
+     */
     public List<Expense> getExpenses() {
         return expenses;
     }
@@ -59,9 +113,10 @@ public class ExpenseManager implements Serializable {
 
     //@@author limzerui
     /**
-     * Adds an expense to the list.
+     * Adds a new expense to the list.
      *
      * @param expense the expense to add
+     * @throws IllegalArgumentException if {@code expense} is null
      */
     public void addExpense(Expense expense) {
         validateExpense(expense);
@@ -74,7 +129,10 @@ public class ExpenseManager implements Serializable {
 
     //@@author saheer17
     /**
-     * Deletes an expense at the specified index.
+     * Deletes the expense at the given position.
+     * <p>If the deleted expense was marked, the budget totals are
+     * adjusted (the amount is subtracted from {@code totalExpenses}
+     * and {@code remainingBalance} is recalculated).</p>
      *
      * @param index the 1-based index of the expense to delete
      * @return the deleted expense
@@ -98,7 +156,13 @@ public class ExpenseManager implements Serializable {
     }
 
     //@@author gumingyoujia
-
+    /**
+     * Returns the expense at the given position.
+     *
+     * @param index the 1-based index of the target expense (as shown in 'list')
+     * @return the expense at that position
+     * @throws OrCashBuddyException if the index is out of range
+     */
     public Expense getExpense(int index) throws OrCashBuddyException{
         validateIndex(index);
 
@@ -106,6 +170,18 @@ public class ExpenseManager implements Serializable {
         return expenses.get(index - 1);
     }
 
+    /**
+     * Replaces the expense at the given position with a new expense.
+     * <ul>
+     *   <li>Preserves the marked/unmarked state of the original expense.</li>
+     *   <li>Updates budget totals if needed.</li>
+     * </ul>
+     *
+     * @param index      the 1-based index of the expense to replace
+     * @param newExpense the new expense to insert
+     * @throws OrCashBuddyException if the index is out of range
+     * @throws IllegalArgumentException if {@code newExpense} is null
+     */
     public void replaceExpense(int index, Expense newExpense) throws OrCashBuddyException {
         validateIndex(index);
         validateExpense(newExpense);
@@ -123,7 +199,12 @@ public class ExpenseManager implements Serializable {
 
     //@@author muadzyamani
     /**
-     * Marks an expense at the specified index as paid.
+     * Marks the specified expense as paid.
+     * <ul>
+     *   <li>If it was previously unmarked, it is marked.</li>
+     *   <li>The expense amount is added to {@code totalExpenses}.</li>
+     *   <li>{@code remainingBalance} is recalculated.</li>
+     * </ul>
      *
      * @param index the 1-based index of the expense to mark
      * @return the marked expense
@@ -142,7 +223,12 @@ public class ExpenseManager implements Serializable {
     }
 
     /**
-     * Unmarks an expense at the specified index.
+     * Unmarks the specified expense.
+     * <ul>
+     *   <li>If it was previously marked, it becomes unmarked.</li>
+     *   <li>The expense amount is subtracted from {@code totalExpenses}.</li>
+     *   <li>{@code remainingBalance} is recalculated.</li>
+     * </ul>
      *
      * @param index the 1-based index of the expense to unmark
      * @return the unmarked expense
@@ -164,9 +250,10 @@ public class ExpenseManager implements Serializable {
 
     //@@author aydrienlaw
     /**
-     * Sets the budget amount.
+     * Sets the user's budget and recalculates {@code remainingBalance}.
      *
-     * @param budget the new budget amount
+     * @param budget the new budget amount (must be > 0)
+     * @throws AssertionError if {@code budget <= 0}
      */
     public void setBudget(double budget) {
         assert budget > 0.0 : "Budget must be positive";
@@ -178,9 +265,10 @@ public class ExpenseManager implements Serializable {
     }
 
     /**
-     * Determines the current budget status based on remaining balance.
+     * Returns a summary of how the user's current spending compares
+     * to their budget. Used by the UI to decide which alert to show.
      *
-     * @return the current budget status
+     * @return a {@link BudgetStatus} value such as OK, NEAR, EQUAL, or EXCEEDED
      */
     public BudgetStatus determineBudgetStatus() {
         if (remainingBalance < 0) {
@@ -197,7 +285,10 @@ public class ExpenseManager implements Serializable {
 
     //@@author saheer17
     /**
-     * Sorts the expenses in descending order by amount and displays them using the UI.
+     * Returns a new list of all expenses sorted by amount in descending order.
+     * The original list is not mutated.
+     *
+     * @return a new {@link List} of expenses sorted from highest to lowest amount
      */
     public List<Expense> sortExpenses() {
         if (expenses.isEmpty()) {
@@ -216,10 +307,11 @@ public class ExpenseManager implements Serializable {
 
     //@@author muadzyamani
     /**
-     * Finds all expenses that match the specified category (case-insensitive).
+     * Finds all expenses whose category contains the given text (case-insensitive).
      *
-     * @param category the category to search for
-     * @return list of expenses matching the category
+     * @param category the category substring to match
+     * @return all matching expenses
+     * @throws IllegalArgumentException if {@code category} is null or blank
      */
     public List<Expense> findExpensesByCategory(String category) {
         validateSearchTerm(category, "Category");
@@ -240,10 +332,11 @@ public class ExpenseManager implements Serializable {
     }
 
     /**
-     * Finds all expenses that match the specified description keyword (case-insensitive).
+     * Finds all expenses whose description contains the given text (case-insensitive).
      *
-     * @param keyword the keyword to search for in descriptions
-     * @return list of expenses matching the keyword
+     * @param keyword the search substring
+     * @return all matching expenses
+     * @throws IllegalArgumentException if {@code keyword} is null or blank
      */
     public List<Expense> findExpensesByDescription(String keyword) {
         validateSearchTerm(keyword, "Keyword");

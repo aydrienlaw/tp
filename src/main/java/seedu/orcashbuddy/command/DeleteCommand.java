@@ -18,7 +18,7 @@ public class DeleteCommand extends Command {
     private final int index;
 
     /**
-     * Constructs a DeleteCommand with the specified expense index.
+     * Constructs a {@code DeleteCommand} with the specified expense index.
      *
      * @param index the 1-based index of the expense to delete
      */
@@ -26,6 +26,14 @@ public class DeleteCommand extends Command {
         this.index = index;
     }
 
+    /**
+     * Deletes the chosen expense and displays confirmation,
+     * along with an updated budget status if relevant.
+     *
+     * @param expenseManager the central data model that stores all expenses and budget state
+     * @param ui the UI used to show output to the user
+     * @throws OrCashBuddyException if the provided index is invalid
+     */
     @Override
     public void execute(ExpenseManager expenseManager, Ui ui) throws OrCashBuddyException {
         assert index >= 1 : "Index must be at least 1";

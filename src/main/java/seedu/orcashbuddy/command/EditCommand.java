@@ -21,12 +21,12 @@ public class EditCommand extends Command {
     private final String newCategory;
 
     /**
-     * Constructs an EditCommand.
+     * Constructs an {@code EditCommand}.
      *
      * @param index index of the expense to edit (1-based)
-     * @param newAmount new amount (nullable)
-     * @param newDescription new description (nullable)
-     * @param newCategory new category (nullable)
+     * @param newAmount new amount (nullable to keep existing)
+     * @param newDescription new description (nullable to keep existing)
+     * @param newCategory new category (nullable to keep existing)
      */
     public EditCommand(int index, Double newAmount, String newDescription,
             String newCategory) {
@@ -36,6 +36,15 @@ public class EditCommand extends Command {
         this.newCategory = newCategory;
     }
 
+    /**
+     * Applies the modifications (if any) to the specified expense.
+     * Replaces the stored expense with an updated {@link Expense} object,
+     * preserves mark/unmark status, and shows the result through {@link Ui}.
+     *
+     * @param expenseManager the central data model that stores all expenses and budget state
+     * @param ui the UI used to show output to the user
+     * @throws OrCashBuddyException if the index is invalid or the expense cannot be found
+     */
     @Override
     public void execute(ExpenseManager expenseManager, Ui ui) throws OrCashBuddyException {
         assert expenseManager != null : "ExpenseManager cannot be null";

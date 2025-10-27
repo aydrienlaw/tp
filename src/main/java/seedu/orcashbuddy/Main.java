@@ -14,8 +14,16 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Entry point for the orCASHbuddy application.
- * Prints a welcome message and delegates exit handling to the command layer.
+ * Entry point and main loop for the orCASHbuddy application.
+ * <p>
+ * Responsibilities:
+ * <ul>
+ *   <li>Load saved expenses/budget from disk</li>
+ *   <li>Read user commands in a loop</li>
+ *   <li>Parse and execute each command</li>
+ *   <li>Persist changes after each successful command</li>
+ *   <li>Gracefully shut down on {@code bye}</li>
+ * </ul>
  */
 public class Main {
     private static final Logger LOGGER = Logger.getLogger(Main.class.getName());
@@ -23,6 +31,7 @@ public class Main {
     private final ExpenseManager expenseManager;
     private final Parser parser;
 
+    // Configure root logger level once.
     static {
         Logger rootLogger = Logger.getLogger("");
         rootLogger.setLevel(Level.OFF);
@@ -31,12 +40,21 @@ public class Main {
         }
     }
 
+    /**
+     * Constructs the main application object.
+     * Loads persisted data (if any) via {@link StorageManager}.
+     */
     public Main() {
         this.ui = new Ui();
         this.expenseManager = StorageManager.loadExpenseManager(ui);
         this.parser = new Parser();
     }
 
+    /**
+     * Runs the interactive command loop:
+     * shows the welcome banner, reads commands,
+     * executes them, and stops when a command indicates exit.
+     */
     public void run() {
         ui.showWelcome();
 
@@ -53,10 +71,11 @@ public class Main {
     }
 
     /**
-     * Reads user input from the scanner.
+     * Reads user input from {@link Scanner}.
+     * If the input stream is closed (EOF), returns {@code null}.
      *
      * @param scanner the scanner to read from
-     * @return the user input, or null if input is closed
+     * @return the user's raw input line, or {@code null} if no more input is available
      */
     private String readInput(Scanner scanner) {
         try {
@@ -68,10 +87,11 @@ public class Main {
     }
 
     /**
-     * Parses and executes a command from user input.
+     * Parses and executes a single user command.
+     * Also persists updated data after successful execution.
      *
      * @param input the user input string
-     * @return true if the executed command signals application exit; false otherwise
+     * @return {@code true} if the executed command signals application exit; {@code false} otherwise
      */
     private boolean executeCommand(String input) {
         try {
@@ -91,6 +111,11 @@ public class Main {
         return false;
     }
 
+    /**
+     * Program entry point. Creates a {@link Main} instance and starts the REPL loop.
+     *
+     * @param args standard {@code main} arguments (unused)
+     */
     public static void main(String[] args) {
         new Main().run();
     }

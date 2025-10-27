@@ -18,7 +18,7 @@ public class MarkCommand extends Command {
     private final int index;
 
     /**
-     * Constructs a MarkCommand with the specified expense index.
+     * Constructs a {@code MarkCommand} with the specified expense index.
      *
      * @param index the 1-based index of the expense to mark
      */
@@ -26,6 +26,14 @@ public class MarkCommand extends Command {
         this.index = index;
     }
 
+    /**
+     * Marks the specified expense as paid, updates budget tracking,
+     * and shows the marked expense plus any budget alerts.
+     *
+     * @param expenseManager the central data model that stores all expenses and budget state
+     * @param ui the UI used to show output to the user
+     * @throws OrCashBuddyException if the index is invalid
+     */
     @Override
     public void execute(ExpenseManager expenseManager, Ui ui) throws OrCashBuddyException {
         assert index >= 1 : "Index must be at least 1";

@@ -16,12 +16,12 @@ public class SortCommand extends Command{
     private static final Logger LOGGER = Logger.getLogger(SortCommand.class.getName());
 
     /**
-     * Executes the sort command by delegating to the ExpenseManager to sort expenses
-     * and display the sorted list in the UI.
+     * Sorts all expenses by amount (highest first) and displays the sorted list.
+     * If there are no expenses, shows the appropriate empty state message.
      *
      * @param expenseManager the expense manager containing all expenses
      * @param ui the user interface to display the sorted expenses
-     * @throws OrCashBuddyException if the expense list is empty
+     * @throws OrCashBuddyException if the expense list cannot be accessed
      */
     @Override
     public void execute(ExpenseManager expenseManager, Ui ui) throws OrCashBuddyException {

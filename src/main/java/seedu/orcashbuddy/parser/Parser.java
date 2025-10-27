@@ -19,7 +19,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Parses user input and creates the appropriate Command objects.
+ * Parses raw user input into executable {@link Command} objects.
+ * <p>
+ * Flow:
+ * <ol>
+ *   <li>Split input into a command word and its argument string</li>
+ *   <li>Dispatch to a specific {@code parseXxxCommand(...)} method</li>
+ *   <li>Wrap parser/validation failures in {@link InvalidCommand}</li>
+ * </ol>
  */
 public class Parser {
     private static final Logger LOGGER = Logger.getLogger(Parser.class.getName());
@@ -34,10 +41,10 @@ public class Parser {
     private static final String INDEX_PREFIX = "id/";
 
     /**
-     * Parses the user input and returns the corresponding Command object.
+     * Parses the user input and returns the corresponding {@link Command}.
      *
      * @param userInput the raw input string from the user
-     * @return the Command object to be executed
+     * @return the {@link Command} object to be executed
      */
     public Command parse(String userInput) {
         assert userInput != null : "User input must not be null";
@@ -89,11 +96,11 @@ public class Parser {
 
     //@@author limzerui
     /**
-     * Parses the add command and creates an AddCommand object.
+     * Parses the {@code add} command and creates an {@link AddCommand}.
      *
-     * @param arguments the arguments after the command word
-     * @return an AddCommand object
-     * @throws OrCashBuddyException if the input is invalid
+     * @param arguments the argument string after {@code add}
+     * @return an {@link AddCommand}
+     * @throws OrCashBuddyException if required fields are missing/invalid
      */
     private Command parseAddCommand(String arguments) throws OrCashBuddyException {
         ArgumentParser argParser = new ArgumentParser(arguments);
@@ -109,10 +116,10 @@ public class Parser {
     }
 
     /**
-     * Parses the bye command and creates a ByeCommand object.
+     * Parses the {@code bye} command and creates a {@link ByeCommand}.
      *
-     * @param arguments the arguments after the command word
-     * @return a ByeCommand object
+     * @param arguments the arguments after the command word (should be empty)
+     * @return a {@link ByeCommand}
      * @throws OrCashBuddyException if unexpected arguments are provided
      */
     private Command parseByeCommand(String arguments) throws OrCashBuddyException {
@@ -124,11 +131,11 @@ public class Parser {
 
     //@@author aydrienlaw
     /**
-     * Parses the setbudget command and creates a SetBudgetCommand object.
+     * Parses the {@code setbudget} command and creates a {@link SetBudgetCommand}.
      *
-     * @param arguments the arguments after the command word
-     * @return a SetBudgetCommand object
-     * @throws OrCashBuddyException if the input is invalid
+     * @param arguments the arguments after {@code setbudget}
+     * @return a {@link SetBudgetCommand}
+     * @throws OrCashBuddyException if the budget amount is invalid
      */
     private Command parseSetBudgetCommand(String arguments) throws OrCashBuddyException {
         ArgumentParser argParser = new ArgumentParser(arguments);
@@ -139,22 +146,51 @@ public class Parser {
     }
 
     //@@author saheer17
+    /**
+     * Parses the {@code delete} command and creates a {@link DeleteCommand}.
+     *
+     * @param arguments the 1-based index of the expense to delete
+     * @return a {@link DeleteCommand}
+     * @throws OrCashBuddyException if the index is missing or invalid
+     */
     private Command parseDeleteCommand(String arguments) throws OrCashBuddyException {
         int index = InputValidator.validateIndex(arguments, "delete");
         return new DeleteCommand(index);
     }
 
     //@author muadzyamani
+    /**
+     * Parses the {@code mark} command and creates a {@link MarkCommand}.
+     *
+     * @param arguments the 1-based index of the expense to mark
+     * @return a {@link MarkCommand}
+     * @throws OrCashBuddyException if the index is missing or invalid
+     */
     private Command parseMarkCommand(String arguments) throws OrCashBuddyException {
         int index = InputValidator.validateIndex(arguments, "mark");
         return new MarkCommand(index);
     }
 
+    /**
+     * Parses the {@code unmark} command and creates an {@link UnmarkCommand}.
+     *
+     * @param arguments the 1-based index of the expense to unmark
+     * @return an {@link UnmarkCommand}
+     * @throws OrCashBuddyException if the index is missing or invalid
+     */
     private Command parseUnmarkCommand(String arguments) throws OrCashBuddyException {
         int index = InputValidator.validateIndex(arguments, "unmark");
         return new UnmarkCommand(index);
     }
 
+    /**
+     * Parses the {@code find} command and creates a {@link FindCommand}.
+     * The user may search by {@code cat/} or {@code desc/}.
+     *
+     * @param arguments the argument string after {@code find}
+     * @return a {@link FindCommand} configured for category or description search
+     * @throws OrCashBuddyException if neither category nor description is provided
+     */
     private Command parseFindCommand(String arguments) throws OrCashBuddyException {
         ArgumentParser argParser = new ArgumentParser(arguments);
 
@@ -172,6 +208,14 @@ public class Parser {
     }
 
     //@author gumingyoujia
+    /**
+     * Parses the {@code edit} command and creates an {@link EditCommand}.
+     * Supports partial edits of amount, description, and/or category.
+     *
+     * @param arguments the argument string after {@code edit}
+     * @return an {@link EditCommand} with the target index and updated fields
+     * @throws OrCashBuddyException if the index is invalid or no such expense exists
+     */
     private Command parseEditCommand(String arguments) throws OrCashBuddyException {
         ArgumentParser argParser = new ArgumentParser(arguments);
         String indexString = argParser.getValue(INDEX_PREFIX);

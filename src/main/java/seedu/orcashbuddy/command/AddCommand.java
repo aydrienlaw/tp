@@ -28,7 +28,8 @@ public class AddCommand extends Command {
     }
 
     /**
-     * Constructs an AddCommand with the specified amount, description, and category.
+     * Constructs an {@code AddCommand} with the specified amount and description,
+     * using the default category {@link Expense#DEFAULT_CATEGORY}.
      *
      * @param amount the expense amount
      * @param description the expense description
@@ -40,6 +41,12 @@ public class AddCommand extends Command {
         this.category = category;
     }
 
+    /**
+     * Adds the expense to the {@link ExpenseManager}, then displays the result via {@link Ui}.
+     *
+     * @param expenseManager the central data model that stores all expenses and budget state
+     * @param ui the UI used to show output to the user
+     */
     @Override
     public void execute(ExpenseManager expenseManager, Ui ui) {
         assert amount > 0.0 : "Amount must be positive";
