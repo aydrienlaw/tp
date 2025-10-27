@@ -78,4 +78,28 @@ class SortCommandTest {
         // Verify printed message
         assertTrue(ui.isListEmpty);
     }
+
+    /**
+     * Tests that when multiple expenses have the same amount,
+     * the {@code SortCommand} preserves their original insertion order.
+     * <p>
+     * This verifies that the sort operation is stable, meaning that
+     * equal elements retain their relative order after sorting.
+     * In this case, "Zebra" was added before "Apple", so it appears first
+     * even though both have the same amount.
+     */
+    @Test
+    void execute_withEqualAmounts_preservesInsertionOrder() throws Exception {
+        new AddCommand(10.00, "Zebra").execute(manager, ui);
+        new AddCommand(10.00, "Apple").execute(manager, ui);
+
+        new SortCommand().execute(manager, ui);
+
+        assertEquals(2, ui.lastSortedExpenses.size());
+        // Expect the same order they were added, since amounts are equal
+        assertEquals("[ ] [" + Expense.DEFAULT_CATEGORY + "] Zebra - $10.00",
+                ui.lastSortedExpenses.get(0).formatForDisplay());
+        assertEquals("[ ] [" + Expense.DEFAULT_CATEGORY + "] Apple - $10.00",
+                ui.lastSortedExpenses.get(1).formatForDisplay());
+    }
 }
