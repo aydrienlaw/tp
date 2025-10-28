@@ -108,6 +108,9 @@ Namespace: `seedu.orcashbuddy.expense`, `seedu.orcashbuddy.storage`
 
 ### Storage Component
 
+#### Sequence Diagram
+![Storage Component Class Diagram](images/storage-manager-sequence.png)
+
 The storage subsystem in orCASHbuddy is responsible for saving user expense and budget data between sessions.
 It uses Java object serialization to store the entire `ExpenseManager` object (which contains all expenses and budget state) into a `.ser` file.
 1. **StorageManager**: Handles file I/O and serialisation (save/load).
@@ -115,7 +118,6 @@ It uses Java object serialization to store the entire `ExpenseManager` object (w
 3. **Expense**: Serialisable class representing an individual expense item.
 4. **Ui**: used by `StorageManager` to display user-friendly error messages during save/load operations. 
 
-Refer to docs/diagrams/storage-component-class.puml for the structure (represented using class diagram) of the Storage Component.
 Refer to [Storage Management Feature](#storage-management-feature) for a more detailed explanation of the implementation of the Storage Component. 
 
 
@@ -604,7 +606,8 @@ This prevents accidental deletions and ensures data integrity.
     - The deleted expense is passed to `Ui#showDeletedExpense` for user feedback.
     - Data persistence is triggered by the main application logic after command execution, ensuring consistency without coupling storage logic into `ExpenseManager`.
 
-The sequence diagram in `docs/diagrams/delete-sequence.puml` illustrates these interactions from input parsing to UI display.
+#### Sequence Diagram
+![Delete Sequence Diagram](images/delete-feature.png)
 
 #### Deletion Logic and Validation
 
@@ -985,7 +988,8 @@ StorageManager.saveExpenseManager(expenseManager, ui);
 ```java
 ExpenseManager expenseManager = StorageManager.loadExpenseManager(ui);
 ```
-The sequence diagram in `docs/diagrams/storage-manager-sequence.puml` illustrates these interactions.
+#### Sequence Diagram
+![Storage Manager Sequence Diagram](images/storage-manager-sequence.png)
 
 #### Error Handling
 
