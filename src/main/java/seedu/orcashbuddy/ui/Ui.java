@@ -31,7 +31,7 @@ public class Ui {
     private static final String UNMARK_USAGE = "Invalid format. Use: unmark EXPENSE_INDEX";
     private static final String FIND_USAGE = "Invalid format. Use: find cat/CATEGORY or find desc/DESCRIPTION";
     private static final String EDIT_USAGE = "Invalid format. " +
-            "Use: edit id/INDEX a/AMOUNT or/and desc/DESCRIPTION or/and cat/CATEGORY";
+            "Use: edit id/INDEX [a/AMOUNT] [desc/DESCRIPTION] [cat/CATEGORY]";
 
     // ========== Display separators and decorators ==========
 
@@ -88,7 +88,7 @@ public class Ui {
             "Mark an expense as unpaid:             unmark EXPENSE_INDEX",
             "Delete an expense:                     delete EXPENSE_INDEX",
             "Edit an expense:                       " +
-                    "edit id/INDEX a/AMOUNT or/and desc/DESCRIPTION or/and cat/CATEGORY",
+                    "edit id/INDEX [a/AMOUNT] [desc/DESCRIPTION] [cat/CATEGORY]",
             "Sort all expenses in descending order: sort",
             "Exit the application:                  bye"
         };
