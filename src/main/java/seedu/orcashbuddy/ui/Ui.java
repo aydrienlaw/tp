@@ -31,7 +31,7 @@ public class Ui {
     private static final String UNMARK_USAGE = "Invalid format. Use: unmark EXPENSE_INDEX";
     private static final String FIND_USAGE = "Invalid format. Use: find cat/CATEGORY or find desc/DESCRIPTION";
     private static final String EDIT_USAGE = "Invalid format. " +
-            "Use: edit id/INDEX a/AMOUNT or/and desc/DESCRIPTION or/and cat/CATEGORY";
+            "Use: edit id/INDEX [a/AMOUNT] [desc/DESCRIPTION] [cat/CATEGORY]";
 
     // ========== Display separators and decorators ==========
 
@@ -74,32 +74,32 @@ public class Ui {
 
     // ========== Menu and help display ==========
 
+    //@@author gumingyoujia
     /**
      * Prints the main menu of available commands and their formats.
      * This serves as the built-in "help" text.
      */
     public void showMenu() {
         String[] menuItems = {
-            "Add an expense:                        add a/AMOUNT desc/DESCRIPTION [cat/CATEGORY]",
-            "Set a budget:                          setbudget a/AMOUNT",
-            "List all expenses & statistics:        list",
-            "Find expenses:                         find cat/CATEGORY or find desc/DESCRIPTION",
-            "Mark an expense as paid:               mark EXPENSE_INDEX",
-            "Mark an expense as unpaid:             unmark EXPENSE_INDEX",
-            "Delete an expense:                     delete EXPENSE_INDEX",
-            "Edit an expense:                       " +
-                    "edit id/INDEX a/AMOUNT or/and desc/DESCRIPTION or/and cat/CATEGORY",
-            "Sort all expenses in descending order: sort",
-            "Exit the application:                  bye"
+                "Add an expense:                        add a/AMOUNT desc/DESCRIPTION [cat/CATEGORY]",
+                "Set a budget:                          setbudget a/AMOUNT",
+                "List all expenses & statistics:        list",
+                "Find expenses:                         find cat/CATEGORY or find desc/DESCRIPTION",
+                "Mark an expense as paid:               mark EXPENSE_INDEX",
+                "Mark an expense as unpaid:             unmark EXPENSE_INDEX",
+                "Delete an expense:                     delete EXPENSE_INDEX",
+                "Edit an expense:                       " +
+                        "edit id/INDEX [a/AMOUNT] [desc/DESCRIPTION] [cat/CATEGORY]",
+                "Sort all expenses in descending order: sort",
+                "Exit the application:                  bye"
         };
-
         for (String item : menuItems) {
             System.out.println(item);
         }
     }
 
     // ========== Expense display methods ==========
-
+    //@@author
     /**
      * Helper method to display a single expense with a label/header.
      *
@@ -120,6 +120,7 @@ public class Ui {
         showExpenseWithLabel("New Expense:", expense);
     }
 
+    //@@author gumingyoujia
     /**
      * Prints the confirmation for an edited expense.
      *
@@ -129,6 +130,7 @@ public class Ui {
         showExpenseWithLabel("Edited Expense:", expense);
     }
 
+    //@@author
     /**
      * Displays a confirmation message that an expense was deleted.
      *
@@ -176,6 +178,7 @@ public class Ui {
         System.out.println("Budget set: " + formatCurrency(budget));
     }
 
+    //@@author gumingyoujia
     /**
      * Displays the total expenses so far.
      *
@@ -194,6 +197,7 @@ public class Ui {
         System.out.println("Remaining balance: " + formatCurrency(remainingBalance));
     }
 
+    //@@author
     /**
      * Formats a double-precision amount as a currency string, e.g. {@code $12.34}.
      *
@@ -205,7 +209,7 @@ public class Ui {
     }
 
     // ========== List display methods ==========
-
+    //@@author gumingyoujia
     /**
      * Displays budget, total spent, remaining balance,
      * a progress bar, and the full list of expenses.
@@ -230,6 +234,7 @@ public class Ui {
         showExpenseList(expenses);
     }
 
+    //@@author aydrienlaw
     /**
      * Builds and prints a fixed-width progress bar representing totalExpense/budget.
      * Example output (color-coded in console):
@@ -299,6 +304,7 @@ public class Ui {
         System.out.println(sb.toString());
     }
 
+    //@@author gumingyoujia
     /**
      * Displays the list of expenses (numbered). If the list is empty,
      * shows a dedicated "no expenses" message.
@@ -417,6 +423,17 @@ public class Ui {
         System.out.println(EDIT_USAGE);
     }
 
+    //@@author gumingyoujia
+    /**
+     * Displays a message to remind user no changes were made to the expense for {@code edit}.
+     *
+     * @param expense the updated expense
+     */
+    public void showEmptyEdit(Expense expense) {
+        showExpenseWithLabel("No changes were made to the expense:", expense);
+    }
+
+    //@@author
     /**
      * Displays a message for unknown commands and nudges the user toward {@code help}.
      */
@@ -425,6 +442,7 @@ public class Ui {
     }
 
     // ========== Budget alert methods ==========
+    //@@author gumingyoujia
     /**
      * Displays a warning or alert based on the user's current {@link BudgetStatus}.
      * For example, if spending exceeds the budget, prints an "exceeded budget" alert.

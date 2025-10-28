@@ -74,7 +74,10 @@ Follow these steps to set up the project in IntelliJ IDEA:
 
 **API**: `Ui.java`
 
-![UI Component Class Diagram](docs/diagrams/ui-component-class.png)
+The `Ui` class handles all console-based user interactions in orCASHbuddy.
+
+#### Structure of the UI Component
+![UI Component Class Diagram](diagrams/ui-component-class.png)
 
 <br>
 
@@ -313,7 +316,6 @@ The `Model` component represents the application's core data and business logic.
 
 <br>
 
-
 ## Storage Component
 
 **API**: `StorageManager.java`
@@ -398,6 +400,9 @@ This section describes some noteworthy details on how certain features are imple
 The add-expense workflow transforms a single line of user input into a populated `Expense` object, updates the in-memory ledger, and provides immediate feedback in the console. We chose a prefix-based syntax (`add a/AMOUNT desc/DESCRIPTION [cat/CATEGORY]`).
 
 <br>
+
+#### Sequence Diagram
+![Add Sequence Diagram](images/add_feature.png)
 
 #### Control Flow
 
@@ -998,18 +1003,13 @@ The `EditCommand` class extends `Command` and performs the update by replacing t
    - If the original expense was marked, `ExpenseManager#markExpense(index)` is invoked to preserve the marked state.
 
 4. **UI Feedback:**
-   - The updated expense is displayed to the user via `Ui#showEditedExpense`.
+   - The updated expense is displayed to the user via either `Ui#showEmptyEdit` or `Ui#showEditedExpense` depending on whether the user has made any edits to the expense.
    - `ExpenseManager#checkRemainingBalance(ui)` is called to recalculate the budget and display alerts if thresholds are exceeded.
 
 5. **Data Persistence:**  
    `StorageManager#saveExpenseManager` is invoked to immediately persist the updated expense list to disk, ensuring no data is lost.
 
 The sequence diagram in `docs/diagrams/edit-sequence.puml` illustrates the interactions between `Main`, `Parser`, `EditCommand`, `ExpenseManager`, `Ui`, and `StorageManager` during this workflow.
-
-#### Validation
-- Ensures the provided index corresponds to an existing expense.
-- Null values for fields (amount/description/category) preserve the original data, allowing partial edits.
-- Invalid or negative amounts trigger validation errors from `InputValidator`.
 
 #### Example
 
@@ -1022,6 +1022,11 @@ edit /id 2 /a 20.50 /desc Dinner /cat Food
 ```
 Edited expense: [ ] [Food] Dinner - $20.50
 ```
+
+#### Validation
+- Ensures the provided index corresponds to an existing expense.
+- Null values for fields (amount/description/category) preserve the original data, allowing partial edits.
+- Invalid or negative amounts trigger validation errors from `InputValidator`.
 
 #### Logging and Diagnostics
 
@@ -1285,6 +1290,9 @@ All exceptions are caught internally to prevent the application from crashing du
 
 Exiting the application used to depend on `Main` inspecting raw input (checking for `bye`). This tightly coupled the loop to a single keyword and prevented other commands from influencing shutdown behaviour. The redesigned flow delegates responsibility to `ByeCommand`, aligning termination with the rest of the command framework and paving the way for richer exit scenarios (e.g., confirm prompts, autosave).
 
+#### Sequence Diagram
+![Bye Sequence Diagram](images/bye_feature.png)
+
 #### Control Flow
 
 1. **Parsing:** When the user enters `bye`, `Parser` instantly returns a `ByeCommand`. Any trailing arguments result in an `OrCashBuddyException`, protecting against typos such as `bye later`.
@@ -1306,11 +1314,16 @@ The sequence diagram stored at `docs/diagrams/bye-sequence.puml` captures this f
 
 By keeping farewell handling within the command framework, orCASHbuddy maintains a coherent abstraction and prepares for richer lifecycle management in subsequent releases.
 
+<br>
+
 ### Help Feature
 
 #### Overview
 
 The help feature provides users with a comprehensive list of available commands and their usage formats. This is crucial for user onboarding and as a quick reference for command syntax. The `help` command is designed to be simple and stateless, focusing solely on displaying information.
+
+#### Sequence Diagram
+![Help Sequence Diagram](images/help-sequence.png)
 
 #### Control Flow
 
@@ -1335,7 +1348,57 @@ The sequence diagram in `docs/diagrams/help-sequence.puml` illustrates these int
 - **Contextual Help:** Future enhancements could include `help <command_name>` to provide specific details for a given command.
 - **Pagination:** For a very large number of commands, pagination could be introduced to display help information in chunks.
 
----
+<br>
+
+### List Feature
+
+#### Overview
+
+The List Feature displays all recorded expenses along with a real-time financial summary. This includes the user’s current budget, total spending, remaining balance, and a visual progress bar that indicates budget utilization.
+
+The `list` command serves as a core read-only function within the application, offering users an at-a-glance understanding of their financial status and detailed visibility into all tracked expenses. 
+#### Control Flow
+#### Control Flow
+
+1. **Input Capture:** `Main` reads the user's command (`list`) and forwards it to `Parser`.
+
+2. **Command Creation:** `Parser` recognizes the `list` keyword and directly constructs a new `ListCommand` object.
+   - No arguments are expected or parsed for this command, any input arguments will be ignored.
+
+3. **Execution:**  
+   When `Main` invokes `command.execute(expenseManager, ui)`:
+   - `ListCommand` logs that execution has started.
+   - It first calls `ui.showSeparator()` to visually separate output blocks.
+   - It retrieves relevant financial data from `ExpenseManager`:
+      - `getBudget()` – retrieves the total budget set by the user.
+      - `getTotalExpenses()` – calculates the total of all recorded expenses.
+      - `getRemainingBalance()` – computes the difference between the budget and total expenses.
+      - `getExpenses()` – returns a list of all `Expense` objects.
+   - These values are passed to `ui.showFinancialSummary(budget, totalExpenses, remainingBalance, expenses)` which:
+      - Displays a formatted financial summary.
+      - Prints the current budget, total spent, and remaining balance.
+      - Generates a **color-coded progress bar** representing the ratio of spending to budget.
+      - Displays all expenses in a numbered list, or a “no expenses added” message if empty.
+   - Finally, it calls `ui.showSeparator()` again for consistent output formatting.
+
+4. **Data Persistence:**  
+   The `list` command is a **read-only** operation that does not modify application data.
+   - As part of the standard execution flow, `StorageManager.saveExpenseManager` is still called after execution, but no new data is persisted.
+
+
+The sequence diagram in `docs/diagrams/list-sequence.puml` illustrates these interactions.
+
+#### Rationale
+
+- **User Experience:** Combines textual and visual feedback (color-coded progress bar) for better readability.
+
+#### Extensibility and Future Enhancements
+
+- **Pagination:** Introduce pagination for users with a large number of expenses.
+- **Graphical Visualization:** Display pie charts or bar graphs for expense breakdown by category.
+- **Date Range Support:** Allow usage such as `list from/2025-01-01 to/2025-01-31` for time-specific summaries.
+
+
 
 ## Appendix A: Product Scope
 

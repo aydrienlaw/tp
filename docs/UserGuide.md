@@ -1,6 +1,10 @@
 # orCASHbuddy User Guide
 
-Welcome to the user guide for **orCASHbuddy**, a lightweight command-line assistant for tracking day-to-day expenses and monitoring how they affect your budget. This document explains how to set up the application, describes every available command, and provides quick references for day-to-day use.
+Welcome to the user guide for orCASHbuddy, a lightweight command-line assistant for tracking and managing expenses.
+
+orCASHbuddy is designed for Residential College 4 (RC4) Interest Group treasurers who need a quick and reliable way to record spending, set budgets, and monitor group finances.
+
+This document explains how to set up the application, describes every available command, and provides quick references for day-to-day use.
 
 ---
 
@@ -33,7 +37,8 @@ Welcome to the user guide for **orCASHbuddy**, a lightweight command-line assist
    ```bash
    java -jar orcashbuddy.jar
    ```
-4. **Try a command.** After the welcome banner appears, type `help` and press Enter to see the list of supported commands.
+   Once the program starts, you’ll see a welcome message and the command menu in your terminal window, as shown below.
+   ![welcome.png](images/welcome.png)
 
 > **Note:** The application automatically saves your data to a `data` folder. Your expenses and budget will persist between sessions.
 
@@ -61,6 +66,7 @@ Use this whenever you need a quick reminder of the supported commands and their 
 
 ---
 
+<!-- @@author limzerui -->
 ### Adding an Expense: `add`
 
 Creates a new expense entry with an amount, description, and optional category.
@@ -73,17 +79,22 @@ Creates a new expense entry with an amount, description, and optional category.
 - `CATEGORY` (optional) — Tag to group similar expenses. It must start with a letter and can include letters, numbers, spaces, or hyphens (maximum 20 characters). If omitted, the category defaults to `Uncategorized`.
 
 **Examples:**
-- `add a/4.50 desc/Morning coffee`
-- `add a/32.90 desc/Weekly groceries cat/Household`
+```
+`add a/4.50 desc/venue booking`
+```
+```
+`add a/32.90 desc/event poster cat/publicity`
+```
 
 The newly added expense appears as `[ ] [CATEGORY] DESCRIPTION - $AMOUNT`. The `[ ]` will switch to `[X]` once the expense is marked as paid.
 
 ---
 
+<!-- @@author gumingyoujia -->
 ### Editing an Expense: `edit`
 Edit the amount and/or the description and/or the category of an expense. Updates the expense list and recalculates the remaining budget.
 
-**Format:** `edit id/INDEX a/AMOUNT or/and desc/DESCRIPTION or/and cat/CATEGORY`
+**Format:** `edit id/INDEX [a/AMOUNT] [desc/DESCRIPTION] [cat/CATEGORY]`
 
 **Parameters:**
 - `INDEX` — Positive integer index of the expense in the list.
@@ -91,12 +102,17 @@ Edit the amount and/or the description and/or the category of an expense. Update
 - `DESCRIPTION` (optional) — Short sentence describing the expense.
 - `CATEGORY` (optional) — It must start with a letter and can include letters, numbers, spaces, or hyphens (maximum 20 characters).
 
-**Example:** `edit id/1 a/25 desc/pizza`
+**Notes:**
+- You can change multiple attributes of the expense at once.
 
-You can change one or more attributes of the expense at once. 
+**Example:** 
+```
+edit id/2 a/25 desc/poster printing
+```
 
 ---
 
+<!-- @@author aydrienlaw -->
 ### Setting a Budget: `setbudget`
 
 Defines your total spending budget for expense tracking and alerts.
@@ -108,13 +124,13 @@ Defines your total spending budget for expense tracking and alerts.
 
 **Example:**
 ```
-setbudget a/500
+setbudget a/200
 ```
 
 **Expected output:**
 ```
 ---------------------------------------------------------------
-Your total budget is now $500.00.
+Your total budget is now $200.00.
 ---------------------------------------------------------------
 ```
 
@@ -133,6 +149,7 @@ Your total budget is now $500.00.
 
 ---
 
+<!-- @@author gumingyoujia -->
 ### Listing Expenses and Summary: `list`
 Shows your current budget, total paid expenses, remaining balance, and every recorded expense in the order added.
 
@@ -140,6 +157,8 @@ Shows your current budget, total paid expenses, remaining balance, and every rec
 
 If you have no expenses yet, orCASHbuddy tells you so and suggests adding one with the `add` command.
 
+**Example output:**
+![list.png](images/list.png)
 ---
 
 ### Marking an Expense as Paid: `mark`
@@ -147,7 +166,11 @@ Flags an expense as settled. Marked expenses contribute to the “total expenses
 
 **Format:** `mark INDEX`
 
-**Example:** `mark 2`
+**Example:**
+
+```
+mark 2
+```
 
 The index refers to the numbering shown by the most recent `list`. Once marked, the display changes to `[X] [CATEGORY] DESCRIPTION - $AMOUNT`, and the amount counts toward your budget usage.
 
@@ -158,18 +181,30 @@ Reverts a previously marked expense to unpaid, increasing your remaining balance
 
 **Format:** `unmark INDEX`
 
-**Example:** `unmark 2`
+**Example:** 
+
+```
+unmark 2
+```
 
 ---
 
+<!-- @@author muadzyamani -->
 ### Finding an Expense: `find`
 Searches for expenses by category or description keyword, displaying all matching results.
 
 **Format:** `find cat/CATEGORY` or `find desc/DESCRIPTION`
 
 **Examples:**
-- `find cat/food` - Finds all expenses with categories containing "food"
-- `find desc/lunch` - Finds all expenses with descriptions containing "lunch"
+```
+find cat/facility
+```
+- Finds all expenses with categories containing "food" 
+
+```
+find desc/poster
+```
+- Finds all expenses with descriptions containing "lunch"
 
 If no matches are found, orCASHbuddy displays "No expenses found matching [category/description]: [search term]".
 
@@ -186,17 +221,23 @@ If there are no expenses to sort, orCASHbuddy will remind you that there are no 
 
 ---
 
+<!-- @@author saheer17 -->
 ### Deleting an Expense: `delete`
 Removes an expense permanently (there is no undo). The application rebalances your budget totals automatically.
 
 **Format:** `delete INDEX`
 
-**Example:** `delete 1`
+**Example:**
+
+```
+delete 1
+```
 
 After deletion, use `list` to confirm the remaining expenses and updated totals.
 
 ---
 
+<!-- @@author limzerui -->
 ### Exiting the Application: `bye`
 Closes orCASHbuddy gracefully.
 
