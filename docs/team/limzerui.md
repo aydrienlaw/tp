@@ -2,7 +2,7 @@
 
 ## Overview
 
-orCASHbuddy is a Java 17 command-line application that helps students track expenses against a lightweight budget without the overhead of spreadsheets. It provides a fast, distraction-free way to log expenses, manage a simple budget, and gain quick insights into spending habits, all through an intuitive command-line interface.
+orCASHbuddy is a Java 17 command-line application that helps students track expenses against a lightweight budget without the overhead of spreadsheets. It provides a fast way to log expenses, manage a simple budget, and gain quick insights into spending habits.
 
 ## Summary of Contributions
 
@@ -10,16 +10,16 @@ orCASHbuddy is a Java 17 command-line application that helps students track expe
 
 *   **Enhancements implemented:**
     *   **`add` Feature Implementation:**
-        *   **Functionality:** Developed the core `add` command, enabling users to record expenses with a specified amount (`a/AMOUNT`), description (`desc/DESCRIPTION`), and an optional category (`cat/CATEGORY`). This feature is crucial for tracking spending and forms the backbone of the application's data input.
-        *   **Class Contributions:**
-            *   `Parser.java`: Implemented the `parseAddCommand` method to correctly interpret user input for adding expenses, delegating argument extraction and validation.
-            *   `ArgumentParser.java`: Developed methods (`getValue`, `getOptionalValue`) to robustly extract prefix-based arguments (e.g., `a/`, `desc/`, `cat/`) from raw user input, handling both required and optional parameters.
-            *   `InputValidator.java`: Created static methods (`validateAmount`, `validateDescription`, `validateCategory`) to ensure the correctness and format of expense details, throwing `OrCashBuddyException` for invalid inputs to maintain data integrity.
-            *   `AddCommand.java`: Implemented the `execute` method to encapsulate the logic for creating an `Expense` object and adding it to the `ExpenseManager`.
-            *   `Expense.java`: Defined the structure of an expense, including amount, description, category, and paid status, along with its display formatting (`formatForDisplay`).
-            *   `ExpenseManager.java`: Implemented the `addExpense` method to manage the collection of expenses, ensuring new expenses are correctly integrated.
-            *   `Ui.java`: Contributed to displaying user feedback for new expenses (`showNewExpense`). 
-        *   **Testing:** Developed comprehensive test cases and code for the `add` command, covering various scenarios including valid inputs, missing required prefixes, and invalid data formats.
+        *   **Functionality:** Developed the core `add` command, enabling users to record expenses with amount (`a/AMOUNT`), description (`desc/DESCRIPTION`), and optional category (`cat/CATEGORY`), forming the backbone of data input.
+        *   **Contributions:**
+            *   `Parser.java`: Implemented `parseAddCommand` for interpreting user input and delegating argument extraction.
+            *   `ArgumentParser.java`: Developed methods to robustly extract prefix-based arguments (`a/`, `desc/`, `cat/`).
+            *   `InputValidator.java`: Created static methods (`validateAmount`, `validateDescription`, `validateCategory`) to ensure data integrity through validation.
+            *   `AddCommand.java`: Implemented the `execute` method to encapsulate expense object creation and addition to `ExpenseManager`.
+            *   `Expense.java`: Defined the expense structure (amount, description, category, paid status) and display formatting.
+            *   `ExpenseManager.java`: Implemented `addExpense` to manage the collection of expenses.
+            *   `Ui.java`: Contributed to displaying user feedback for new expenses (`showNewExpense`).
+        *   **Testing:** Developed comprehensive test cases covering valid inputs, missing prefixes, and invalid data formats.
 
     *   **`bye` Feature Implementation:**
         *   **Functionality:** Did up the `bye` command for graceful application termination, ensuring data persistence and a clean exit.
@@ -33,9 +33,7 @@ orCASHbuddy is a Java 17 command-line application that helps students track expe
         *   Developed testing cases and code for core components including `Ui` (ensuring correct display of messages), `InputValidator` (comprehensive validation scenarios), `Parser` (correct command parsing), `InvalidCommandTest` (handling of invalid commands), `UnmarkCommandTest` (verifying unmarking logic), and `ArgumentParserTest`. 
 
 *   **Contributions to the User Guide:**
-    *   Wrote the documentation for the `add` and `bye` features.
-    *   Added the Command Summary section.
-    *   Wrote the FAQ section.
+    *   Wrote the documentation for the `add` and `bye` features, FAq and Command Summary sections.
 
 *   **Contributions to the Developer Guide:**
     *   Set up the initial skeleton of the Developer Guide.
