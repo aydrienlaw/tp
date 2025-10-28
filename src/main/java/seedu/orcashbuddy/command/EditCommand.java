@@ -74,7 +74,7 @@ public class EditCommand extends Command {
         }
 
         ui.showSeparator();
-        if (newAmount ==null && newDescription == null && newCategory == null){
+        if (newAmount == null && newDescription == null && newCategory == null){
             ui.showEmptyEdit(edited);
             LOGGER.log(Level.INFO, "No changes were made to the expense.");
         } else {
