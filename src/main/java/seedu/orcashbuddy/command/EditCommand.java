@@ -74,7 +74,12 @@ public class EditCommand extends Command {
         }
 
         ui.showSeparator();
-        ui.showEditedExpense(edited);
+        if (newAmount ==null && newDescription == null && newCategory == null){
+            ui.showEmptyEdit(edited);
+            LOGGER.log(Level.INFO, "No changes were made to the expense.");
+        } else {
+            ui.showEditedExpense(edited);
+        }
         BudgetStatus status = expenseManager.determineBudgetStatus();
         if (status != BudgetStatus.OK) {
             double remainingBalance = expenseManager.getRemainingBalance();

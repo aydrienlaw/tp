@@ -417,6 +417,16 @@ public class Ui {
         System.out.println(EDIT_USAGE);
     }
 
+    //@@author gumingyoujia
+    /**
+     * Displays a message to remind user no changes were made to the expense for {@code edit}.
+     *
+     * @param expense the updated expense
+     */
+    public void showEmptyEdit(Expense expense) {
+        showExpenseWithLabel("No changes were made to the expense:", expense);
+    }
+
     /**
      * Displays a message for unknown commands and nudges the user toward {@code help}.
      */
