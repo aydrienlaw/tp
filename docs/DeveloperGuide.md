@@ -1404,7 +1404,7 @@ The sequence diagram in `docs/diagrams/list-sequence.puml` illustrates these int
 - **Graphical Visualization:** Display pie charts or bar graphs for expense breakdown by category.
 - **Date Range Support:** Allow usage such as `list from/2025-01-01 to/2025-01-31` for time-specific summaries.
 
-
+---
 
 ## Appendix A: Product Scope
 
