@@ -731,7 +731,7 @@ The `EditCommand` class extends `Command` and performs the update by replacing t
    - If the original expense was marked, `ExpenseManager#markExpense(index)` is invoked to preserve the marked state.
 
 4. **UI Feedback:**
-   - The updated expense is displayed to the user via `Ui#showEditedExpense`.
+   - The updated expense is displayed to the user via either `Ui#showEmptyEdit` or `Ui#showEditedExpense` depending on whether the user has made any edits to the expense.
    - `ExpenseManager#checkRemainingBalance(ui)` is called to recalculate the budget and display alerts if thresholds are exceeded.
 
 5. **Data Persistence:**  
@@ -739,10 +739,6 @@ The `EditCommand` class extends `Command` and performs the update by replacing t
 
 The sequence diagram in `docs/diagrams/edit-sequence.puml` illustrates the interactions between `Main`, `Parser`, `EditCommand`, `ExpenseManager`, `Ui`, and `StorageManager` during this workflow.
 
-#### Validation
-- Ensures the provided index corresponds to an existing expense.
-- Null values for fields (amount/description/category) preserve the original data, allowing partial edits.
-- Invalid or negative amounts trigger validation errors from `InputValidator`.
 
 #### Example
 
@@ -755,6 +751,11 @@ edit /id 2 /a 20.50 /desc Dinner /cat Food
 ```
 Edited expense: [ ] [Food] Dinner - $20.50
 ```
+
+#### Validation
+- Ensures the provided index corresponds to an existing expense.
+- Null values for fields (amount/description/category) preserve the original data, allowing partial edits.
+- Invalid or negative amounts trigger validation errors from `InputValidator`.
 
 #### Logging and Diagnostics
 
