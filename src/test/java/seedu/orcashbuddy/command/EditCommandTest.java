@@ -4,12 +4,14 @@ package seedu.orcashbuddy.command;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import seedu.orcashbuddy.expense.Expense;
+import seedu.orcashbuddy.storage.BudgetStatus;
 import seedu.orcashbuddy.storage.ExpenseManager;
 import seedu.orcashbuddy.ui.Ui;
 
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Command-level tests for editing expenses.
@@ -20,19 +22,37 @@ class EditCommandTest {
     private StubUi ui;
 
     /**
-     * Stub version of Ui that captures the last expense shown.
+     * Stub version of Ui that captures the most recent actions.
      */
     static class StubUi extends Ui {
         Expense lastEditedExpense = null;
+        Expense lastEmptyEdit = null;
+        boolean separatorShown = false;
+        boolean budgetStatusShown = false;
 
         @Override
         public void showEditedExpense(Expense expense) {
             this.lastEditedExpense = expense;
         }
+
+        @Override
+        public void showEmptyEdit(Expense expense) {
+            this.lastEmptyEdit = expense;
+        }
+
+        @Override
+        public void showSeparator() {
+            separatorShown = true;
+        }
+
+        @Override
+        public void showBudgetStatus(BudgetStatus status, double remainingBalance) {
+            budgetStatusShown = true;
+        }
     }
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         manager = new ExpenseManager();
         ui = new StubUi();
 
@@ -51,6 +71,7 @@ class EditCommandTest {
         assertEquals("Dinner", edited.getDescription());
         assertEquals("Meals", edited.getCategory());
         assertEquals(ui.lastEditedExpense, edited);
+        assertTrue(ui.separatorShown, "Separators should be displayed");
     }
 
     @Test
@@ -88,4 +109,14 @@ class EditCommandTest {
         Expense edited = manager.getExpense(1);
         assertTrue(edited.isMarked(), "Edited expense should remain marked");
     }
+
+    @Test
+    void execute_noChanges_invokesShowEmptyEdit() throws Exception {
+        EditCommand cmd = new EditCommand(1, null, null, null);
+        cmd.execute(manager, ui);
+
+        assertNull(ui.lastEditedExpense, "Should not call showEditedExpense()");
+        assertNotNull(ui.lastEmptyEdit, "Should call showEmptyEdit()");
+    }
+
 }
