@@ -1,6 +1,10 @@
 # orCASHbuddy User Guide
 
-Welcome to the user guide for **orCASHbuddy**, a lightweight command-line assistant for tracking day-to-day expenses and monitoring how they affect your budget. This document explains how to set up the application, describes every available command, and provides quick references for day-to-day use.
+Welcome to the user guide for orCASHbuddy, a lightweight command-line assistant for tracking and managing expenses.
+
+orCASHbuddy is designed for Residential College 4 (RC4) Interest Group treasurers who need a quick and reliable way to record spending, set budgets, and monitor group finances.
+
+This document explains how to set up the application, describes every available command, and provides quick references for day-to-day use.
 
 ---
 
@@ -33,7 +37,8 @@ Welcome to the user guide for **orCASHbuddy**, a lightweight command-line assist
    ```bash
    java -jar orcashbuddy.jar
    ```
-4. **Try a command.** After the welcome banner appears, type `help` and press Enter to see the list of supported commands.
+   Once the program starts, you’ll see a welcome message and the command menu in your terminal window, as shown below.
+   ![welcome.png](images/welcome.png)
 
 > **Note:** The application automatically saves your data to a `data` folder. Your expenses and budget will persist between sessions.
 
