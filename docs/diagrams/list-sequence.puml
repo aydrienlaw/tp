@@ -1,0 +1,70 @@
+@startuml
+!theme vibrant
+actor User
+participant ":Main" as Main
+participant ":Parser" as Parser
+participant ":ListCommand" as ListCommand
+participant ":ExpenseManager" as ExpenseManager
+participant ":Ui" as Ui
+participant ":StorageManager" as StorageManager
+
+activate Main
+Main -> StorageManager : loadExpenseManager(ui)
+activate StorageManager
+StorageManager --> Main : expenseManager
+deactivate StorageManager
+
+User -> Main : enters "list"
+
+Main -> Parser : parse("list")
+activate Parser
+
+create ListCommand
+Parser -> ListCommand
+Parser --> Main : listCommand
+deactivate Parser
+
+Main -> ListCommand : execute(expenseManager, ui)
+activate ListCommand
+
+ListCommand -> Ui : showSeparator()
+activate Ui
+deactivate Ui
+
+ListCommand -> ExpenseManager : getBudget()
+activate ExpenseManager
+ExpenseManager --> ListCommand : budget
+deactivate ExpenseManager
+
+ListCommand -> ExpenseManager : getTotalExpenses()
+activate ExpenseManager
+ExpenseManager --> ListCommand : totalExpenses
+deactivate ExpenseManager
+
+ListCommand -> ExpenseManager : getRemainingBalance()
+activate ExpenseManager
+ExpenseManager --> ListCommand : remainingBalance
+deactivate ExpenseManager
+
+ListCommand -> ExpenseManager : getExpenses()
+activate ExpenseManager
+ExpenseManager --> ListCommand : expenses
+deactivate ExpenseManager
+
+ListCommand -> Ui : showFinancialSummary(budget, totalExpenses, remainingBalance, expenses)
+activate Ui
+Ui --> User : displays financial summary and expense list
+deactivate Ui
+
+ListCommand -> Ui : showSeparator()
+activate Ui
+deactivate Ui
+
+deactivate ListCommand
+
+Main -> StorageManager : saveExpenseManager(expenseManager, ui)
+activate StorageManager
+deactivate StorageManager
+
+deactivate Main
+@enduml
