@@ -149,6 +149,7 @@ Your total budget is now $200.00.
 
 ---
 
+<!-- @@author gumingyoujia -->
 ### Listing Expenses and Summary: `list`
 Shows your current budget, total paid expenses, remaining balance, and every recorded expense in the order added.
 
@@ -236,6 +237,7 @@ After deletion, use `list` to confirm the remaining expenses and updated totals.
 
 ---
 
+<!-- @@author limzerui -->
 ### Exiting the Application: `bye`
 Closes orCASHbuddy gracefully.
 

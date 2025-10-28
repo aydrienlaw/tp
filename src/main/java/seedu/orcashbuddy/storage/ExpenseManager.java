@@ -58,7 +58,7 @@ public class ExpenseManager implements Serializable {
     }
 
     // ========== Getters ==========
-
+    //@@author gumingyoujia
     /**
      * Returns the current budget amount.
      *
@@ -88,6 +88,7 @@ public class ExpenseManager implements Serializable {
         return remainingBalance;
     }
 
+    //@@author
     /**
      * Returns the number of expenses currently tracked.
      *
@@ -97,6 +98,7 @@ public class ExpenseManager implements Serializable {
         return expenses.size();
     }
 
+    //@@author gumingyoujia
     /**
      * Returns the full list of expenses.
      * The returned list is the live internal list, so callers
@@ -264,6 +266,7 @@ public class ExpenseManager implements Serializable {
         LOGGER.log(Level.INFO, "Budget set to {0}", budget);
     }
 
+    //@@author gumingyoujia
     /**
      * Returns a summary of how the user's current spending compares
      * to their budget. Used by the UI to decide which alert to show.
@@ -390,6 +393,7 @@ public class ExpenseManager implements Serializable {
                 ", remaining=" + remainingBalance);
     }
 
+    //@@author gumingyoujia
     /**
      * Recalculates the remaining balance based on budget and total expenses.
      */
