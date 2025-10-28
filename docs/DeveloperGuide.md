@@ -66,7 +66,7 @@ Follow these steps to set up the project in IntelliJ IDEA:
 The `Ui` class handles all console-based user interactions in orCASHbuddy.
 
 #### Structure of the UI Component
-![UI Component Class Diagram](docs/diagrams/ui-component-class.png)
+![UI Component Class Diagram](diagrams/ui-component-class.png)
 
 The `Ui` component is a single class that encapsulates all display logic. All output is rendered to the console using `System.out.println()`.
 
@@ -141,6 +141,9 @@ The add-expense workflow transforms a single line of user input into a populated
 5. **Execution:** `AddCommand#execute` wraps the primitives into an `Expense`, calls `ExpenseManager#addExpense`, and then defers to `Ui#showNewExpense`.
 
 The sequence diagram in `docs/diagrams/add-sequence.puml` illustrates the interactions between these collaborative components. Rendering the diagram (e.g., `plantuml docs/diagrams/add-sequence.puml`) is recommended when onboarding new contributors.
+
+#### Sequence Diagram
+![Add Sequence Diagram](images/add_feature.png)
 
 #### State Mutation and Invariants
 
@@ -1027,6 +1030,9 @@ Exiting the application used to depend on `Main` inspecting raw input (checking 
 
 The sequence diagram stored at `docs/diagrams/bye-sequence.puml` captures this flow. Rendering it clarifies that no other component interacts with the exit decision, preserving a single exit pathway.
 
+#### Sequence Diagram
+![Bye Sequence Diagram](images/bye_feature.png)
+
 #### Rationale
 
 - **Testability:** Unit tests can now instantiate `ByeCommand` directly, verifying both the farewell message and the exit flag without running the whole application loop (`ByeCommandTest` demonstrates this).
@@ -1059,6 +1065,9 @@ The help feature provides users with a comprehensive list of available commands 
 4. **Data Persistence:** Since the `help` command is a read-only operation and does not modify any application data, `StorageManager.saveExpenseManager` is called after execution (as per the standard command execution flow in `Main`), but no actual data changes are persisted.
 
 The sequence diagram in `docs/diagrams/help-sequence.puml` illustrates these interactions.
+
+#### Sequence Diagram
+![Help Sequence Diagram](images/help-sequence.png)
 
 #### Rationale
 
