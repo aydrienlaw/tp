@@ -16,22 +16,22 @@ This Developer Guide (DG) introduces the internals of **orCASHbuddy**, outlines 
 1. [Introduction](#introduction)
 2. [Setting Up](#setting-up)
 3. [Design](#design)
-    1. [UI Component](#ui-component)
-    2. [Logic Component](#logic-component)
-    3. [Model Component](#model-component)
-    4. [Storage Component](#storage-component)
+   1. [UI Component](#ui-component)
+   2. [Logic Component](#logic-component)
+   3. [Model Component](#model-component)
+   4. [Storage Component](#storage-component)
 4. [Implementation](#implementation)
-    1. [Add Expense Feature](#add-expense-feature)
-    2. [Set Budget Feature](#set-budget-feature)
-    3. [List Expenses Feature](#list-expenses-feature)
-    4. [Mark/Unmark Expense Feature](#markunmark-expense-feature)
-    5. [Find Expense Feature](#find-expense-feature)
-    6. [Edit Expense Feature](#edit-expense-feature)
-    7. [Delete Expense Feature](#delete-expense-feature)
-    8. [Sort Expenses Feature](#sort-expenses-feature)
-    9. [Storage Management Feature](#storage-management-feature)
-    10. [Help Feature](#help-feature)
-    11. [Graceful Exit Feature](#graceful-exit-feature)
+   1. [Add Expense Feature](#add-expense-feature)
+   2. [Set Budget Feature](#set-budget-feature)
+   3. [Mark/Unmark Expense Feature](#markunmark-expense-feature)
+   4. [Find Expense Feature](#find-expense-feature)
+   5. [Delete Expense Feature](#delete-expense-feature)
+   6. [Edit Expense Feature](#edit-expense-feature)
+   7. [Sort Expenses Feature](#sort-expenses-feature)
+   8. [Storage Management Feature](#storage-management-feature)
+   9. [Graceful Exit](#graceful-exit)
+   10. [Help Feature](#help-feature)
+   11. [List Feature](#List-feature)
 5. [Appendix A: Product Scope](#appendix-a-product-scope)
 6. [Appendix B: User Stories](#appendix-b-user-stories)
 7. [Appendix C: Non-Functional Requirements](#appendix-c-non-functional-requirements)
@@ -320,6 +320,9 @@ The `Model` component represents the application's core data and business logic.
 
 **API**: `StorageManager.java`
 
+#### Sequence Diagram
+![Storage Component Class Diagram](images/storage-manager-sequence.png)
+
 #### Responsibilities
 
 The `Storage` component handles persistent data storage between application sessions. It:
@@ -329,7 +332,6 @@ The `Storage` component handles persistent data storage between application sess
 * depends on classes in the `Model` component (because the `Storage` component's job is to save/retrieve the `ExpenseManager` object that belongs to the `Model`).
 * uses the `Ui` component to display user-friendly error messages when storage operations fail (e.g., permission denied, corrupted data, disk full).
 
-Refer to docs/diagrams/storage-component-class.puml for the structure (represented using class diagram) of the Storage Component.
 Refer to [Storage Management Feature](#storage-management-feature) for a more detailed explanation of the implementation of the Storage Component. 
 
 <br>
@@ -860,6 +862,9 @@ The command updates the stored data automatically, ensuring that the deleted exp
 Deletion is an irreversible operation, once an expense is deleted, it cannot be recovered. However, we designed the workflow to be deliberate and safe by requiring explicit index input and validating that the list is not empty before proceeding. 
 This prevents accidental deletions and ensures data integrity.
 
+#### Sequence Diagram
+![Delete Sequence Diagram](images/delete-feature.png)
+
 #### Control Flow
 
 1. **Input capture:** `Main` reads the user's command (`delete 3`) and passes it to `Parser`.
@@ -872,8 +877,6 @@ This prevents accidental deletions and ensures data integrity.
     - If the expense was marked as paid, the manager automatically updates total expenses and remaining balance.
     - The deleted expense is passed to `Ui#showDeletedExpense` for user feedback.
     - Data persistence is triggered by the main application logic after command execution, ensuring consistency without coupling storage logic into `ExpenseManager`.
-
-The sequence diagram in `docs/diagrams/delete-sequence.puml` illustrates these interactions from input parsing to UI display.
 
 #### Deletion Logic and Validation
 
@@ -1071,6 +1074,9 @@ This provides an immediate way to identify the largest expenditures and helps us
 The command does not modify the original expense list to preserve insertion order, and it automatically updates the UI to display the sorted list. 
 If no expenses exist, the system provides a clear message instead of failing, ensuring a user-friendly experience.
 
+#### Sequence Diagram
+![Sort Sequence Diagram](images/sort-feature.png)
+
 #### Control Flow
 
 1. **Input capture:** `Main` reads the user's command (`sort`) and passes it to `Parser`.
@@ -1081,8 +1087,6 @@ If no expenses exist, the system provides a clear message instead of failing, en
     - If the expense list is empty, `Ui#showEmptyExpenseList()` is invoked instead.
 4. **Data persistence:** Sorting does not change the stored data, so no file updates are required.
    However, `StorageManager.saveExpenseManager(expenseManager, ui)` is still after execution, which just saves the existing list of data, not the sorted list.
-
-The sequence diagram in `docs/diagrams/sort-sequence.puml` illustrates these interactions from input parsing to UI display.
 
 #### Sorting Logic and Validation
 
@@ -1202,6 +1206,9 @@ Users do not have to key in a command to save or load data.
 
 This is a binary serialized file using Java's built-in serialization mechanism (`ObjectOutputStream` / `ObjectInputStream`).
 
+#### Sequence Diagram
+![Storage Manager Sequence Diagram](images/storage-manager-sequence.png)
+
 #### Control Flow
 
 ##### 1. `saveExpenseManager(ExpenseManager expenseManager, Ui ui)`
@@ -1253,7 +1260,6 @@ StorageManager.saveExpenseManager(expenseManager, ui);
 ```java
 ExpenseManager expenseManager = StorageManager.loadExpenseManager(ui);
 ```
-The sequence diagram in `docs/diagrams/storage-manager-sequence.puml` illustrates these interactions.
 
 #### Error Handling
 
