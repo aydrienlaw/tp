@@ -25,10 +25,12 @@ This Developer Guide (DG) introduces the internals of **orCASHbuddy**, outlines 
    2. [Mark/Unmark Expense Feature](#markunmark-expense-feature)
    3. [Find Expense Feature](#find-expense-feature)
    4. [Delete Expense Feature](#delete-expense-feature)
-   5. [Sort Expenses Feature](#sort-expenses-feature)
-   6. [Storage Management Feature](#storage-management-feature)
-   7. [Graceful Exit](#graceful-exit)
-   8. [Help Feature](#help-feature)
+   5. [Edit Expense Feature](#edit-expense-feature)
+   6. [Sort Expenses Feature](#sort-expenses-feature)
+   7. [Storage Management Feature](#storage-management-feature)
+   8. [Graceful Exit](#graceful-exit)
+   9. [Help Feature](#help-feature)
+   10. [List Feature](#List-feature)
 5. [Appendix A: Product Scope](#appendix-a-product-scope)
 6. [Appendix B: User Stories](#appendix-b-user-stories)
 7. [Appendix C: Non-Functional Requirements](#appendix-c-non-functional-requirements)
@@ -1037,6 +1039,8 @@ The sequence diagram stored at `docs/diagrams/bye-sequence.puml` captures this f
 
 By keeping farewell handling within the command framework, orCASHbuddy maintains a coherent abstraction and prepares for richer lifecycle management in subsequent releases.
 
+<br>
+
 ### Help Feature
 
 #### Overview
@@ -1065,6 +1069,56 @@ The sequence diagram in `docs/diagrams/help-sequence.puml` illustrates these int
 
 - **Contextual Help:** Future enhancements could include `help <command_name>` to provide specific details for a given command.
 - **Pagination:** For a very large number of commands, pagination could be introduced to display help information in chunks.
+
+<br>
+
+### List Feature
+
+#### Overview
+
+The List Feature displays all recorded expenses along with a real-time financial summary. This includes the user’s current budget, total spending, remaining balance, and a visual progress bar that indicates budget utilization.
+
+The `list` command serves as a core read-only function within the application, offering users an at-a-glance understanding of their financial status and detailed visibility into all tracked expenses. 
+#### Control Flow
+#### Control Flow
+
+1. **Input Capture:** `Main` reads the user's command (`list`) and forwards it to `Parser`.
+
+2. **Command Creation:** `Parser` recognizes the `list` keyword and directly constructs a new `ListCommand` object.
+   - No arguments are expected or parsed for this command, any input arguments will be ignored.
+
+3. **Execution:**  
+   When `Main` invokes `command.execute(expenseManager, ui)`:
+   - `ListCommand` logs that execution has started.
+   - It first calls `ui.showSeparator()` to visually separate output blocks.
+   - It retrieves relevant financial data from `ExpenseManager`:
+      - `getBudget()` – retrieves the total budget set by the user.
+      - `getTotalExpenses()` – calculates the total of all recorded expenses.
+      - `getRemainingBalance()` – computes the difference between the budget and total expenses.
+      - `getExpenses()` – returns a list of all `Expense` objects.
+   - These values are passed to `ui.showFinancialSummary(budget, totalExpenses, remainingBalance, expenses)` which:
+      - Displays a formatted financial summary.
+      - Prints the current budget, total spent, and remaining balance.
+      - Generates a **color-coded progress bar** representing the ratio of spending to budget.
+      - Displays all expenses in a numbered list, or a “no expenses added” message if empty.
+   - Finally, it calls `ui.showSeparator()` again for consistent output formatting.
+
+4. **Data Persistence:**  
+   The `list` command is a **read-only** operation that does not modify application data.
+   - As part of the standard execution flow, `StorageManager.saveExpenseManager` is still called after execution, but no new data is persisted.
+
+
+The sequence diagram in `docs/diagrams/list-sequence.puml` illustrates these interactions.
+
+#### Rationale
+
+- **User Experience:** Combines textual and visual feedback (color-coded progress bar) for better readability.
+
+#### Extensibility and Future Enhancements
+
+- **Pagination:** Introduce pagination for users with a large number of expenses.
+- **Graphical Visualization:** Display pie charts or bar graphs for expense breakdown by category.
+- **Date Range Support:** Allow usage such as `list from/2025-01-01 to/2025-01-31` for time-specific summaries.
 
 
 
