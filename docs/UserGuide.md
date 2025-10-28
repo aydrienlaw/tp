@@ -79,10 +79,10 @@ Creates a new expense entry with an amount, description, and optional category.
 
 **Examples:**
 ```
-`add a/4.50 desc/Morning coffee`
+`add a/4.50 desc/venue booking`
 ```
 ```
-`add a/32.90 desc/Weekly groceries cat/Household`
+`add a/32.90 desc/event poster cat/publicity`
 ```
 
 The newly added expense appears as `[ ] [CATEGORY] DESCRIPTION - $AMOUNT`. The `[ ]` will switch to `[X]` once the expense is marked as paid.
@@ -105,7 +105,7 @@ Edit the amount and/or the description and/or the category of an expense. Update
 
 **Example:** 
 ```
-edit id/1 a/25 desc/pizza
+edit id/2 a/25 desc/poster printing
 ```
 
 ---
@@ -121,13 +121,13 @@ Defines your total spending budget for expense tracking and alerts.
 
 **Example:**
 ```
-setbudget a/500
+setbudget a/200
 ```
 
 **Expected output:**
 ```
 ---------------------------------------------------------------
-Your total budget is now $500.00.
+Your total budget is now $200.00.
 ---------------------------------------------------------------
 ```
 
@@ -192,12 +192,12 @@ Searches for expenses by category or description keyword, displaying all matchin
 
 **Examples:**
 ```
-find cat/food
+find cat/facility
 ```
 - Finds all expenses with categories containing "food"
 
 ```
-find desc/lunch
+find desc/poster
 ```
 - Finds all expenses with descriptions containing "lunch"
 
