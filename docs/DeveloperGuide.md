@@ -129,13 +129,190 @@ Here is your list of expenses:
 
 <br>
 
-## Logic Component
+### Logic Component
+
+**API**: `Parser.java`, `Command.java`
+
+The Logic component is responsible for making sense of user commands.
 
 <br>
 
-## Model Component
+#### Key Classes
+
+**Parser (`Parser.java`):**
+- Central parsing coordinator that identifies command words and routes to specific parsing methods
+- Contains `parseXxxCommand()` methods for each command type (e.g., `parseAddCommand()`, `parseDeleteCommand()`)
+- Catches `OrCashBuddyException` during parsing and wraps failures in `InvalidCommand` objects
+- Returns a `Command` object ready for execution
+
+**ArgumentParser (`ArgumentParser.java`):**
+- Lightweight helper for extracting prefixed argument values from command strings
+- Provides `getValue(prefix)` for required arguments (throws exception if missing)
+- Provides `getOptionalValue(prefix)` for optional arguments (returns null if absent)
+- Handles multiple prefixes in a single command string
+- Does not perform semantic validation; only extracts raw string values
+
+**InputValidator (`InputValidator.java`):**
+- Static utility class providing validation methods for all input types
+- `validateAmount()`: Ensures numeric format and positive value
+- `validateDescription()`: Ensures non-empty and trimmed string
+- `validateCategory()`: Validates format (alphanumeric, starts with letter, reasonable length)
+- `validateIndex()`: Ensures positive integer index for expense operations
+- Throws `OrCashBuddyException` with descriptive messages for validation failures
+
+**Command (`Command.java`):**
+- Abstract base class for all executable commands
+- Defines `execute(ExpenseManager, Ui)` for command execution
+- Defines `isExit()` to signal application termination (default: false)
+- Subclasses include: `AddCommand`, `DeleteCommand`, `EditCommand`, `MarkCommand`, `UnmarkCommand`, `FindCommand`, `SortCommand`, `ListCommand`, `SetBudgetCommand`, `HelpCommand`, `ByeCommand`, `InvalidCommand`
+
+**InvalidCommand (`InvalidCommand.java`):**
+- Special command type for handling parsing/validation failures
+- Stores the `OrCashBuddyException` that caused the failure
+- Displays contextual usage hints based on error message content (e.g., shows add usage for add-related errors)
+- Prevents application crash when user provides malformed input
+
+**OrCashBuddyException (`OrCashBuddyException.java`):**
+- Custom exception type for application-specific errors
+- Provides factory methods for common error scenarios (e.g., `missingAmountPrefix()`, `invalidExpenseIndex()`)
+- Contains descriptive error messages for user feedback
+- Used throughout parsing and validation to signal failures
 
 <br>
+
+#### How the Logic component works:
+
+1. When `Logic` is called upon to execute a command (via `Main#executeCommand()`), the input is passed to a `Parser` object.
+2. The `Parser` splits the input into a command word and arguments, then uses `ArgumentParser` to extract prefixed values (e.g., `a/`, `desc/`, `cat/`).
+3. `InputValidator` validates each extracted parameter (e.g., ensuring amounts are positive, descriptions are non-empty).
+4. The `Parser` creates the appropriate `Command` object (e.g., `AddCommand`, `DeleteCommand`) populated with validated data.
+5. This results in a `Command` object which is executed by `Main` via `command.execute(expenseManager, ui)`.
+6. The command can communicate with the `Model` when it is executed (e.g., to add an expense, mark as paid, or delete an entry). The command may also display results via the `Ui`.
+7. After execution, `Main` automatically saves the updated state via `StorageManager`.
+8. If the command is `ByeCommand`, it returns `true` from `isExit()`, signaling `Main` to terminate the application loop.
+
+<br>
+
+#### How the parsing works:
+
+* When called upon to parse a user command, the `Parser` class identifies the command word (e.g., `add`, `delete`, `mark`).
+* For each command type, `Parser` has a corresponding `parseXxxCommand()` method (e.g., `parseAddCommand()`, `parseDeleteCommand()`) that:
+    - Uses `ArgumentParser` to extract required and optional prefixed arguments
+    - Delegates validation to `InputValidator`
+    - Constructs the specific `Command` object (e.g., `AddCommand`, `MarkCommand`)
+* If parsing or validation fails, `Parser` catches `OrCashBuddyException` and wraps it in an `InvalidCommand` object.
+* The `InvalidCommand`, when executed, displays contextual error messages and usage hints via `Ui` (e.g., `showAddUsage()`, `showDeleteUsage()`).
+
+**Example: Parsing an Add Command**
+
+```
+User Input: "add a/25.50 desc/Dinner cat/Food"
+     ↓
+Parser identifies command word: "add"
+     ↓
+Parser.parseAddCommand() called with arguments: "a/25.50 desc/Dinner cat/Food"
+     ↓
+ArgumentParser extracts: amount="25.50", description="Dinner", category="Food"
+     ↓
+InputValidator validates each field:
+  - amount=25.50 (positive ✓)
+  - description="Dinner" (non-empty ✓)
+  - category="Food" (valid format ✓)
+     ↓
+Parser creates: AddCommand(25.50, "Dinner", "Food")
+     ↓
+Main executes: command.execute(expenseManager, ui)
+```
+
+<br>
+
+#### Error Handling
+
+When parsing or validation fails:
+1. `ArgumentParser` or `InputValidator` throws `OrCashBuddyException` with descriptive message
+2. `Parser` catches the exception and creates `InvalidCommand(exception)`
+3. `Main` executes `InvalidCommand#execute()`, which displays contextual usage help via `Ui`
+4. Application continues running without disruption
+
+**Example Error Flow:**
+```
+User Input: "add desc/Lunch"  (missing amount)
+     ↓
+ArgumentParser throws: OrCashBuddyException("Missing prefix: a/")
+     ↓
+Parser creates: InvalidCommand(exception)
+     ↓
+Main executes: InvalidCommand#execute()
+     ↓
+Ui displays: "Invalid format. Use: add a/AMOUNT desc/DESCRIPTION [cat/CATEGORY]"
+```
+
+<br>
+
+#### Design Considerations
+
+**Why separate ArgumentParser and InputValidator?**
+- **Separation of Concerns:** Extraction logic (ArgumentParser) separate from validation logic (InputValidator)
+- **Reusability:** InputValidator methods can be called independently for any validation needs
+- **Testability:** Each component can be unit tested in isolation
+- **Clarity:** Clear distinction between "finding the value" vs "checking if it's valid"
+
+**Why use factory methods in OrCashBuddyException?**
+- **Consistency:** Ensures consistent error message formatting
+- **Maintainability:** Centralized error message management
+- **Type Safety:** Compile-time checking of exception creation
+- **Discoverability:** IDE autocomplete shows available exception types
+
+**Why InvalidCommand instead of throwing exceptions?**
+- **Graceful Recovery:** Application continues running after invalid input
+- **User Experience:** Provides helpful usage hints instead of cryptic stack traces
+- **Command Pattern Consistency:** All parsing outcomes return Command objects
+- **Error Context:** Preserves exception information for contextual feedback
+
+<br>
+
+### Model Component
+
+**API**: `ExpenseManager.java`, `Expense.java`
+
+#### Responsibilities
+The `Model` component represents the application's core data and business logic. It:
+* stores the expense tracking data, i.e., all `Expense` objects (which are contained in a `List<Expense>` within `ExpenseManager`).
+* stores the budget and financial tracking state: `budget` (user-set spending limit), `totalExpenses` (sum of marked expenses), and `remainingBalance` (budget - totalExpenses).
+* enforces business rules and maintains invariants (e.g., budget must be positive, expenses must have valid amounts and descriptions, balance must equal budget minus total expenses).
+* exposes operations for expense management (`addExpense`, `deleteExpense`, `markExpense`, `unmarkExpense`, `findExpenses`, `sortExpenses`) that are used by `Command` objects.
+* stores `Expense` objects as immutable entities (only the `isMarked` flag can change after construction).
+* does not depend on any of the other components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components).
+
+#### Key Classes
+
+**Expense (`Expense.java`):**
+- Immutable data class representing a single transaction
+- Fields: `amount` (double), `description` (String), `category` (String), `isMarked` (boolean)
+- Provides `formatForDisplay()` method for consistent UI rendering
+- Implements `Serializable` for persistence
+
+**ExpenseManager (`ExpenseManager.java`):**
+- Central business logic class managing all expenses and budget state
+- Maintains invariants through validation and assertions
+- Provides operations consumed by commands
+
+**BudgetStatus (Enum):**
+- Represents financial health: `OK`, `NEAR`, `EQUAL`, `EXCEEDED`
+- Used to trigger budget alerts in UI
+
+<br>
+
+#### Key Invariants Maintained by ExpenseManager:
+
+1. **Budget Positivity:** `budget > 0.0` (enforced via assertions)
+2. **Balance Consistency:** `remainingBalance = budget - totalExpenses` (recalculated after every budget or expense change)
+3. **Total Accuracy:** `totalExpenses` equals the sum of all marked expense amounts (updated when expenses are marked/unmarked/deleted)
+4. **Index Validity:** All operations accepting indices validate against list size before access
+5. **Expense Validity:** All expenses must have positive amounts, non-blank descriptions, and valid categories
+
+<br>
+
 
 ## Storage Component
 
