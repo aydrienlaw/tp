@@ -66,6 +66,7 @@ Use this whenever you need a quick reminder of the supported commands and their 
 
 ---
 
+<!-- @@author limzerui -->
 ### Adding an Expense: `add`
 
 Creates a new expense entry with an amount, description, and optional category.
@@ -89,6 +90,7 @@ The newly added expense appears as `[ ] [CATEGORY] DESCRIPTION - $AMOUNT`. The `
 
 ---
 
+<!-- @@author gumingyoujia -->
 ### Editing an Expense: `edit`
 Edit the amount and/or the description and/or the category of an expense. Updates the expense list and recalculates the remaining budget.
 
@@ -110,6 +112,7 @@ edit id/2 a/25 desc/poster printing
 
 ---
 
+<!-- @@author aydrienlaw -->
 ### Setting a Budget: `setbudget`
 
 Defines your total spending budget for expense tracking and alerts.
@@ -185,6 +188,7 @@ unmark 2
 
 ---
 
+<!-- @@author muadzyamani -->
 ### Finding an Expense: `find`
 Searches for expenses by category or description keyword, displaying all matching results.
 
@@ -194,7 +198,7 @@ Searches for expenses by category or description keyword, displaying all matchin
 ```
 find cat/facility
 ```
-- Finds all expenses with categories containing "food"
+- Finds all expenses with categories containing "food" 
 
 ```
 find desc/poster
@@ -216,12 +220,13 @@ If there are no expenses to sort, orCASHbuddy will remind you that there are no 
 
 ---
 
+<!-- @@author saheer17 -->
 ### Deleting an Expense: `delete`
 Removes an expense permanently (there is no undo). The application rebalances your budget totals automatically.
 
 **Format:** `delete INDEX`
 
-**Example:** 
+**Example:**
 
 ```
 delete 1
