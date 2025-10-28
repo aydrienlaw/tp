@@ -97,10 +97,17 @@ EditCommand -> Ui : showSeparator()
 activate Ui
 deactivate Ui
 
-EditCommand -> Ui : showEditedExpense(newExpense)
-activate Ui
-Ui --> User : displays edited expense
-deactivate Ui
+alt no fields changed (newAmount == null && newDescription == null && newCategory == null)
+    EditCommand -> Ui : showEmptyEdit(edited)
+    activate Ui
+    Ui --> User : displays "No changes made" message
+    deactivate Ui
+else fields updated
+    EditCommand -> Ui : showEditedExpense(edited)
+    activate Ui
+    Ui --> User : displays updated expense details
+    deactivate Ui
+end
 
 EditCommand -> ExpenseManager : determineBudgetStatus()
 activate ExpenseManager
