@@ -817,7 +817,8 @@ If no expenses exist, the system provides a clear message instead of failing, en
 4. **Data persistence:** Sorting does not change the stored data, so no file updates are required.
    However, `StorageManager.saveExpenseManager(expenseManager, ui)` is still after execution, which just saves the existing list of data, not the sorted list.
 
-The sequence diagram in `docs/diagrams/sort-sequence.puml` illustrates these interactions from input parsing to UI display.
+#### Sequence Diagram
+![Sort Sequence Diagram](images/sort-feature.png)
 
 #### Sorting Logic and Validation
 
