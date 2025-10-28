@@ -158,7 +158,7 @@ public class Parser {
         return new DeleteCommand(index);
     }
 
-    //@author muadzyamani
+    //@@author muadzyamani
     /**
      * Parses the {@code mark} command and creates a {@link MarkCommand}.
      *
@@ -207,7 +207,7 @@ public class Parser {
         throw new OrCashBuddyException("Missing search criteria for 'find' command");
     }
 
-    //@author gumingyoujia
+    //@@author gumingyoujia
     /**
      * Parses the {@code edit} command and creates an {@link EditCommand}.
      * Supports partial edits of amount, description, and/or category.
@@ -232,7 +232,7 @@ public class Parser {
         return new EditCommand(index, amount, description, category);
     }
 
-    //@author saheer17
+    //@@author saheer17
     private Command parseSortCommand(String arguments) throws OrCashBuddyException {
         if (arguments != null && !arguments.isBlank()) {
             throw new OrCashBuddyException("'sort' command does not take any arguments");
