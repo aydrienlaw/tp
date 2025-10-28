@@ -153,6 +153,8 @@ Shows your current budget, total paid expenses, remaining balance, and every rec
 
 If you have no expenses yet, orCASHbuddy tells you so and suggests adding one with the `add` command.
 
+**Example output:**
+![list.png](images/list.png)
 ---
 
 ### Marking an Expense as Paid: `mark`
