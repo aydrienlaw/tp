@@ -22,15 +22,16 @@ This Developer Guide (DG) introduces the internals of **orCASHbuddy**, outlines 
    4. [Storage Component](#storage-component)
 4. [Implementation](#implementation)
    1. [Add Expense Feature](#add-expense-feature)
-   2. [Mark/Unmark Expense Feature](#markunmark-expense-feature)
-   3. [Find Expense Feature](#find-expense-feature)
-   4. [Delete Expense Feature](#delete-expense-feature)
-   5. [Edit Expense Feature](#edit-expense-feature)
-   6. [Sort Expenses Feature](#sort-expenses-feature)
-   7. [Storage Management Feature](#storage-management-feature)
-   8. [Graceful Exit](#graceful-exit)
-   9. [Help Feature](#help-feature)
-   10. [List Feature](#List-feature)
+   2. [Set Budget Feature](#set-budget-feature)
+   3. [Mark/Unmark Expense Feature](#markunmark-expense-feature)
+   4. [Find Expense Feature](#find-expense-feature)
+   5. [Delete Expense Feature](#delete-expense-feature)
+   6. [Edit Expense Feature](#edit-expense-feature)
+   7. [Sort Expenses Feature](#sort-expenses-feature)
+   8. [Storage Management Feature](#storage-management-feature)
+   9. [Graceful Exit](#graceful-exit)
+   10. [Help Feature](#help-feature)
+   11. [List Feature](#List-feature)
 5. [Appendix A: Product Scope](#appendix-a-product-scope)
 6. [Appendix B: User Stories](#appendix-b-user-stories)
 7. [Appendix C: Non-Functional Requirements](#appendix-c-non-functional-requirements)
@@ -41,7 +42,16 @@ This Developer Guide (DG) introduces the internals of **orCASHbuddy**, outlines 
 
 ## Introduction
 
-orCASHbuddy is a Java 17 command-line application that helps students track expenses against a lightweight budget without the overhead of spreadsheets. 
+orCASHbuddy is a Java 17 command-line application that helps students track expenses against a lightweight budget without the overhead of spreadsheets. The application uses a command-driven architecture with persistent storage, providing immediate feedback and automatic data saving.
+
+**Key Features:**
+- Track expenses with amount, description, and category
+- Set and monitor budgets with visual progress indicators
+- Mark/unmark expenses as paid for accurate budget tracking
+- Search expenses by category or description
+- Edit and delete expenses with automatic budget recalculation
+- Sort expenses by amount
+- Persistent storage using Java serialization
 
 ---
 
@@ -49,11 +59,12 @@ orCASHbuddy is a Java 17 command-line application that helps students track expe
 
 Follow these steps to set up the project in IntelliJ IDEA:
 
-1. Ensure Java 17 is installed and configured as an IntelliJ SDK.
-2. Clone the repository and open it as a **Gradle** project.
-3. Let Gradle finish downloading dependencies. The main entry point is `seedu.orcashbuddy.Main`.
-4. Run `Main#main` once to verify that the welcome banner appears in the Run tool window.
-5. Execute `./gradlew test` (or `gradlew.bat test` on Windows) to confirm all JUnit tests pass.
+1. **Java 17 Installation:** Ensure Java 17 is installed and configured as an IntelliJ SDK.
+2. **Clone Repository:** Clone the repository and open it as a **Gradle** project.
+3. **Gradle Dependencies:** Let Gradle finish downloading dependencies. The main entry point is `seedu.orcashbuddy.Main`.
+4. **Verify Setup:** Run `Main#main` once to verify that the welcome banner appears in the Run tool window.
+5. **Run Tests:** Execute `./gradlew test` (or `gradlew.bat test` on Windows) to confirm all JUnit tests pass.
+6. **Code Quality:** Run `./gradlew checkstyleMain checkstyleTest` to verify code style compliance.
 
 ---
 
@@ -68,58 +79,315 @@ The `Ui` class handles all console-based user interactions in orCASHbuddy.
 #### Structure of the UI Component
 ![UI Component Class Diagram](diagrams/ui-component-class.png)
 
-The `Ui` component is a single class that encapsulates all display logic. All output is rendered to the console using `System.out.println()`.
+<br>
 
-The UI component:
-- **is invoked by commands** in the Command component to display results after execution
-- **displays data** from `Expense` objects and `BudgetStatus` enums in the Model component
-- **does not hold references** to `ExpenseManager` or any other stateful components
-- **receives all data as method parameters**, making it stateless and purely presentational
-- **uses ANSI color codes** for the budget progress bar visualization (green/yellow/red based on spending)
+#### Responsibilities
+The `UI` component is responsible for all user-facing interactions in the console. It:
+
+* displays output to the terminal using `System.out.println()`, including expense lists, budget summaries, error messages, and command feedback.
+* formats data for readability with visual separators, progress bars, and status icons.
+* uses ANSI escape codes to render color-coded budget progress bars (green for safe spending, yellow for approaching limit, red for over budget).
+* receives data as method parameters from `Command` objects after execution, making it stateless and purely presentational.
+* does not hold references to `ExpenseManager` or other stateful components.
+* provides contextual usage hints (via methods like `showAddUsage()`, `showDeleteUsage()`) when invalid commands are entered.
+
+<br>
+
+#### Visual Elements
+
+The `UI` provides several visual aids for better user experience:
+
+**Separators:** Dashed lines (`---------------------------------------------------------------`) create visual boundaries between command outputs.
+
+**Progress Bar:** A fixed-width bar showing budget usage:
+```
+Budget Used: [=============|----------------]  45.50%  (Remaining: $54.50)
+```
+- Green (0-70%): Safe spending range
+- Yellow (70-100%): Approaching budget limit
+- Red (>100%): Over budget
+
+**Status Icons:** Visual markers for expense payment status:
+- `[X]` — Marked as paid (included in budget calculations)
+- `[ ]` — Not yet paid (planned expense)
+
+**Example Output:**
+```
+---------------------------------------------------------------
+FINANCIAL SUMMARY
+Budget set: $100.00
+Total expenses: $45.50
+Remaining balance: $54.50
+
+BUDGET STATUS
+Spent: $45.50 / $100.00
+Budget Used: [=============|----------------]  45.50%  (Remaining: $54.50)
+
+Here is your list of expenses:
+1. [X] [Food] Lunch - $12.50
+2. [ ] [Transport] Bus fare - $3.00
+3. [X] [Food] Dinner - $30.00
+---------------------------------------------------------------
+```
 
 <br>
 
 ### Logic Component
 
-Namespace: `seedu.orcashbuddy.parser`, `seedu.orcashbuddy.command`
+**API**: `Parser.java`, `Command.java`
 
-- `Parser` tokenises raw user input, relying on prefix-based arguments (e.g., `a/`, `desc/`, `cat/`).
-- Validation is handled by `InputValidator`, keeping the parser lean.
-- Each `Command` subclass overrides `execute(ExpenseManager, Ui)` and may throw `OrCashBuddyException` for recoverable errors. Commands signal program termination by overriding `isExit()`.
+The Logic component is responsible for making sense of user commands.
 
-Sequence for the `add` command (see `docs/diagrams/add-sequence.puml`; render with the same command as above):
+<br>
 
-1. `Main` receives user input and calls `Parser#parse`.
-2. `Parser` uses `ArgumentParser` to extract the amount, description, and category from the raw input.
-3. `InputValidator` is then used to validate the extracted values.
-4. `Parser` returns a new `AddCommand` populated with the validated parameters.
-5. `Main` invokes `AddCommand#execute`, which persists the `Expense` via `ExpenseManager` and renders feedback through `Ui`.
+#### Key Classes
+
+**Parser (`Parser.java`):**
+- Central parsing coordinator that identifies command words and routes to specific parsing methods
+- Contains `parseXxxCommand()` methods for each command type (e.g., `parseAddCommand()`, `parseDeleteCommand()`)
+- Catches `OrCashBuddyException` during parsing and wraps failures in `InvalidCommand` objects
+- Returns a `Command` object ready for execution
+
+**ArgumentParser (`ArgumentParser.java`):**
+- Lightweight helper for extracting prefixed argument values from command strings
+- Provides `getValue(prefix)` for required arguments (throws exception if missing)
+- Provides `getOptionalValue(prefix)` for optional arguments (returns null if absent)
+- Handles multiple prefixes in a single command string
+- Does not perform semantic validation; only extracts raw string values
+
+**InputValidator (`InputValidator.java`):**
+- Static utility class providing validation methods for all input types
+- `validateAmount()`: Ensures numeric format and positive value
+- `validateDescription()`: Ensures non-empty and trimmed string
+- `validateCategory()`: Validates format (alphanumeric, starts with letter, reasonable length)
+- `validateIndex()`: Ensures positive integer index for expense operations
+- Throws `OrCashBuddyException` with descriptive messages for validation failures
+
+**Command (`Command.java`):**
+- Abstract base class for all executable commands
+- Defines `execute(ExpenseManager, Ui)` for command execution
+- Defines `isExit()` to signal application termination (default: false)
+- Subclasses include: `AddCommand`, `DeleteCommand`, `EditCommand`, `MarkCommand`, `UnmarkCommand`, `FindCommand`, `SortCommand`, `ListCommand`, `SetBudgetCommand`, `HelpCommand`, `ByeCommand`, `InvalidCommand`
+
+**InvalidCommand (`InvalidCommand.java`):**
+- Special command type for handling parsing/validation failures
+- Stores the `OrCashBuddyException` that caused the failure
+- Displays contextual usage hints based on error message content (e.g., shows add usage for add-related errors)
+- Prevents application crash when user provides malformed input
+
+**OrCashBuddyException (`OrCashBuddyException.java`):**
+- Custom exception type for application-specific errors
+- Provides factory methods for common error scenarios (e.g., `missingAmountPrefix()`, `invalidExpenseIndex()`)
+- Contains descriptive error messages for user feedback
+- Used throughout parsing and validation to signal failures
+
+<br>
+
+#### How the Logic component works:
+
+1. When `Logic` is called upon to execute a command (via `Main#executeCommand()`), the input is passed to a `Parser` object.
+2. The `Parser` splits the input into a command word and arguments, then uses `ArgumentParser` to extract prefixed values (e.g., `a/`, `desc/`, `cat/`).
+3. `InputValidator` validates each extracted parameter (e.g., ensuring amounts are positive, descriptions are non-empty).
+4. The `Parser` creates the appropriate `Command` object (e.g., `AddCommand`, `DeleteCommand`) populated with validated data.
+5. This results in a `Command` object which is executed by `Main` via `command.execute(expenseManager, ui)`.
+6. The command can communicate with the `Model` when it is executed (e.g., to add an expense, mark as paid, or delete an entry). The command may also display results via the `Ui`.
+7. After execution, `Main` automatically saves the updated state via `StorageManager`.
+8. If the command is `ByeCommand`, it returns `true` from `isExit()`, signaling `Main` to terminate the application loop.
+
+<br>
+
+#### How the parsing works:
+
+* When called upon to parse a user command, the `Parser` class identifies the command word (e.g., `add`, `delete`, `mark`).
+* For each command type, `Parser` has a corresponding `parseXxxCommand()` method (e.g., `parseAddCommand()`, `parseDeleteCommand()`) that:
+    - Uses `ArgumentParser` to extract required and optional prefixed arguments
+    - Delegates validation to `InputValidator`
+    - Constructs the specific `Command` object (e.g., `AddCommand`, `MarkCommand`)
+* If parsing or validation fails, `Parser` catches `OrCashBuddyException` and wraps it in an `InvalidCommand` object.
+* The `InvalidCommand`, when executed, displays contextual error messages and usage hints via `Ui` (e.g., `showAddUsage()`, `showDeleteUsage()`).
+
+**Example: Parsing an Add Command**
+
+```
+User Input: "add a/25.50 desc/Dinner cat/Food"
+     ↓
+Parser identifies command word: "add"
+     ↓
+Parser.parseAddCommand() called with arguments: "a/25.50 desc/Dinner cat/Food"
+     ↓
+ArgumentParser extracts: amount="25.50", description="Dinner", category="Food"
+     ↓
+InputValidator validates each field:
+  - amount=25.50 (positive ✓)
+  - description="Dinner" (non-empty ✓)
+  - category="Food" (valid format ✓)
+     ↓
+Parser creates: AddCommand(25.50, "Dinner", "Food")
+     ↓
+Main executes: command.execute(expenseManager, ui)
+```
+
+<br>
+
+#### Error Handling
+
+When parsing or validation fails:
+1. `ArgumentParser` or `InputValidator` throws `OrCashBuddyException` with descriptive message
+2. `Parser` catches the exception and creates `InvalidCommand(exception)`
+3. `Main` executes `InvalidCommand#execute()`, which displays contextual usage help via `Ui`
+4. Application continues running without disruption
+
+**Example Error Flow:**
+```
+User Input: "add desc/Lunch"  (missing amount)
+     ↓
+ArgumentParser throws: OrCashBuddyException("Missing prefix: a/")
+     ↓
+Parser creates: InvalidCommand(exception)
+     ↓
+Main executes: InvalidCommand#execute()
+     ↓
+Ui displays: "Invalid format. Use: add a/AMOUNT desc/DESCRIPTION [cat/CATEGORY]"
+```
+
+<br>
+
+#### Design Considerations
+
+**Why separate ArgumentParser and InputValidator?**
+- **Separation of Concerns:** Extraction logic (ArgumentParser) separate from validation logic (InputValidator)
+- **Reusability:** InputValidator methods can be called independently for any validation needs
+- **Testability:** Each component can be unit tested in isolation
+- **Clarity:** Clear distinction between "finding the value" vs "checking if it's valid"
+
+**Why use factory methods in OrCashBuddyException?**
+- **Consistency:** Ensures consistent error message formatting
+- **Maintainability:** Centralized error message management
+- **Type Safety:** Compile-time checking of exception creation
+- **Discoverability:** IDE autocomplete shows available exception types
+
+**Why InvalidCommand instead of throwing exceptions?**
+- **Graceful Recovery:** Application continues running after invalid input
+- **User Experience:** Provides helpful usage hints instead of cryptic stack traces
+- **Command Pattern Consistency:** All parsing outcomes return Command objects
+- **Error Context:** Preserves exception information for contextual feedback
 
 <br>
 
 ### Model Component
 
-Namespace: `seedu.orcashbuddy.expense`, `seedu.orcashbuddy.storage`
+**API**: `ExpenseManager.java`, `Expense.java`
 
-- `Expense` is an immutable data carrier (amount, description, category, paid state).
-- `ExpenseManager` tracks aggregate figures (`budget`, `totalExpenses`, `remainingBalance`) and exposes behaviors consumed by commands (add, delete, mark/unmark, sort).
+#### Responsibilities
+The `Model` component represents the application's core data and business logic. It:
+* stores the expense tracking data, i.e., all `Expense` objects (which are contained in a `List<Expense>` within `ExpenseManager`).
+* stores the budget and financial tracking state: `budget` (user-set spending limit), `totalExpenses` (sum of marked expenses), and `remainingBalance` (budget - totalExpenses).
+* enforces business rules and maintains invariants (e.g., budget must be positive, expenses must have valid amounts and descriptions, balance must equal budget minus total expenses).
+* exposes operations for expense management (`addExpense`, `deleteExpense`, `markExpense`, `unmarkExpense`, `findExpenses`, `sortExpenses`) that are used by `Command` objects.
+* stores `Expense` objects as immutable entities (only the `isMarked` flag can change after construction).
+* does not depend on any of the other components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components).
+
+#### Key Classes
+
+**Expense (`Expense.java`):**
+- Immutable data class representing a single transaction
+- Fields: `amount` (double), `description` (String), `category` (String), `isMarked` (boolean)
+- Provides `formatForDisplay()` method for consistent UI rendering
+- Implements `Serializable` for persistence
+
+**ExpenseManager (`ExpenseManager.java`):**
+- Central business logic class managing all expenses and budget state
+- Maintains invariants through validation and assertions
+- Provides operations consumed by commands
+
+**BudgetStatus (Enum):**
+- Represents financial health: `OK`, `NEAR`, `EQUAL`, `EXCEEDED`
+- Used to trigger budget alerts in UI
 
 <br>
 
-### Storage Component
+#### Key Invariants Maintained by ExpenseManager:
+
+1. **Budget Positivity:** `budget > 0.0` (enforced via assertions)
+2. **Balance Consistency:** `remainingBalance = budget - totalExpenses` (recalculated after every budget or expense change)
+3. **Total Accuracy:** `totalExpenses` equals the sum of all marked expense amounts (updated when expenses are marked/unmarked/deleted)
+4. **Index Validity:** All operations accepting indices validate against list size before access
+5. **Expense Validity:** All expenses must have positive amounts, non-blank descriptions, and valid categories
+
+<br>
+
+## Storage Component
+
+**API**: `StorageManager.java`
 
 #### Sequence Diagram
 ![Storage Component Class Diagram](images/storage-manager-sequence.png)
 
-The storage subsystem in orCASHbuddy is responsible for saving user expense and budget data between sessions.
-It uses Java object serialization to store the entire `ExpenseManager` object (which contains all expenses and budget state) into a `.ser` file.
-1. **StorageManager**: Handles file I/O and serialisation (save/load).
-2. **ExpenseManager**: Serialisable class that maintains the list of `Expense` objects and budget-related values.
-3. **Expense**: Serialisable class representing an individual expense item.
-4. **Ui**: used by `StorageManager` to display user-friendly error messages during save/load operations. 
+#### Responsibilities
+
+The `Storage` component handles persistent data storage between application sessions. It:
+* can save `ExpenseManager` data (including all expenses and budget state) in binary `.ser` format using Java serialization, and read it back into corresponding objects.
+* saves data to `data/appdata.ser` in the application directory.
+* automatically creates the `data/` directory and storage file if they don't exist.
+* depends on classes in the `Model` component (because the `Storage` component's job is to save/retrieve the `ExpenseManager` object that belongs to the `Model`).
+* uses the `Ui` component to display user-friendly error messages when storage operations fail (e.g., permission denied, corrupted data, disk full).
 
 Refer to [Storage Management Feature](#storage-management-feature) for a more detailed explanation of the implementation of the Storage Component. 
 
+<br>
+
+#### Serialization Chain
+
+All components in the serialization chain implement `Serializable`:
+
+```
+ExpenseManager (implements Serializable)
+├── expenses: List<Expense>
+│   └── Expense (implements Serializable)
+│       ├── amount: double
+│       ├── description: String
+│       ├── category: String
+│       └── isMarked: boolean
+├── budget: double
+├── totalExpenses: double
+└── remainingBalance: double
+```
+
+<br>
+
+#### Persistence Strategy
+
+**When Saved:**
+- After **every** mutating command execution (add, delete, edit, mark, unmark, setbudget)
+- Triggered automatically by `Main` after `command.execute(expenseManager, ui)`
+- Ensures data is never lost between commands
+
+**When Loaded:**
+- Once at application startup in `Main` constructor
+- Before entering the command loop
+- Restores previous session state seamlessly
+
+#### Error Handling
+
+The `StorageManager` gracefully handles various failure scenarios:
+
+1. **Missing Directory:** Creates `data/` folder automatically
+2. **Missing File:** Creates empty file, returns new `ExpenseManager` (first run)
+3. **Corrupted Data:** Shows error via `Ui`, returns new `ExpenseManager`
+4. **Permission Denied:** Shows error message via `Ui`, continues with current state
+5. **IOException:** Catches and logs error, provides user feedback via `Ui`
+
+**Example Operations:**
+
+```java
+// Save (called after every mutating command)
+StorageManager.saveExpenseManager(expenseManager, ui)
+
+// Load (called once at startup)
+ExpenseManager manager = StorageManager.loadExpenseManager(ui)
+```
+
+---
 
 ## Implementation
 
@@ -129,10 +397,14 @@ This section describes some noteworthy details on how certain features are imple
 
 ### Add Expense Feature
 
-
 #### Overview
 
 The add-expense workflow transforms a single line of user input into a populated `Expense` object, updates the in-memory ledger, and provides immediate feedback in the console. We chose a prefix-based syntax (`add a/AMOUNT desc/DESCRIPTION [cat/CATEGORY]`).
+
+<br>
+
+#### Sequence Diagram
+![Add Sequence Diagram](images/add_feature.png)
 
 #### Control Flow
 
@@ -143,9 +415,6 @@ The add-expense workflow transforms a single line of user input into a populated
 5. **Execution:** `AddCommand#execute` wraps the primitives into an `Expense`, calls `ExpenseManager#addExpense`, and then defers to `Ui#showNewExpense`.
 
 The sequence diagram in `docs/diagrams/add-sequence.puml` illustrates the interactions between these collaborative components. Rendering the diagram (e.g., `plantuml docs/diagrams/add-sequence.puml`) is recommended when onboarding new contributors.
-
-#### Sequence Diagram
-![Add Sequence Diagram](images/add_feature.png)
 
 #### State Mutation and Invariants
 
@@ -593,6 +862,9 @@ The command updates the stored data automatically, ensuring that the deleted exp
 Deletion is an irreversible operation, once an expense is deleted, it cannot be recovered. However, we designed the workflow to be deliberate and safe by requiring explicit index input and validating that the list is not empty before proceeding. 
 This prevents accidental deletions and ensures data integrity.
 
+#### Sequence Diagram
+![Delete Sequence Diagram](images/delete-feature.png)
+
 #### Control Flow
 
 1. **Input capture:** `Main` reads the user's command (`delete 3`) and passes it to `Parser`.
@@ -605,9 +877,6 @@ This prevents accidental deletions and ensures data integrity.
     - If the expense was marked as paid, the manager automatically updates total expenses and remaining balance.
     - The deleted expense is passed to `Ui#showDeletedExpense` for user feedback.
     - Data persistence is triggered by the main application logic after command execution, ensuring consistency without coupling storage logic into `ExpenseManager`.
-
-#### Sequence Diagram
-![Delete Sequence Diagram](images/delete-feature.png)
 
 #### Deletion Logic and Validation
 
@@ -745,7 +1014,6 @@ The `EditCommand` class extends `Command` and performs the update by replacing t
 
 The sequence diagram in `docs/diagrams/edit-sequence.puml` illustrates the interactions between `Main`, `Parser`, `EditCommand`, `ExpenseManager`, `Ui`, and `StorageManager` during this workflow.
 
-
 #### Example
 
 ##### User Input
@@ -806,6 +1074,9 @@ This provides an immediate way to identify the largest expenditures and helps us
 The command does not modify the original expense list to preserve insertion order, and it automatically updates the UI to display the sorted list. 
 If no expenses exist, the system provides a clear message instead of failing, ensuring a user-friendly experience.
 
+#### Sequence Diagram
+![Sort Sequence Diagram](images/sort-feature.png)
+
 #### Control Flow
 
 1. **Input capture:** `Main` reads the user's command (`sort`) and passes it to `Parser`.
@@ -816,9 +1087,6 @@ If no expenses exist, the system provides a clear message instead of failing, en
     - If the expense list is empty, `Ui#showEmptyExpenseList()` is invoked instead.
 4. **Data persistence:** Sorting does not change the stored data, so no file updates are required.
    However, `StorageManager.saveExpenseManager(expenseManager, ui)` is still after execution, which just saves the existing list of data, not the sorted list.
-
-#### Sequence Diagram
-![Sort Sequence Diagram](images/sort-feature.png)
 
 #### Sorting Logic and Validation
 
@@ -938,6 +1206,9 @@ Users do not have to key in a command to save or load data.
 
 This is a binary serialized file using Java's built-in serialization mechanism (`ObjectOutputStream` / `ObjectInputStream`).
 
+#### Sequence Diagram
+![Storage Manager Sequence Diagram](images/storage-manager-sequence.png)
+
 #### Control Flow
 
 ##### 1. `saveExpenseManager(ExpenseManager expenseManager, Ui ui)`
@@ -989,8 +1260,6 @@ StorageManager.saveExpenseManager(expenseManager, ui);
 ```java
 ExpenseManager expenseManager = StorageManager.loadExpenseManager(ui);
 ```
-#### Sequence Diagram
-![Storage Manager Sequence Diagram](images/storage-manager-sequence.png)
 
 #### Error Handling
 
@@ -1027,6 +1296,9 @@ All exceptions are caught internally to prevent the application from crashing du
 
 Exiting the application used to depend on `Main` inspecting raw input (checking for `bye`). This tightly coupled the loop to a single keyword and prevented other commands from influencing shutdown behaviour. The redesigned flow delegates responsibility to `ByeCommand`, aligning termination with the rest of the command framework and paving the way for richer exit scenarios (e.g., confirm prompts, autosave).
 
+#### Sequence Diagram
+![Bye Sequence Diagram](images/bye_feature.png)
+
 #### Control Flow
 
 1. **Parsing:** When the user enters `bye`, `Parser` instantly returns a `ByeCommand`. Any trailing arguments result in an `OrCashBuddyException`, protecting against typos such as `bye later`.
@@ -1034,9 +1306,6 @@ Exiting the application used to depend on `Main` inspecting raw input (checking 
 3. **Exit signalling:** After execution, `Main` queries `command.isExit()`, which `ByeCommand` overrides to return `true`. Once `Main` receives `true`, the run loop terminates cleanly.
 
 The sequence diagram stored at `docs/diagrams/bye-sequence.puml` captures this flow. Rendering it clarifies that no other component interacts with the exit decision, preserving a single exit pathway.
-
-#### Sequence Diagram
-![Bye Sequence Diagram](images/bye_feature.png)
 
 #### Rationale
 
@@ -1059,6 +1328,9 @@ By keeping farewell handling within the command framework, orCASHbuddy maintains
 
 The help feature provides users with a comprehensive list of available commands and their usage formats. This is crucial for user onboarding and as a quick reference for command syntax. The `help` command is designed to be simple and stateless, focusing solely on displaying information.
 
+#### Sequence Diagram
+![Help Sequence Diagram](images/help-sequence.png)
+
 #### Control Flow
 
 1. **Input Capture:** `Main` reads the user's command (`help`) and forwards it to `Parser`.
@@ -1070,9 +1342,6 @@ The help feature provides users with a comprehensive list of available commands 
 4. **Data Persistence:** Since the `help` command is a read-only operation and does not modify any application data, `StorageManager.saveExpenseManager` is called after execution (as per the standard command execution flow in `Main`), but no actual data changes are persisted.
 
 The sequence diagram in `docs/diagrams/help-sequence.puml` illustrates these interactions.
-
-#### Sequence Diagram
-![Help Sequence Diagram](images/help-sequence.png)
 
 #### Rationale
 
@@ -1135,41 +1404,104 @@ The sequence diagram in `docs/diagrams/list-sequence.puml` illustrates these int
 - **Graphical Visualization:** Display pie charts or bar graphs for expense breakdown by category.
 - **Date Range Support:** Allow usage such as `list from/2025-01-01 to/2025-01-31` for time-specific summaries.
 
-
+---
 
 ## Appendix A: Product Scope
 
 ### Target User Profile
+**Primary Users:**
+- Tech-savvy university students
+- Comfortable with command-line interfaces
+- Prefer keyboard-centric workflows over mouse-driven GUIs
+- Manage interest group/club spending (meals, transport, subscriptions)
+- Need quick expense logging without spreadsheet overhead
 
-- Tech-savvy university students who prefer keyboard-centric workflows.
-- Manage their interest group spending (meals, transport, subscriptions).
-- Comfortable reading concise CLI output and following prefix-based inputs.
+**User Characteristics:**
+- Familiar with terminal/command prompt
+- Type quickly and accurately
+- Value efficiency over visual polish
+- Comfortable reading concise CLI output
+- Understand basic financial concepts (budget, expenses, balance)
+
+**Technical Proficiency:**
+- Can install and run Java applications
+- Comfortable following prefix-based command syntax
+- Understand file system basics (data directory)
+- Can troubleshoot basic issues (permissions, file paths)
+
+<br>
 
 ### Value Proposition
 
-orCASHbuddy offers a fast, distraction-free way to log expenses and check their impact on a simple budget. Compared to spreadsheets, setup time is negligible and data entry is optimised for the keyboard.
+orCASHbuddy offers a **fast, distraction-free way** to log expenses and monitor budget impact without the overhead of spreadsheets or mobile apps.
+
+**Key Benefits:**
+
+1. **Speed:** Add expense in single command, no form filling
+2. **Simplicity:** Minimal setup, no account creation, no cloud sync
+3. **Keyboard-Centric:** No mouse needed, perfect for CLI enthusiasts
+4. **Immediate Feedback:** See budget impact instantly after each command
+5. **Reliable Persistence:** Auto-save after every command prevents data loss
+6. **Offline:** No internet required, works anywhere
+
+**Compared to Alternatives:**
+
+**vs. Spreadsheets:**
+- Faster data entry (no opening files, navigating cells)
+- Automatic calculations (no formula errors)
+- Built-in budget tracking (no manual setup)
+- Cleaner interface (focused on tasks, not grid)
+
+**vs. Mobile Apps:**
+- No account registration
+- No ads or tracking
+- No internet dependency
+- Faster for keyboard users
+- More privacy (local data only)
+
+**vs. Paper Notebooks:**
+- Automatic totaling and calculations
+- Easy search and filtering
+- Persistent digital records
+- Budget alerts and warnings
+
+<br>
+
+### Ideal Use Cases
+- Daily lunch expense tracking
+- Club/society budget management
+- Month-long project spending limits
+- Personal allowance monitoring
+- Quick "where did my money go" analysis
 
 ---
 
 ## Appendix B: User Stories
 
-Priorities: High (must have) - ***, Medium (nice to have) - **, Low (unlikely to have) - *
+Priorities: High (must have) - `***`, Medium (nice to have) - `**`, Low (unlikely to have) - `*`
 
-| Priority | As a ... | I want to ... | So that I can ... |
-| :------- | :------- | :------------ | :---------------- |
-| *        | new user | see usage instructions | refer to them when I forget how to use the application |
-| ***      | budget-conscious user     | add an expense with amount, description, and category | track my spending |
-| ***      | financially-aware user     | set a budget | manage my finances effectively |
-| ***      | organized user     | see a list of all my expenses with budget summary | get an overview of my spending and remaining budget |
-| **       | diligent user     | mark an expense as paid | accurately track my actual expenditures |
-| **       | careful user     | unmark an expense | correct mistakes or revert payment status |
-| **       | efficient user     | find expenses by category or description | quickly locate specific transactions |
-| **       | meticulous user     | edit an existing expense | correct mistakes or update details without re-entering |
-| *        | analytical user     | sort my expenses by amount | easily identify my largest expenditures |
-| ***      | responsible user     | delete an expense | remove incorrect or unwanted entries |
-| ***      | practical user     | exit the application | safely close the program and save my data |
-| **       | proactive user     | be alerted when my spending approaches or exceeds my budget | avoid overspending |
-| ***      | cautious user     | have my expenses automatically saved | avoid losing my data |
+| Priority | As a ...                  | I want to ...                                                | So that I can ...                                                   |
+|----------|---------------------------|--------------------------------------------------------------|---------------------------------------------------------------------|
+| ***      | new user                  | see usage instructions                                       | refer to them when I forget how to use the application              |
+| ***      | budget-conscious user     | add an expense with amount, description, and category        | track my spending accurately                                        |
+| ***      | financially-aware user    | set a budget                                                 | manage my finances effectively against a spending limit             |
+| ***      | organized user            | see a list of all my expenses with budget summary            | get an overview of my spending and remaining budget at a glance     |
+| ***      | responsible user          | delete an expense                                            | remove incorrect or unwanted entries from my records                |
+| ***      | practical user            | exit the application safely                                  | close the program and ensure my data is saved                       |
+| ***      | cautious user             | have my expenses automatically saved                         | avoid losing my data if the application crashes                     |
+| **       | diligent user             | mark an expense as paid                                      | accurately track which expenses have been paid                      |
+| **       | careful user              | unmark an expense                                            | correct mistakes if I accidentally marked the wrong expense         |
+| **       | efficient user            | find expenses by category or description                     | quickly locate specific transactions without scrolling              |
+| **       | meticulous user           | edit an existing expense                                     | correct mistakes or update details without deleting and re-entering |
+| **       | proactive user            | be alerted when spending approaches or exceeds budget        | avoid overspending and stay within my financial limits              |
+| *        | analytical user           | sort my expenses by amount                                   | easily identify my largest expenditures                             |
+| *        | busy user                 | add expenses quickly with minimal typing                     | log transactions rapidly without disrupting my workflow             |
+| *        | organized user            | see color-coded budget progress bar                          | quickly understand my financial status at a glance                  |
+| *        | privacy-conscious user    | have my data stored locally                                  | avoid cloud services and maintain full control over my information  |
+| *        | forgetful user            | see a welcome message with command list on startup           | remember available commands without typing help                     |
+| *        | experimental user         | plan future expenses without affecting my budget immediately | track both paid and planned expenses separately                     |
+
+---
 
 ## Appendix C: Non-Functional Requirements
 1. **Runtime platform:** The application must run on any mainstream operating system (Windows, macOS, Linux) that has Java 17 LTS installed.
@@ -1178,6 +1510,8 @@ Priorities: High (must have) - ***, Medium (nice to have) - **, Low (unlikely to
 4. **Robustness:** Invalid user input or storage errors must be caught and presented as actionable error messages; the application must not terminate due to uncaught exceptions.
 5. **Feedback:** Each command must yield immediate feedback (success confirmation, error explanation, or budget alert) so that users know the outcome of their action.
 6. **Quality bar:** `./gradlew checkstyleMain checkstyleTest` and `./gradlew test` must pass before release.
+
+---
 
 ## Appendix D: Glossary
 
@@ -1199,18 +1533,219 @@ Priorities: High (must have) - ***, Medium (nice to have) - **, Low (unlikely to
 
 ## Appendix E: Instructions for Manual Testing
 
+Given below are instructions to test the app manually.
+
 All tests assume the repository has been cloned and Java 17 is available.
 
-1. **Launch**: Run `./gradlew run` (or `gradlew.bat run`). Confirm the welcome banner and menu appear.
-2. **Add Expense**: Enter `add a/4.50 desc/Coffee cat/Drinks`. Expect a “New Expense” confirmation with `[ ] [Drinks] Coffee - $4.50`.
-3. **List Expenses**: Enter `list`. Confirm the expense appears and the budget defaults to `$0.00`.
-4. **Set Budget**: Enter `setbudget a/50`. Run `list` again to verify the budget and remaining balance display `$50.00`.
-5. **Mark Expense**: Enter `mark 1`. `list` should now show `[X] [Drinks]` and total expenses `$4.50` with remaining `$45.50`.
-6. **Unmark Expense**: Enter `unmark 1` and verify totals reset to `$0.00` spent.
-7. **Find by Category**: Add expenses with categories "Food", "Transport", "Facilities". Execute `find cat/food` and verify "Food" appear as a result.
-8. **Find by Description**: Add expenses with descriptions "Lunch meeting" and "Volleyball court". Execute `find desc/lunch` and verify only the first expense appears.
-9. **Sort Expenses**: Add two more entries of varying amounts and run `sort`; check that output is descending by amount.
-10. **Delete Expense**: Execute `delete 2` (adjust index if needed) and confirm the list shrinks accordingly.
-11. **Exit**: Finish with `bye`. Expect a “Bye. Hope to see you again soon!” message, and the application should terminate.
-12. **Verify Persistence**: Relaunch the application (`./gradlew run`). Confirm that all expenses and budget settings from the previous session are still present.
-13. **Regression Script**: The Windows batch script `text-ui-test/runtest.bat` (or `text-ui-test/runtest.sh` on macOS/Linux) rebuilds the JAR and exercises the help command. Ensure `EXPECTED.TXT` matches the actual output before committing changes to commands or messages.
+**Note:** These instructions only provide a starting point for testers to work on; testers are expected to do more _exploratory_ testing.
+
+<br>
+
+### Launch and Shutdown
+
+1. **Initial launch**
+    1. Download the jar file and copy into an empty folder.
+    2. Open a command terminal, navigate to the folder, and run `java -jar orCashBuddy.jar`.<br>
+       **Expected:** Shows welcome banner and help menu. Application is ready for commands.
+
+2. **Shutdown**
+    1. Test case: `bye`<br>
+       **Expected:** Shows goodbye message "Bye. Hope to see you again soon!" and application terminates.
+    2. Test case: Press `Ctrl+D` (Unix/Mac) or `Ctrl+Z` then Enter (Windows).<br>
+       **Expected:** Application terminates gracefully without error message.
+
+<br>
+
+### Adding an Expense
+
+1. **Adding a basic expense**
+    1. Prerequisites: Application just launched.
+    2. Test case: `add a/12.50 desc/Lunch`<br>
+       **Expected:** Shows "New Expense: [ ] [Uncategorized] Lunch - $12.50" with separators.
+    3. Test case: `add a/25.00 desc/Dinner cat/Food`<br>
+       **Expected:** Shows "New Expense: [ ] [Food] Dinner - $25.00".
+
+2. **Invalid add commands**
+    1. Test case: `add a/-5 desc/Test`<br>
+       **Expected:** Error message "Amount must be greater than 0: -5.00". Shows add usage format.
+    2. Test case: `add desc/Lunch`<br>
+       **Expected:** Error message "Missing prefix: a/". Shows add usage format.
+    3. Test case: `add a/10`<br>
+       **Expected:** Error message "Missing prefix: desc/".
+    4. Other incorrect commands to try: `add a/abc desc/Test`, `add a/10 desc/`, `add a/10 desc/Test cat/123Invalid`<br>
+       **Expected:** Appropriate error messages shown.
+
+<br>
+
+### Setting Budget
+
+1. **Setting a valid budget**
+    1. Test case: `setbudget a/100`<br>
+       **Expected:** Shows "Your total budget is now $100.00."
+    2. Test case: `setbudget a/500.50`<br>
+       **Expected:** Shows "Your total budget is now $500.50."
+
+2. **Invalid budget commands**
+    1. Test case: `setbudget a/0`<br>
+       **Expected:** Error "Amount must be greater than 0: 0.00".
+    2. Test case: `setbudget a/-50`<br>
+       **Expected:** Error "Amount must be greater than 0: -50.00".
+    3. Test case: `setbudget`<br>
+       **Expected:** Error "Missing prefix: a/".
+
+<br>
+
+### Listing Expenses
+
+1. **List with expenses and budget**
+    1. Prerequisites: At least 2 expenses added, budget set to $100.
+    2. Test case: `list`<br>
+       **Expected:** Shows financial summary with budget, total expenses (initially $0.00), remaining balance, progress bar, and numbered expense list.
+
+2. **List with empty expense list**
+    1. Prerequisites: Fresh start or all expenses deleted.
+    2. Test case: `list`<br>
+       **Expected:** Shows "No expenses added so far."
+
+<br>
+
+### Marking and Unmarking Expenses
+
+1. **Marking an expense as paid**
+    1. Prerequisites: List all expenses using `list`. Multiple expenses present.
+    2. Test case: `mark 1`<br>
+       **Expected:** Shows "Marked Expense: [X] [Category] Description - $XX.XX". Running `list` shows expense with `[X]` icon and updated totals.
+    3. Test case: `mark 0`<br>
+       **Expected:** Error "Expense index must be at least 1".
+    4. Test case: `mark 999` (where 999 exceeds list size)<br>
+       **Expected:** Error "Expense index must be between 1 and X, but got 999".
+
+2. **Unmarking an expense**
+    1. Prerequisites: At least one marked expense exists (use `mark 1` first).
+    2. Test case: `unmark 1`<br>
+       **Expected:** Shows "Unmarked Expense: [ ] [Category] Description - $XX.XX". Totals updated accordingly.
+
+<br>
+
+### Finding Expenses
+
+1. **Find by category**
+    1. Prerequisites: Add expenses with different categories: Food, Transport, Entertainment.
+    2. Test case: `find cat/food`<br>
+       **Expected:** Shows all expenses with "Food" category. Case-insensitive.
+    3. Test case: `find cat/xyz`<br>
+       **Expected:** Shows "No expenses found matching category: xyz".
+
+2. **Find by description**
+    1. Prerequisites: Multiple expenses with various descriptions.
+    2. Test case: `find desc/lunch`<br>
+       **Expected:** Shows expenses with "lunch" in description (case-insensitive).
+
+<br>
+
+### Editing Expenses
+
+1. **Edit single field**
+    1. Prerequisites: List all expenses. At least one expense exists.
+    2. Test case: `edit id/1 a/15.00`<br>
+       **Expected:** Shows "Edited Expense" with updated amount. Other fields unchanged.
+    3. Test case: `edit id/1 desc/New Description`<br>
+       **Expected:** Description updated, amount and category unchanged.
+
+2. **Edit multiple fields**
+    1. Test case: `edit id/1 a/20.00 desc/Lunch at cafe cat/Food`<br>
+       **Expected:** All three fields updated.
+
+3. **Invalid edit commands**
+    1. Test case: `edit id/999 a/10` (invalid index)<br>
+       **Expected:** Error "Expense index must be between 1 and X".
+    2. Test case: `edit a/10`<br>
+       **Expected:** Error "Missing prefix: id/".
+
+<br>
+
+### Deleting Expenses
+
+1. **Deleting while expenses exist**
+    1. Prerequisites: List all expenses using `list`. Multiple expenses present.
+    2. Test case: `delete 1`<br>
+       **Expected:** First expense deleted. Shows "Deleted Expense: [X/  ] [Category] Description - $XX.XX".
+    3. Test case: `delete 0`<br>
+       **Expected:** Error "Expense index must be at least 1".
+    4. Test case: `delete 999` (exceeds list size)<br>
+       **Expected:** Error "Expense index must be between 1 and X, but got 999".
+
+2. **Deleting from empty list**
+    1. Prerequisites: All expenses deleted.
+    2. Test case: `delete 1`<br>
+       **Expected:** Error "No expenses available. Add some expenses first."
+
+<br>
+
+### Sorting Expenses
+
+1. **Sort with multiple expenses**
+    1. Prerequisites: Add at least 3 expenses with different amounts.
+    2. Test case: `sort`<br>
+       **Expected:** Shows expenses sorted from highest to lowest amount. Original `list` order remains unchanged.
+
+2. **Sort empty list**
+    1. Prerequisites: No expenses added.
+    2. Test case: `sort`<br>
+       **Expected:** Shows "No expenses added so far."
+
+<br>
+
+### Data Persistence
+
+1. **Verify auto-save**
+    1. Add several expenses and set a budget.
+    2. Exit using `bye`.
+    3. Re-launch the application: `java -jar orCashBuddy.jar`<br>
+       **Expected:** All expenses and budget restored exactly as before.
+
+2. **Dealing with missing data file**
+    1. Exit the application.
+    2. Delete the `data/appdata.ser` file.
+    3. Re-launch the application.<br>
+       **Expected:** Application starts with empty expense list, no error shown.
+
+3. **Dealing with corrupted data file**
+    1. Exit the application.
+    2. Open `data/appdata.ser` in a text editor and add random characters.
+    3. Re-launch the application.<br>
+       **Expected:** Error message "Saved data is corrupted. Starting with empty expenses." Application continues with empty list.
+
+<br>
+
+### Budget Alerts
+
+1. **Approaching budget alert**
+    1. Set budget: `setbudget a/50`
+    2. Add and mark expenses totaling $42-$49.
+    3. Mark another expense to exceed threshold.<br>
+       **Expected:** After marking, shows "Alert: Your remaining balance is low. Remaining balance: $X.XX"
+
+2. **Exceeded budget alert**
+    1. Continue marking expenses beyond budget.<br>
+       **Expected:** Shows "Alert: You have exceeded your budget! Remaining balance: $-X.XX"
+
+<br>
+
+### Invalid Commands
+
+1. **Unknown command**
+    1. Test case: `invalid`<br>
+       **Expected:** Shows "Unknown command. Type 'help' to see available commands."
+    2. Test case: `lst` (typo)<br>
+       **Expected:** Same unknown command message.
+
+2. **Help command**
+    1. Test case: `help`<br>
+       **Expected:** Displays complete command list with syntax.
+
+---
+
+**Document Version:** 2.0  
+**Last Updated:** October 2025  
+**Authors:** orCASHbuddy Development Team

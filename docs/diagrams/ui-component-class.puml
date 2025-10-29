@@ -61,7 +61,7 @@ package "Model Component" {
     }
 }
 
-package "Command Component" {
+package "Logic Component" {
     abstract class Command {
         + {abstract} execute(expenseManager: ExpenseManager, ui: Ui): void
     }
