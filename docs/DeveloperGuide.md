@@ -77,7 +77,7 @@ Follow these steps to set up the project in IntelliJ IDEA:
 The `Ui` class handles all console-based user interactions in orCASHbuddy.
 
 #### Structure of the UI Component
-![UI Component Class Diagram](diagrams/ui-component-class.png)
+![UI Component Class Diagram](images/ui-component-class.png)
 
 <br>
 
@@ -609,6 +609,13 @@ The mark/unmark workflow allows users to track which expenses have been paid, au
 
 Marking an expense triggers three critical updates: the expense's internal paid state flips to true, the `ExpenseManager` increments `totalExpenses` by the expense amount, and `remainingBalance` is recalculated. Unmarking reverses these operations, decrementing totals and restoring the balance. This design ensures budget tracking remains accurate and responsive to real-world payment workflows.
 
+#### Sequence Diagram
+##### Mark
+![Mark Sequence Diagram](images/mark-sequence.png)
+
+##### Unmark
+![Unmark Sequence Diagram](images/unmark-sequence.png)
+
 #### Control Flow
 
 1. **Input capture:** `Main` reads the raw command line and forwards it to `Parser`.
@@ -705,6 +712,9 @@ These logs are essential for verifying correct budget arithmetic during manual t
 The find workflow enables users to quickly locate expenses by searching either category or description fields, returning all matching results in a filtered view. Users specify search criteria via prefix-based syntax (`find cat/CATEGORY` or `find desc/DESCRIPTION`), maintaining consistency with other commands in the application. We chose separate prefix-based searches over a unified keyword approach to give users precise control: category searches target organizational labels while description searches hunt for specific transaction details.
 
 The find operation performs case-insensitive substring matching, prioritizing ease of use over exact matching. A search for `cat/food` will match expenses categorized as "Food", "Fast Food", or "Seafood". This approach reduces the cognitive burden of remembering exact category names or descriptions, particularly useful when users manage dozens of expenses across multiple categories. The search is read-only and does not modify any data, making it safe to use exploratively without risk of accidental changes.
+
+#### Sequence Diagram
+![Find Sequence Diagram](images/find-sequence.png)
 
 #### Control Flow
 
@@ -1012,7 +1022,7 @@ The `EditCommand` class extends `Command` and performs the update by replacing t
 5. **Data Persistence:**  
    `StorageManager#saveExpenseManager` is invoked to immediately persist the updated expense list to disk, ensuring no data is lost.
 
-![Edit Sequence Diagram](diagrams/edit-sequence.png)
+![Edit Sequence Diagram](images/edit-sequence.png)
 
 #### Example
 
@@ -1392,7 +1402,7 @@ The `list` command serves as a core read-only function within the application, o
    - As part of the standard execution flow, `StorageManager.saveExpenseManager` is still called after execution, but no new data is persisted.
 
 
-![List Sequence Diagram](diagrams/list-sequence.png)
+![List Sequence Diagram](images/list-sequence.png)
 
 #### Rationale
 
