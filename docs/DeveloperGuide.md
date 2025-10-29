@@ -321,7 +321,7 @@ The `Model` component represents the application's core data and business logic.
 **API**: `StorageManager.java`
 
 #### Sequence Diagram
-![Storage Component Class Diagram](images/storage-manager-sequence.png)
+![Storage Component Class Diagram](images/storage-component-class.png)
 
 #### Responsibilities
 
