@@ -1012,7 +1012,7 @@ The `EditCommand` class extends `Command` and performs the update by replacing t
 5. **Data Persistence:**  
    `StorageManager#saveExpenseManager` is invoked to immediately persist the updated expense list to disk, ensuring no data is lost.
 
-The sequence diagram in `docs/diagrams/edit-sequence.puml` illustrates the interactions between `Main`, `Parser`, `EditCommand`, `ExpenseManager`, `Ui`, and `StorageManager` during this workflow.
+![Edit Sequence Diagram](diagrams/edit-sequence.png)
 
 #### Example
 
@@ -1392,7 +1392,7 @@ The `list` command serves as a core read-only function within the application, o
    - As part of the standard execution flow, `StorageManager.saveExpenseManager` is still called after execution, but no new data is persisted.
 
 
-The sequence diagram in `docs/diagrams/list-sequence.puml` illustrates these interactions.
+![List Sequence Diagram](diagrams/list-sequence.png)
 
 #### Rationale
 
