@@ -211,7 +211,7 @@ If no matches are found, orCASHbuddy displays "No expenses found matching [categ
 **Note:** The numbering in search results (1, 2, 3...) is for display only and does not correspond to the indices used by `mark`, `unmark`, or `delete` commands. Always use `list` to verify the correct index before modifying expenses.
 
 ---
-
+<!-- @@author saheer17 -->
 ### Sorting Expenses by Amount: `sort`
 Displays all expenses in descending order of amount (largest first). Sorting does not change the original order used by other commands.
 
@@ -224,6 +224,7 @@ If there are no expenses to sort, orCASHbuddy will remind you that there are no 
 <!-- @@author saheer17 -->
 ### Deleting an Expense: `delete`
 Removes an expense permanently (there is no undo). The application rebalances your budget totals automatically.
+Use `list` to view all the expenses first. Use the index corresponding to the expense you would like to delete.
 
 **Format:** `delete INDEX`
 
@@ -247,6 +248,7 @@ You can also terminate the program by closing the terminal window, but using `by
 
 ---
 
+<!-- @@author saheer17 -->
 ### Saving and Loading Data
 
 **Automatic Saving:**
