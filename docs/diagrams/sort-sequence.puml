@@ -14,12 +14,13 @@ Main -> Parser: parse("sort")
 activate Parser
 
 Parser -> Parser: parseSortCommand(arguments)
+activate Parser #LightGray
+deactivate Parser
 note right: Validates no arguments\nare provided
 
 create participant ":SortCommand" as SortCommand
 Parser -> SortCommand: new SortCommand()
 activate SortCommand
-deactivate Parser
 
 Parser --> Main: sortCommand
 deactivate Parser
@@ -45,9 +46,17 @@ else size > 0
     SortCommand -> ExpenseManager: sortExpenses()
     activate ExpenseManager
 
-    ExpenseManager -> ExpenseManager: Create copy of expenses list
+    ExpenseManager -> ExpenseManager: createCopyOfExpensesList()
+    activate ExpenseManager #LightGray
+    note right: Creates a shallow copy of the list\n(new ArrayList<>(expenses))
+    ExpenseManager --> ExpenseManager: copiedExpenses
+    deactivate ExpenseManager #LightGray
+
     ExpenseManager -> ExpenseManager: sort((e1, e2) -> compare amounts)
+    activate ExpenseManager #LightGray
     note right: Sorts in descending order\n(highest amount first)
+    ExpenseManager --> ExpenseManager: sortedExpenses
+    deactivate ExpenseManager #LightGray
 
     ExpenseManager --> SortCommand: sortedExpenses
     deactivate ExpenseManager
@@ -60,16 +69,14 @@ end
 
 SortCommand -> Ui: showSeparator()
 activate Ui
-Ui --> SortCommand
+Ui -> User : Show separator
 deactivate Ui
 
 SortCommand --> Main
 deactivate SortCommand
 
 Main -> Main: StorageManager.saveExpenseManager()
+activate Main #LightGray
 note right: Persist changes to disk
-
-Main --> User
 deactivate Main
-
 @enduml
