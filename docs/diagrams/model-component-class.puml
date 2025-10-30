@@ -1,58 +1,48 @@
 @startuml
 
-interface Serializable <<interface>> {
-}
-
 package "Model Component" {
-    class ExpenseManager implements Serializable {
-        - {static} serialVersionUID : long = 1L
-        - {static} LOGGER : Logger
-        - {static} BUDGET_ALERT_THRESHOLD : double = 10.0
+    class ExpenseManager {
         - expenses : List<Expense>
-        - budget : double = 0.0
-        - totalExpenses : double = 0.0
-        - remainingBalance : double = 0.0
+        - budget : double
+        - totalExpenses : double
+        - remainingBalance : double
         --
-        + ExpenseManager()
         + getBudget() : double
         + getTotalExpenses() : double
         + getRemainingBalance() : double
         + getSize() : int
         + getExpenses() : List<Expense>
+
         + addExpense(expense : Expense) : void
         + deleteExpense(index : int) : Expense
         + getExpense(index : int) : Expense
         + replaceExpense(index : int, newExpense : Expense) : void
+
         + markExpense(index : int) : Expense
         + unmarkExpense(index : int) : Expense
+
         + setBudget(budget : double) : void
         + determineBudgetStatus() : BudgetStatus
+
         + sortExpenses() : List<Expense>
         + findExpensesByCategory(category : String) : List<Expense>
         + findExpensesByDescription(keyword : String) : List<Expense>
-        - updateBudgetAfterMark(expense : Expense) : void
-        - updateBudgetAfterUnmark(expense : Expense) : void
-        - recalculateRemainingBalance() : void
-        - validateExpense(expense : Expense) : void
-        - validateIndex(index : int) : void
-        - validateSearchTerm(searchTerm : String, fieldName : String) : void
     }
 
-    class Expense implements Serializable {
-        + {static} DEFAULT_CATEGORY : String = "Uncategorized"
-        - {static} serialVersionUID : long = 1L
+    class Expense {
         - amount : double
         - description : String
         - category : String
         - isMarked : boolean
         --
-        + Expense(amount : double, description : String, category : String)
         + getAmount() : double
         + getDescription() : String
         + getCategory() : String
         + isMarked() : boolean
+
         + mark() : void
         + unmark() : void
+
         + formatForDisplay() : String
     }
 
@@ -64,56 +54,29 @@ package "Model Component" {
     }
 }
 
+' Relationships
 ExpenseManager "1" *-- "0..*" Expense : contains
 ExpenseManager ..> BudgetStatus : returns
 
-note right of Serializable
-  Java standard interface
-  for object serialization
-end note
+note right of ExpenseManager
+  Central data model managing all expenses
+  and budget tracking.
 
-note top of ExpenseManager
-  Central data model for orCASHbuddy.
-  Manages all expenses, budget tracking,
-  and financial calculations.
-  
   Key Invariants:
-  - totalExpenses = sum of marked expenses
-  - remainingBalance = budget - totalExpenses
-  - All user-facing indexes are 1-based
+  • totalExpenses = sum of marked expenses
+  • remainingBalance = budget - totalExpenses
+  • All indexes are 1-based
 end note
 
-note bottom of ExpenseManager
-  Implements Serializable to enable
-  saving/loading via StorageManager.
-  Contains serialVersionUID for
-  version control during deserialization.
-end note
-
-note top of Expense
-  Represents an immutable expense entry.
-  Contains amount, description, category,
-  and marked/paid status.
-  
-  Expenses can be marked (paid) or
-  unmarked (unpaid). Only marked expenses
-  contribute to totalExpenses.
-end note
-
-note bottom of Expense
-  Implements Serializable as part
-  of the ExpenseManager object graph.
-  Must be serializable since it's
-  stored in ExpenseManager's list.
+note right of Expense
+  Immutable expense entry with amount,
+  description, category, and paid status.
+  Only marked expenses count toward total.
 end note
 
 note bottom of BudgetStatus
-  Enum representing the financial
-  status of the user's budget:
-  - OK: Within safe range
-  - NEAR: Remaining balance below threshold
-  - EQUAL: Total expenses equal budget
-  - EXCEEDED: Total expenses exceed budget
+  Budget status levels:
+  OK → NEAR → EQUAL → EXCEEDED
 end note
 
 @enduml
