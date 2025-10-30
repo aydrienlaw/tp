@@ -8,7 +8,6 @@ participant ":UnmarkCommand" as UnmarkCommand
 participant ":InvalidCommand" as InvalidCommand
 participant ":ExpenseManager" as ExpenseManager
 participant ":Ui" as Ui
-participant ":StorageManager" as StorageManager
 
 User -> Main : enters "unmark 1"
 activate Main
@@ -19,21 +18,27 @@ activate Parser
 alt valid index
     Parser -> InputValidator : validateIndex("1", "unmark")
     activate InputValidator
-    InputValidator --> Parser : index = 1
+    InputValidator --> Parser : 1
     deactivate InputValidator
 
     create UnmarkCommand
-    Parser -> UnmarkCommand : new UnmarkCommand(1)
+    Parser -> UnmarkCommand : UnmarkCommand(1)
+    activate UnmarkCommand
+    UnmarkCommand --> Parser
+    deactivate UnmarkCommand
     Parser --> Main : unmarkCommand
 
 else invalid index
     Parser -> InputValidator : validateIndex("invalid", "unmark")
     activate InputValidator
-    InputValidator -->> Parser : throws OrCashBuddyException
+    InputValidator -->> Parser : throws OrCashBuddyException e
     deactivate InputValidator
 
     create InvalidCommand
     Parser -> InvalidCommand
+    activate InvalidCommand
+    InvalidCommand --> Parser
+    deactivate InvalidCommand
     Parser --> Main : invalidCommand
 end
 
@@ -47,10 +52,6 @@ alt valid unmark command
     activate ExpenseManager
     ExpenseManager --> UnmarkCommand : unmarkedExpense
     deactivate ExpenseManager
-
-    UnmarkCommand -> Ui : showSeparator()
-    activate Ui
-    deactivate Ui
 
     UnmarkCommand -> Ui : showUnmarkedExpense(expense)
     activate Ui
@@ -69,33 +70,16 @@ alt valid unmark command
         deactivate Ui
     end
 
-    UnmarkCommand -> Ui : showSeparator()
-    activate Ui
-    deactivate Ui
-
     deactivate UnmarkCommand
     destroy UnmarkCommand
-
-    Main -> StorageManager : saveExpenseManager(expenseManager, ui)
-    activate StorageManager
-    StorageManager --> Main
-    deactivate StorageManager
 
 else invalid command
     Main -> InvalidCommand : execute(expenseManager, ui)
     activate InvalidCommand
 
-    InvalidCommand -> Ui : showSeparator()
-    activate Ui
-    deactivate Ui
-
     InvalidCommand -> Ui : showUnmarkUsage()
     activate Ui
     Ui --> User : displays usage message
-    deactivate Ui
-
-    InvalidCommand -> Ui : showSeparator()
-    activate Ui
     deactivate Ui
 
     deactivate InvalidCommand

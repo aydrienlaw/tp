@@ -22,11 +22,18 @@ Parser -> Parser : parseAddCommand("a/10 desc/lunch cat/food")
 activate Parser
 
 create ArgumentParser
-Parser -> ArgumentParser : "a/10 desc/lunch cat/food"
+Parser -> ArgumentParser : ArgumentParser("a/10 desc/lunch cat/food")
 activate ArgumentParser
+ArgumentParser --> Parser:
+deactivate ArgumentParser
+
 Parser -> ArgumentParser : getValue("a/")
+activate ArgumentParser
 ArgumentParser --> Parser : "10"
+deactivate ArgumentParser
+
 Parser -> ArgumentParser : getValue("desc/")
+activate ArgumentParser
 ArgumentParser --> Parser : "lunch"
 deactivate ArgumentParser
 
@@ -47,73 +54,77 @@ alt valid inputs
     activate InputValidator
     InputValidator --> Parser : "lunch"
     deactivate InputValidator
-    Parser -> InputValidator : validateCategory("food", "add")
-    activate InputValidator
-    InputValidator --> Parser : "food"
-    deactivate InputValidator
+
+    opt category provided
+        Parser -> InputValidator : validateCategory("food", "add")
+        activate InputValidator
+        InputValidator --> Parser : "food"
+        deactivate InputValidator
+    end
 
     create AddCommand
-    Parser -> AddCommand : 10.0, "lunch", "food"
+    Parser -> AddCommand : AddCommand(10.0, "lunch", "food")
+    activate AddCommand
+    AddCommand --> Parser
+    deactivate AddCommand
     Parser --> Main : addCommand
 
 else invalid inputs
 
     Parser -> InputValidator : validateAmount("invalid", "add")
     activate InputValidator
-    InputValidator -->> Parser : throws OrCashBuddyException
+    InputValidator -->> Parser : throws OrCashBuddyException e
     deactivate InputValidator
 
     deactivate Parser
+    destroy ArgumentParser
+
 
     create InvalidCommand
-    Parser -> InvalidCommand
+    Parser -> InvalidCommand: InvalidCommand(e)
+    activate InvalidCommand
+    InvalidCommand --> Parser
+    deactivate InvalidCommand
     Parser --> Main : invalidCommand
-    deactivate Parser
 
 end
+
+deactivate Parser
 
 alt command is AddCommand
     Main -> AddCommand : execute(expenseManager, ui)
     activate AddCommand
 
     create Expense
-    AddCommand -> Expense : 10.0, "lunch", "food"
+    AddCommand -> Expense : Expense(10.0, "lunch", "food")
+    activate Expense
+    Expense --> AddCommand
+    deactivate Expense
 
     AddCommand -> ExpenseManager : addExpense(expense)
     activate ExpenseManager
     deactivate ExpenseManager
 
-    AddCommand -> Ui : showSeparator()
-    activate Ui
-    deactivate Ui
     AddCommand -> Ui : showNewExpense(expense)
     activate Ui
     Ui --> User : displays confirmation
     deactivate Ui
-    AddCommand -> Ui : showSeparator()
-    activate Ui
-    deactivate Ui
 
     deactivate AddCommand
+    destroy Expense
+    destroy AddCommand
 
 else command is InvalidCommand
     Main -> InvalidCommand : execute(expenseManager, ui)
     activate InvalidCommand
-
-    InvalidCommand -> Ui : showSeparator()
-    activate Ui
-    deactivate Ui
 
     InvalidCommand -> Ui : showAddUsage()
     activate Ui
     Ui --> User : displays usage message
     deactivate Ui
 
-    InvalidCommand -> Ui : showSeparator()
-    activate Ui
-    deactivate Ui
-
     deactivate InvalidCommand
+    destroy InvalidCommand
 end
 
 deactivate Main

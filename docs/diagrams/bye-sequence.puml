@@ -2,17 +2,12 @@
 !theme vibrant
 actor User
 participant ":Main" as Main
-participant ":StorageManager" as StorageManager
 participant ":Parser" as Parser
 participant ":ByeCommand" as ByeCommand
 participant ":InvalidCommand" as InvalidCommand
 participant ":Ui" as Ui
 
 activate Main
-Main -> StorageManager : loadExpenseManager(ui)
-activate StorageManager
-StorageManager --> Main : expenseManager
-deactivate StorageManager
 
 loop until user enters "bye"
 
@@ -20,38 +15,42 @@ loop until user enters "bye"
 
     Main -> Parser : parse(command)
     activate Parser
+    Parser -> Parser : parseByeCommand(arguments)
+    activate Parser
 
-    alt bye command
+    alt no arguments
 
         create ByeCommand
-        Parser -> ByeCommand
+        Parser -> ByeCommand: ByeCommand()
         activate ByeCommand
-        Parser --> Main : byeCommand
+        ByeCommand --> Parser
         deactivate ByeCommand
+        Parser -> Main: byeCommand
 
-    else invalid bye command (e.g., "bye extra")
+    else with arguments (e.g., "bye extra")
+
+        Parser -> Parser: throw OrCashBuddyException e
+        deactivate Parser
 
         create InvalidCommand
-        Parser -> InvalidCommand
+        Parser -> InvalidCommand: InvalidCommand(e)
+        activate InvalidCommand
+        InvalidCommand --> Parser
+        deactivate InvalidCommand
         Parser --> Main : invalidCommand
 
     end
 
+    deactivate Parser
     deactivate Parser
 
     alt command is ByeCommand
         Main -> ByeCommand : execute(expenseManager, ui)
         activate ByeCommand
 
-        ByeCommand -> Ui : showSeparator()
-        activate Ui
-        deactivate Ui
         ByeCommand -> Ui : showGoodbye()
         activate Ui
         Ui --> User : displays goodbye message
-        deactivate Ui
-        ByeCommand -> Ui : showSeparator()
-        activate Ui
         deactivate Ui
 
         deactivate ByeCommand
@@ -64,15 +63,17 @@ loop until user enters "bye"
         activate ByeCommand
         ByeCommand --> Main : true
         deactivate ByeCommand
+        destroy ByeCommand
 
     else command is InvalidCommand
         Main -> InvalidCommand : execute(expenseManager, ui)
         activate InvalidCommand
-        InvalidCommand -> Ui : showError(message)
+        InvalidCommand -> Ui : showError(e)
         activate Ui
         Ui --> User : displays error message
         deactivate Ui
         deactivate InvalidCommand
+        destroy InvalidCommand
     end
 
 end

@@ -21,9 +21,13 @@ Parser -> Parser : parseSetBudgetCommand("a/500")
 activate Parser
 
 create ArgumentParser
-Parser -> ArgumentParser : "a/500"
+Parser -> ArgumentParser : ArgumentParser("a/500")
 activate ArgumentParser
+ArgumentParser --> Parser
+deactivate ArgumentParser
+
 Parser -> ArgumentParser : getValue("a/")
+activate ArgumentParser
 ArgumentParser --> Parser : "500"
 deactivate ArgumentParser
 
@@ -35,35 +39,37 @@ alt valid amount
     deactivate InputValidator
 
     create SetBudgetCommand
-    Parser -> SetBudgetCommand : 500.0
+    Parser -> SetBudgetCommand : SetBudgetCommand(500)
+    activate SetBudgetCommand
+    SetBudgetCommand --> Parser
+    deactivate SetBudgetCommand
     Parser --> Main : setBudgetCommand
 
 else invalid amount
 
     Parser -> InputValidator : validateAmount("invalid", "setbudget")
     activate InputValidator
-    InputValidator -->> Parser : throws OrCashBuddyException
+    InputValidator -->> Parser : throws OrCashBuddyException e
     deactivate InputValidator
-
+    destroy ArgumentParser
     deactivate Parser
 
     create InvalidCommand
-    Parser -> InvalidCommand
+    Parser -> InvalidCommand: InvalidCommand(e)
+    activate InvalidCommand
+    InvalidCommand --> Parser
+    deactivate InvalidCommand
     Parser --> Main : invalidCommand
 
-    deactivate Parser
-
 end
+
+deactivate Parser
 
 deactivate Parser
 
 alt command is SetBudgetCommand
     Main -> SetBudgetCommand : execute(expenseManager, ui)
     activate SetBudgetCommand
-
-    SetBudgetCommand -> Ui : showSeparator()
-    activate Ui
-    deactivate Ui
 
     SetBudgetCommand -> ExpenseManager : setBudget(500.0)
     activate ExpenseManager
@@ -74,30 +80,20 @@ alt command is SetBudgetCommand
     Ui --> User : displays confirmation
     deactivate Ui
 
-    SetBudgetCommand -> Ui : showSeparator()
-    activate Ui
-    deactivate Ui
-
     deactivate SetBudgetCommand
+    destroy SetBudgetCommand
 
 else command is InvalidCommand
     Main -> InvalidCommand : execute(expenseManager, ui)
     activate InvalidCommand
-
-    InvalidCommand -> Ui : showSeparator()
-    activate Ui
-    deactivate Ui
 
     InvalidCommand -> Ui : showSetBudgetUsage()
     activate Ui
     Ui --> User : displays usage message
     deactivate Ui
 
-    InvalidCommand -> Ui : showSeparator()
-    activate Ui
-    deactivate Ui
-
     deactivate InvalidCommand
+    destroy InvalidCommand
 end
 
 deactivate Main

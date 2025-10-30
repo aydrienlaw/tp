@@ -8,7 +8,6 @@ participant ":MarkCommand" as MarkCommand
 participant ":InvalidCommand" as InvalidCommand
 participant ":ExpenseManager" as ExpenseManager
 participant ":Ui" as Ui
-participant ":StorageManager" as StorageManager
 
 User -> Main : enters "mark 1"
 activate Main
@@ -16,30 +15,40 @@ activate Main
 Main -> Parser : parse("mark 1")
 activate Parser
 
+Parser -> Parser : parseMarkCommand("1")
+activate Parser
+
 alt valid index
     Parser -> InputValidator : validateIndex("1", "mark")
     activate InputValidator
-    InputValidator --> Parser : index = 1
+    InputValidator --> Parser : 1
     deactivate InputValidator
 
     create MarkCommand
-    Parser -> MarkCommand : new MarkCommand(1)
+    Parser -> MarkCommand : MarkCommand(1)
+    activate MarkCommand
+    MarkCommand --> Parser
+    deactivate MarkCommand
     Parser --> Main : markCommand
 
 else invalid index
     Parser -> InputValidator : validateIndex("invalid", "mark")
     activate InputValidator
-    InputValidator -->> Parser : throws OrCashBuddyException
+    InputValidator -->> Parser : throws OrCashBuddyException e
     deactivate InputValidator
+    deactivate Parser
 
     create InvalidCommand
-    Parser -> InvalidCommand
+    Parser -> InvalidCommand: InvalidCommand(e)
+    activate InvalidCommand
+    InvalidCommand --> Parser
+    deactivate InvalidCommand
     Parser --> Main : invalidCommand
 end
 
 deactivate Parser
 
-alt valid mark command
+alt command is MarkCommand
     Main -> MarkCommand : execute(expenseManager, ui)
     activate MarkCommand
 
@@ -48,11 +57,8 @@ alt valid mark command
     ExpenseManager --> MarkCommand : markedExpense
     deactivate ExpenseManager
 
-    MarkCommand -> Ui : showSeparator()
-    activate Ui
-    deactivate Ui
 
-    MarkCommand -> Ui : showMarkedExpense(expense)
+    MarkCommand -> Ui : showMarkedExpense(markedExpense)
     activate Ui
     Ui --> User : displays confirmation
     deactivate Ui
@@ -69,33 +75,16 @@ alt valid mark command
         deactivate Ui
     end
 
-    MarkCommand -> Ui : showSeparator()
-    activate Ui
-    deactivate Ui
+deactivate MarkCommand
+destroy MarkCommand
 
-    deactivate MarkCommand
-    destroy MarkCommand
-
-    Main -> StorageManager : saveExpenseManager(expenseManager, ui)
-    activate StorageManager
-    StorageManager --> Main
-    deactivate StorageManager
-
-else invalid command
+else command is InvalidCommand
     Main -> InvalidCommand : execute(expenseManager, ui)
     activate InvalidCommand
-
-    InvalidCommand -> Ui : showSeparator()
-    activate Ui
-    deactivate Ui
 
     InvalidCommand -> Ui : showMarkUsage()
     activate Ui
     Ui --> User : displays usage message
-    deactivate Ui
-
-    InvalidCommand -> Ui : showSeparator()
-    activate Ui
     deactivate Ui
 
     deactivate InvalidCommand
