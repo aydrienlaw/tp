@@ -1,164 +1,108 @@
 @startuml
-
-class Exception <<external>> {
+package "UI Component" as UI_PKG {
+  class Ui
 }
 
-package "Logic Component" {
-    class Main {
-        - {static} LOGGER : Logger
-        - ui : Ui
-        - expenseManager : ExpenseManager
-        - parser : Parser
-        --
-        + Main()
-        + run() : void
-        - readInput(scanner : Scanner) : String
-        - executeCommand(input : String) : boolean
-        + {static} main(args : String[]) : void
-    }
+package "Model Component" as MODEL_PKG {
+  class ExpenseManager
+}
 
-    class Parser {
-        - {static} LOGGER : Logger
-        - {static} COMMAND_WORD_INDEX : int = 0
-        - {static} ARGUMENTS_INDEX : int = 1
-        - {static} MAX_SPLIT_PARTS : int = 2
-        - {static} AMOUNT_PREFIX : String = "a/"
-        - {static} DESCRIPTION_PREFIX : String = "desc/"
-        - {static} CATEGORY_PREFIX : String = "cat/"
-        - {static} INDEX_PREFIX : String = "id/"
-        --
-        + parse(userInput : String) : Command
-        - parseAddCommand(arguments : String) : Command
-        - parseByeCommand(arguments : String) : Command
-        - parseSetBudgetCommand(arguments : String) : Command
-        - parseDeleteCommand(arguments : String) : Command
-        - parseMarkCommand(arguments : String) : Command
-        - parseUnmarkCommand(arguments : String) : Command
-        - parseFindCommand(arguments : String) : Command
-        - parseEditCommand(arguments : String) : Command
-    }
+package "Logic Component" as LOGIC_PKG {
+  class Main {
+    - ui : Ui
+    - expenseManager : ExpenseManager
+    - parser : Parser
+    --
+    + run() : void
+    + {static} main(args : String[]) : void
+  }
 
-    class ArgumentParser {
-        - {static} allPrefixes : String[] = {"id/", "a/", "desc/", "cat/"}
-        - input : String
-        --
-        + getValue(prefix : String) : String
-        + getOptionalValue(prefix : String) : String
-        - findNextPrefix(currentPrefixIdx : int) : int
-    }
+  class Parser {
+    --
+    + parse(userInput : String) : Command
+  }
 
-    class InputValidator {
-        --
-        + {static} validateAmount(amountStr : String, commandName : String) : double
-        + {static} validateDescription(description : String, commandName : String) : String
-        + {static} validateCategory(category : String, commandName : String) : String
-        + {static} validateIndex(input : String, commandName : String) : int
-    }
+  class ArgumentParser {
+    - input : String
+    --
+    + getValue(prefix : String) : String
+    + getOptionalValue(prefix : String) : String
+  }
 
-    abstract class Command {
-        --
-        + {abstract} execute(expenseManager : ExpenseManager, ui : Ui) : void
-        + isExit() : boolean
-    }
+  class InputValidator {
+    --
+    + {static} validateAmount(amountStr : String, commandName : String) : double
+    + {static} validateDescription(description : String, commandName : String) : String
+    + {static} validateCategory(category : String, commandName : String) : String
+    + {static} validateIndex(input : String, commandName : String) : int
+  }
 
-    class InvalidCommand extends Command {
-        - exception : OrCashBuddyException
-        --
-        + InvalidCommand()
-        + InvalidCommand(exception : OrCashBuddyException)
-        + execute(expenseManager : ExpenseManager, ui : Ui) : void
-        - showContextualUsage(errorMessage : String, ui : Ui) : void
-    }
+  abstract class Command {
+    --
+    + {abstract} execute(expenseManager : ExpenseManager, ui : Ui) : void
+    + isExit() : boolean
+  }
 
+  class InvalidCommand extends Command {
+    - exception : OrCashBuddyException
+    --
+    + execute(expenseManager : ExpenseManager, ui : Ui) : void
+  }
+
+  package "Errors & Exceptions" as ERR_PKG {
     class OrCashBuddyException {
-        --
-        + OrCashBuddyException(message : String)
-        + OrCashBuddyException(message : String, cause : Throwable)
-        + {static} missingAmountPrefix() : OrCashBuddyException
-        + {static} emptyAmount(commandName : String) : OrCashBuddyException
-        + {static} invalidAmount(amountStr : String) : OrCashBuddyException
-        + {static} invalidAmount(amountStr : String, cause : Throwable) : OrCashBuddyException
-        + {static} amountNotPositive(amountStr : String) : OrCashBuddyException
-        + {static} missingDescriptionPrefix() : OrCashBuddyException
-        + {static} emptyDescription(commandName : String) : OrCashBuddyException
-        + {static} emptyCategory(commandName : String) : OrCashBuddyException
-        + {static} invalidCategory(category : String) : OrCashBuddyException
-        + {static} missingExpenseIndex(commandName : String) : OrCashBuddyException
-        + {static} invalidExpenseIndex() : OrCashBuddyException
-        + {static} invalidExpenseIndex(cause : Throwable) : OrCashBuddyException
-        + {static} expenseIndexTooSmall() : OrCashBuddyException
-        + {static} expenseIndexOutOfRange(index : int, maxIndex : int) : OrCashBuddyException
-        + {static} missingBudgetAmount() : OrCashBuddyException
-        + {static} emptyExpenseList() : OrCashBuddyException
+      --
+      + OrCashBuddyException(message : String)
+      + OrCashBuddyException(message : String, cause : Throwable)
     }
+
+    class Exception <<external>> { }
+  }
 }
 
-package "Model Component" {
-    class ExpenseManager {
-    }
-}
-
-package "UI Component" {
-    class Ui {
-    }
-}
-
+' Main relationships
 Main --> Parser : uses
+Main --> Ui : uses
 Main ..> ExpenseManager : uses
-Main --> Ui : interacts with
 Main ..> Command : executes
 
+' Parser relationships
 Parser ..> Command : creates
 Parser ..> ArgumentParser : uses
 Parser ..> InputValidator : uses
 Parser ..> OrCashBuddyException : throws
 
+' Helper class relationships
 ArgumentParser ..> OrCashBuddyException : throws
 InputValidator ..> OrCashBuddyException : throws
 
+' Command relationships
 Command ..> ExpenseManager : modifies
-Command ..> Ui : displays via
-
+Command ..> Ui : uses
 InvalidCommand ..> OrCashBuddyException : wraps
 
+' Exception hierarchy
 OrCashBuddyException --|> Exception
 
 note right of Main
-  Entry point of the application.
-  Contains the main loop that:
-  1. Reads user input
-  2. Parses commands via Parser
-  3. Executes commands
-  4. Saves state after each command
+  Entry point with main loop:
+  reads input → parses → executes → saves
 end note
 
-note top of Parser
-  Parses raw user input into
-  Command objects. Splits input
-  into command word and arguments,
-  then delegates to specific
-  parse methods.
-end note
-
-note bottom of ArgumentParser
-  Extracts prefixed values from
-  command arguments (e.g., "a/50"
-  extracts "50" for prefix "a/").
-  Does not validate semantics.
-end note
-
-note bottom of InputValidator
-  Validates and sanitizes input
-  values for amount, description,
-  category, and index. Throws
-  OrCashBuddyException on invalid input.
+note right of Parser
+  Parses user input into Command objects
+  using ArgumentParser and InputValidator
 end note
 
 note bottom of Command
-  Abstract base class for all
-  commands. Each concrete command
-  implements execute() to perform
-  its specific action.
+  Abstract base for all commands.
+  Concrete commands: Add, Delete, Edit,
+  Mark, Unmark, Find, Sort, List,
+  SetBudget, Help, Bye, Invalid
 end note
+
+' Keep error types close together and out of main traffic
+ERR_PKG -[hidden]down- LOGIC_PKG
+MODEL_PKG -[hidden]up- UI_PKG
 
 @enduml
