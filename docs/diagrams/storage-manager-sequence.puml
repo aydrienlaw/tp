@@ -20,48 +20,60 @@ deactivate Ui
 Main -> StorageManager : loadExpenseManager(ui)
 activate StorageManager
 
-StorageManager -> File : check if data directory exists
-activate File
+
 alt directory does not exist
+    StorageManager -> File : check if data directory exists
+    activate File
     File --> StorageManager : false
+    deactivate File
     StorageManager -> File : mkdir()
+    activate File
     File --> StorageManager : directory created
+    deactivate File
 else directory exists
+    StorageManager -> File : check if data directory exists
+    activate File
     File --> StorageManager : true
+    deactivate File
 end
 deactivate File
 
-StorageManager -> File : check if appdata.ser exists
-activate File
 alt file does not exist
+    StorageManager -> File : check if appdata.ser exists
+    activate File
     File --> StorageManager : false
+    deactivate File
     StorageManager -> File : createNewFile()
+    activate File
     File --> StorageManager : file created
+    deactivate File
     create participant ":ExpenseManager" as ExpenseManager
     StorageManager -> ExpenseManager : new ExpenseManager()
     activate ExpenseManager
     ExpenseManager --> StorageManager : empty instance
     deactivate ExpenseManager
 else file exists
+    StorageManager -> File : check if appdata.ser exists
+    activate File
     File --> StorageManager : true
+    deactivate File
     StorageManager -> File : read from ObjectInputStream
+    activate File
     File --> StorageManager : serialized data
+    deactivate File
     StorageManager -> ExpenseManager : deserialize object
     activate ExpenseManager
     ExpenseManager --> StorageManager : loaded instance
     deactivate ExpenseManager
 end
-deactivate File
 
 StorageManager --> Main : return ExpenseManager
 deactivate StorageManager
 
-activate ExpenseManager
-
 ' Show welcome message
 Main -> Ui : showWelcome()
 activate Ui
-Ui --> Main : display welcome
+Ui --> User : display welcome
 deactivate Ui
 
 ' User input loop
@@ -69,45 +81,43 @@ User -> Main : input command
 Main -> Main : executeCommand(input)
 activate Main
 Main -> ExpenseManager : execute command logic
+activate ExpenseManager
 ExpenseManager --> Main : command executed
+deactivate ExpenseManager
 deactivate Main
 
 ' Save ExpenseManager after command execution
 Main -> StorageManager : saveExpenseManager(expenseManager, ui)
 activate StorageManager
 
-StorageManager -> File : check if data directory exists
-activate File
 alt directory does not exist
+    StorageManager -> File : check if data directory exists
+    activate File
     File --> StorageManager : false
+    deactivate File
     StorageManager -> File : mkdir()
+    activate File
     File --> StorageManager : directory created
+    deactivate File
 else directory exists
+    StorageManager -> File : check if data directory exists
+    activate File
     File --> StorageManager : true
+    deactivate File
 end
-deactivate File
 
 StorageManager -> File : write to ObjectOutputStream
 activate File
 File -> ExpenseManager : serialize object
+activate ExpenseManager
 ExpenseManager --> File : serialized data
+deactivate ExpenseManager
 File --> StorageManager : write complete
 deactivate File
 
 StorageManager --> Main : save complete
 deactivate StorageManager
 
-' Continue loop or exit
-alt user enters "bye"
-    User -> Main : bye command
-    Main -> Ui : showGoodbye()
-    activate Ui
-    Ui --> Main : display goodbye
-    deactivate Ui
-    deactivate ExpenseManager
-    deactivate Main
-else continue
-    User -> Main : next command
-end
+
 
 @enduml
