@@ -76,7 +76,9 @@ Follow these steps to set up the project in IntelliJ IDEA:
 
 The `Ui` class handles all console-based user interactions in orCASHbuddy.
 
-#### Structure of the UI Component
+<br>
+
+#### UI Component Class Diagram
 ![UI Component Class Diagram](images/ui-component-class.png)
 
 <br>
@@ -130,13 +132,18 @@ Here is your list of expenses:
 ---------------------------------------------------------------
 ```
 
-<br>
+***
 
 ### Logic Component
 
 **API**: `Parser.java`, `Command.java`
 
 The Logic component is responsible for making sense of user commands.
+
+<br>
+
+#### Logic Component Class Diagram
+![Logic Component Class Diagram](images/logic-component-class.png)
 
 <br>
 
@@ -272,11 +279,18 @@ Ui displays: "Invalid format. Use: add a/AMOUNT desc/DESCRIPTION [cat/CATEGORY]"
 - **Command Pattern Consistency:** All parsing outcomes return Command objects
 - **Error Context:** Preserves exception information for contextual feedback
 
-<br>
+***
 
 ### Model Component
 
 **API**: `ExpenseManager.java`, `Expense.java`
+
+<br>
+
+#### Model Component Class Diagram
+![Model Component Class Diagram](images/model-component-class.png)
+
+<br>
 
 #### Responsibilities
 The `Model` component represents the application's core data and business logic. It:
@@ -308,20 +322,24 @@ The `Model` component represents the application's core data and business logic.
 
 #### Key Invariants Maintained by ExpenseManager:
 
-1. **Budget Positivity:** `budget > 0.0` (enforced via assertions)
+1. **Budget Positivity:** `budget > 0.0`
 2. **Balance Consistency:** `remainingBalance = budget - totalExpenses` (recalculated after every budget or expense change)
 3. **Total Accuracy:** `totalExpenses` equals the sum of all marked expense amounts (updated when expenses are marked/unmarked/deleted)
 4. **Index Validity:** All operations accepting indices validate against list size before access
 5. **Expense Validity:** All expenses must have positive amounts, non-blank descriptions, and valid categories
 
-<br>
+***
 
 ## Storage Component
 
 **API**: `StorageManager.java`
 
-#### Sequence Diagram
+<br>
+
+#### Storage Component Class Diagram
 ![Storage Component Class Diagram](images/storage-component-class.png)
+
+<br>
 
 #### Responsibilities
 
@@ -406,6 +424,8 @@ The add-expense workflow transforms a single line of user input into a populated
 #### Sequence Diagram
 ![Add Sequence Diagram](images/add_feature.png)
 
+<br>
+
 #### Control Flow
 
 1. **Input capture:** `Main` reads the raw line and forwards it to `Parser`.
@@ -440,7 +460,7 @@ During parsing, `OrCashBuddyException`s raised by `InputValidator` are caught in
 - **Positional arguments:** Rejected because optional fields would force users to remember ordering, increasing input errors.
 - **Validation inside `AddCommand`:** We deliberately kept parsing and validation upstream; performing both in the command would dilute separation of concerns and complicate error messaging.
 
-<br>
+***
 
 ### Set Budget Feature
 
@@ -449,6 +469,13 @@ During parsing, `OrCashBuddyException`s raised by `InputValidator` are caught in
 The set budget feature allows users to establish a total budget amount that serves as a spending limit for tracking expenses. Users specify the budget using the command `setbudget a/AMOUNT`, where the amount must be a positive decimal value. This budget becomes the baseline for all financial tracking, enabling the application to calculate remaining balance, detect overspending, and trigger budget alerts.
 
 The budget is persistent across application sessions and can be updated at any time by issuing a new `setbudget` command. When the budget is modified, the application immediately recalculates the remaining balance based on currently marked (paid) expenses.
+
+<br>
+
+#### Sequence Diagram
+![Set Budget Sequence Diagram](images/set-budget-sequence.png)
+
+<br>
 
 #### Control Flow
 
@@ -599,7 +626,7 @@ We considered requiring confirmation when updating an existing budget (e.g., "Yo
 
 By keeping budget setting simple and immediate, orCASHbuddy maintains its lightweight, keyboard-centric design philosophy while providing the essential functionality needed for expense tracking.
 
-<br>
+***
 
 ### Mark/Unmark Expense Feature
 
@@ -609,12 +636,17 @@ The mark/unmark workflow allows users to track which expenses have been paid, au
 
 Marking an expense triggers three critical updates: the expense's internal paid state flips to true, the `ExpenseManager` increments `totalExpenses` by the expense amount, and `remainingBalance` is recalculated. Unmarking reverses these operations, decrementing totals and restoring the balance. This design ensures budget tracking remains accurate and responsive to real-world payment workflows.
 
+<br>
+
 #### Sequence Diagram
+
 ##### Mark
 ![Mark Sequence Diagram](images/mark-sequence.png)
 
 ##### Unmark
 ![Unmark Sequence Diagram](images/unmark-sequence.png)
+
+<br>
 
 #### Control Flow
 
@@ -703,7 +735,7 @@ These logs are essential for verifying correct budget arithmetic during manual t
     - Emoji require Unicode support and increase display width.
     - Bracket notation is text-based, universally compatible, and familiar to users from todo list applications (including the CS2113 iP assignment).
 
-<br>
+***
 
 ### Find Expense Feature
 
@@ -713,8 +745,12 @@ The find workflow enables users to quickly locate expenses by searching either c
 
 The find operation performs case-insensitive substring matching, prioritizing ease of use over exact matching. A search for `cat/food` will match expenses categorized as "Food", "Fast Food", or "Seafood". This approach reduces the cognitive burden of remembering exact category names or descriptions, particularly useful when users manage dozens of expenses across multiple categories. The search is read-only and does not modify any data, making it safe to use exploratively without risk of accidental changes.
 
+<br>
+
 #### Sequence Diagram
 ![Find Sequence Diagram](images/find-sequence.png)
+
+<br>
 
 #### Control Flow
 
@@ -861,7 +897,7 @@ Case-sensitive matching was rejected because:
 - **Search result caching:** We considered storing the last search results in `ExpenseManager` to support pagination or follow-up operations. Rejected because it introduces statefulness that complicates testing and doesn't align with the stateless command model used elsewhere.
 - **Multi-field unified search:** A single `search KEYWORD` command that checks all fields (category, description, amount) was considered but rejected because amount matching requires different logic (numerical comparison vs string matching), and unified results would be harder to interpret.
 
-<br>
+***
 
 ### Delete Expense Feature
 
@@ -872,8 +908,12 @@ The command updates the stored data automatically, ensuring that the deleted exp
 Deletion is an irreversible operation, once an expense is deleted, it cannot be recovered. However, we designed the workflow to be deliberate and safe by requiring explicit index input and validating that the list is not empty before proceeding. 
 This prevents accidental deletions and ensures data integrity.
 
+<br>
+
 #### Sequence Diagram
 ![Delete Sequence Diagram](images/delete-feature.png)
+
+<br>
 
 #### Control Flow
 
@@ -981,7 +1021,7 @@ Rejected due to ambiguity when duplicate names exist. Index-based deletion remai
 ##### Deferred deletion
 We considered queuing deletions and saving all at exit. Rejected in favor of immediate persistence for reliability and simplicity.
 
-<br>
+***
 
 ### Edit Expense Feature
 
@@ -989,8 +1029,16 @@ We considered queuing deletions and saving all at exit. Rejected in favor of imm
 
 The **Edit Expense** feature allows users to modify details of an existing expense, such as the amount, description, or category, without deleting and re-adding it. This makes it easier for users to correct mistakes or update expense information while keeping accurate totals.
 
+<br>
+
+#### Sequence Diagram
+![Edit Sequence Diagram](images/edit-sequence.png)
+
+<br>
+
 #### Implementation
 The `EditCommand` class extends `Command` and performs the update by replacing the specified `Expense` with a new `Expense` object containing the modified details.
+
 #### Control Flow
 
 1. **Input Capture:**  
@@ -1021,8 +1069,6 @@ The `EditCommand` class extends `Command` and performs the update by replacing t
 
 5. **Data Persistence:**  
    `StorageManager#saveExpenseManager` is invoked to immediately persist the updated expense list to disk, ensuring no data is lost.
-
-![Edit Sequence Diagram](images/edit-sequence.png)
 
 #### Example
 
@@ -1073,7 +1119,7 @@ Users may only want to fix one detail (e.g., typo in description), so optional p
 - **Batch editing:** Enable simultaneous modification of multiple expenses.
 - **Undo/redo support:** Integrate with a command history system for reversible edits.
 
-<br>
+***
 
 ### Sort Expenses Feature
 
@@ -1084,8 +1130,12 @@ This provides an immediate way to identify the largest expenditures and helps us
 The command does not modify the original expense list to preserve insertion order, and it automatically updates the UI to display the sorted list. 
 If no expenses exist, the system provides a clear message instead of failing, ensuring a user-friendly experience.
 
+<br>
+
 #### Sequence Diagram
 ![Sort Sequence Diagram](images/sort-feature.png)
+
+<br>
 
 #### Control Flow
 
@@ -1191,7 +1241,7 @@ Rejected since sorting is purely a viewing operation and should not alter stored
 ##### Multi-criteria sorting
 Considered (e.g., sort by amount then category), but initially implemented simple descending amount sort to keep the CLI lightweight and intuitive.
 
-<br>
+***
 
 ### Storage Management Feature
 
@@ -1216,8 +1266,12 @@ Users do not have to key in a command to save or load data.
 
 This is a binary serialized file using Java's built-in serialization mechanism (`ObjectOutputStream` / `ObjectInputStream`).
 
+<br>
+
 #### Sequence Diagram
 ![Storage Manager Sequence Diagram](images/storage-manager-sequence.png)
+
+<br>
 
 #### Control Flow
 
@@ -1298,7 +1352,7 @@ All exceptions are caught internally to prevent the application from crashing du
 * All storage events are logged at `INFO` for successful operations and `WARNING` for failures.
 * Enables tracing of storage-related issues during debugging or testing.
 
-<br>
+***
 
 ### Graceful Exit
 
@@ -1306,8 +1360,12 @@ All exceptions are caught internally to prevent the application from crashing du
 
 Exiting the application used to depend on `Main` inspecting raw input (checking for `bye`). This tightly coupled the loop to a single keyword and prevented other commands from influencing shutdown behaviour. The redesigned flow delegates responsibility to `ByeCommand`, aligning termination with the rest of the command framework and paving the way for richer exit scenarios (e.g., confirm prompts, autosave).
 
+<br>
+
 #### Sequence Diagram
 ![Bye Sequence Diagram](images/bye_feature.png)
+
+<br>
 
 #### Control Flow
 
@@ -1330,7 +1388,7 @@ The sequence diagram stored at `docs/diagrams/bye-sequence.puml` captures this f
 
 By keeping farewell handling within the command framework, orCASHbuddy maintains a coherent abstraction and prepares for richer lifecycle management in subsequent releases.
 
-<br>
+***
 
 ### Help Feature
 
@@ -1338,8 +1396,12 @@ By keeping farewell handling within the command framework, orCASHbuddy maintains
 
 The help feature provides users with a comprehensive list of available commands and their usage formats. This is crucial for user onboarding and as a quick reference for command syntax. The `help` command is designed to be simple and stateless, focusing solely on displaying information.
 
+<br>
+
 #### Sequence Diagram
 ![Help Sequence Diagram](images/help-sequence.png)
+
+<br>
 
 #### Control Flow
 
@@ -1364,7 +1426,7 @@ The sequence diagram in `docs/diagrams/help-sequence.puml` illustrates these int
 - **Contextual Help:** Future enhancements could include `help <command_name>` to provide specific details for a given command.
 - **Pagination:** For a very large number of commands, pagination could be introduced to display help information in chunks.
 
-<br>
+***
 
 ### List Feature
 
@@ -1373,7 +1435,7 @@ The sequence diagram in `docs/diagrams/help-sequence.puml` illustrates these int
 The List Feature displays all recorded expenses along with a real-time financial summary. This includes the user’s current budget, total spending, remaining balance, and a visual progress bar that indicates budget utilization.
 
 The `list` command serves as a core read-only function within the application, offering users an at-a-glance understanding of their financial status and detailed visibility into all tracked expenses. 
-#### Control Flow
+
 #### Control Flow
 
 1. **Input Capture:** `Main` reads the user's command (`list`) and forwards it to `Parser`.
@@ -1401,8 +1463,12 @@ The `list` command serves as a core read-only function within the application, o
    The `list` command is a **read-only** operation that does not modify application data.
    - As part of the standard execution flow, `StorageManager.saveExpenseManager` is still called after execution, but no new data is persisted.
 
+<br>
 
+#### Sequence Diagram
 ![List Sequence Diagram](images/list-sequence.png)
+
+<br>
 
 #### Rationale
 
