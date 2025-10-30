@@ -17,6 +17,9 @@ User -> Main : enters "setbudget a/500"
 Main -> Parser : parse("setbudget a/500")
 activate Parser
 
+Parser -> Parser : parseSetBudgetCommand("a/500")
+activate Parser
+
 create ArgumentParser
 Parser -> ArgumentParser : "a/500"
 activate ArgumentParser
@@ -24,7 +27,7 @@ Parser -> ArgumentParser : getValue("a/")
 ArgumentParser --> Parser : "500"
 deactivate ArgumentParser
 
-alt successful parsing
+alt valid amount
 
     Parser -> InputValidator : validateAmount("500", "setbudget")
     activate InputValidator
@@ -35,16 +38,20 @@ alt successful parsing
     Parser -> SetBudgetCommand : 500.0
     Parser --> Main : setBudgetCommand
 
-else validation fails
+else invalid amount
 
     Parser -> InputValidator : validateAmount("invalid", "setbudget")
     activate InputValidator
     InputValidator -->> Parser : throws OrCashBuddyException
     deactivate InputValidator
 
+    deactivate Parser
+
     create InvalidCommand
     Parser -> InvalidCommand
     Parser --> Main : invalidCommand
+
+    deactivate Parser
 
 end
 
