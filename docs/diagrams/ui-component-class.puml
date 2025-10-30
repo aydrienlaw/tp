@@ -1,5 +1,5 @@
 @startuml
-!define LIGHTBLUE
+hide circle
 skinparam classAttributeIconSize 0
 
 package "UI Component" {

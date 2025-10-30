@@ -1,4 +1,7 @@
 @startuml
+hide circle
+skinparam classAttributeIconSize 0
+
 package "UI Component" as UI_PKG {
   class Ui
 }
