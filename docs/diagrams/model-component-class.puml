@@ -47,7 +47,7 @@ package "Model Component" {
         + formatForDisplay() : String
     }
 
-    enum BudgetStatus {
+    enum BudgetStatus <<enumeration>> {
         EXCEEDED
         EQUAL
         NEAR

@@ -2,7 +2,7 @@
 hide circle
 skinparam classAttributeIconSize 0
 
-interface Serializable <<interface>> {
+class Serializable <<interface>> {
 }
 
 class StorageManager {
